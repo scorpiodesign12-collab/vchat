@@ -310,7 +310,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div class="tab on" id="tabChats">
       <!-- Chat list -->
       <div class="chatListPane">
-        <div class="header"><span>Чаты</span><div class="headerBadge" id="chatsBadge"></div></div>
+        <div class="header"><span>Чаты</span></div>
         <div class="searchWrap">
           <div class="searchBox" id="userSearchBox">
             <svg class="uSearchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -610,18 +610,9 @@ function nowTime(){
   return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
 }
 
-/* ---------- непрочитанные сообщения (бейдж) ---------- */
+/* ---------- непрочитанные сообщения (бейдж на строке чата) ---------- */
 function updateUnreadBadge(){
-  let total=0;
-  Object.keys(chatMeta).forEach(n=>{ total+=(chatMeta[n].unread||0); });
-  let badge=document.getElementById('chatsBadge');
-  if(!badge)return;
-  if(total>0){
-    badge.textContent=total>99?'99+':String(total);
-    badge.classList.add('show');
-  }else{
-    badge.classList.remove('show');
-  }
+  // глобальный бейдж у заголовка "Чаты" убран по просьбе — бейджи остаются только на строках чатов
 }
 
 function avatarHtmlFor(name){

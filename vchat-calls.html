@@ -71,7 +71,7 @@ body{display:flex;}
     </div>
     <div class="btnCol">
       <button class="cbtn decline" onclick="endCall()" title="Завершить">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z" transform="rotate(135 12 12)"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
       </button>
       <span class="outgoingLabel">Завершить</span>
     </div>
@@ -86,7 +86,7 @@ body{display:flex;}
   <div class="incomingRow" id="controlsIncoming" style="display:none;">
     <div class="btnCol">
       <button class="cbtn decline" onclick="declineCall()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z" transform="rotate(135 12 12)"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
       </button>
       <span class="incomingLabel">Отклонить</span>
     </div>
@@ -141,7 +141,18 @@ let pc=null, localStream=null, remoteStream=null;
 let pendingIce=[];
 let logged=false;
 
-const RTC_CONFIG={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]};
+const RTC_CONFIG={iceServers:[
+  {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
+  {urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject'}
+]};
+
+function unlockAudioPlayback(){
+  const audioEl=document.getElementById('remoteAudio');
+  audioEl.play().catch(()=>{});
+}
+document.addEventListener('click',unlockAudioPlayback,{once:false});
 
 async function getMic(){
   if(localStream) return localStream;
@@ -159,7 +170,17 @@ function createPeer(){
   pc=new RTCPeerConnection(RTC_CONFIG);
   remoteStream=new MediaStream();
   document.getElementById('remoteAudio').srcObject=remoteStream;
-  pc.ontrack=(e)=>{ e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t)); };
+  pc.ontrack=(e)=>{
+    e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
+    const audioEl=document.getElementById('remoteAudio');
+    audioEl.srcObject=remoteStream;
+    audioEl.play().catch(()=>{ showToast('Нажмите экран, чтобы включить звук'); });
+  };
+  pc.oniceconnectionstatechange=()=>{
+    if(pc && (pc.iceConnectionState==='failed')){
+      showToast('Не удалось установить соединение для звука');
+    }
+  };
   pc.onicecandidate=(e)=>{
     if(e.candidate){
       sessionChannel.send({type:'broadcast',event:'webrtc-ice',payload:{candidate:e.candidate}});
