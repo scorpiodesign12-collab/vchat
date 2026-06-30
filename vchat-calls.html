@@ -702,6 +702,14 @@ function openChat(name){
   if(!chats[name])chats[name]=[];
   closeCwSearch();
   cancelReply();
+  let callBtn=document.getElementById('cwCallBtn');
+  if(callBtn){
+    if(name!=='Избранное'&&meta&&meta.uid){
+      callBtn.style.display='flex';
+    }else{
+      callBtn.style.display='none';
+    }
+  }
   let pane=document.getElementById('chatDetailPane');
   pane.classList.add('open','chatActive');
   renderChat();
@@ -711,6 +719,8 @@ function backToChats(){
   document.getElementById('chatDetailPane').classList.remove('open','chatActive');
   closeCwSearch();
   curChat='';
+  let callBtn=document.getElementById('cwCallBtn');
+  if(callBtn)callBtn.style.display='none';
 }
 
 /* ---------- render chat ---------- */
@@ -943,7 +953,7 @@ function autoResize(el){
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight,140)+'px';
 }
-function sendMsg(){
+function localSendMsg(){
   let inp=document.getElementById('cwInput');
   let text=inp.value.trim();
   let hasFile=pendingFile!==null;
@@ -1085,10 +1095,48 @@ async function vchatInit(){
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
   renderProfileView();
+  await vchatLoadConversations();
   vchatHeartbeat();
   setInterval(vchatHeartbeat,20000);
   vchatSubscribeMessages();
   vchatListenForCalls();
+}
+async function vchatLoadConversations(){
+  const {data,error}=await sb.from('messages').select('*')
+    .or(`sender_id.eq.${vchatUser.id},receiver_id.eq.${vchatUser.id}`)
+    .order('created_at',{ascending:true});
+  if(error||!data||!data.length)return;
+  let partnerIds=new Set();
+  data.forEach(m=>{
+    let otherId=m.sender_id===vchatUser.id?m.receiver_id:m.sender_id;
+    partnerIds.add(otherId);
+  });
+  partnerIds.delete(vchatUser.id);
+  if(!partnerIds.size)return;
+  const {data:profiles}=await sb.from('profiles').select('id,username,display_name').in('id',Array.from(partnerIds));
+  if(!profiles)return;
+  let idToProfile={};
+  profiles.forEach(p=>idToProfile[p.id]=p);
+  let newOrder=[];
+  partnerIds.forEach(uid=>{
+    let p=idToProfile[uid];
+    if(!p)return;
+    let username=p.username, dispname=p.display_name||p.username;
+    if(!chatMeta[username]){
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid};
+    }else{
+      chatMeta[username].uid=uid;
+    }
+    let myMsgs=data.filter(m=>m.sender_id===uid||m.receiver_id===uid);
+    chats[username]=myMsgs.map(m=>{
+      let d=new Date(m.created_at);
+      return {id:m.id,from:m.sender_id===vchatUser.id?'out':'in',text:m.content,type:'text',time:d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')};
+    });
+    if(myMsgs.length)chatMeta[username].last=myMsgs[myMsgs.length-1].content;
+    newOrder.push(username);
+  });
+  chatOrder=[...newOrder,...chatOrder.filter(n=>!newOrder.includes(n))];
+  renderChatRows();
 }
 function vchatListenForCalls(){
   sb.channel('call-'+vchatUser.id)
@@ -1164,13 +1212,12 @@ async function vchatOpenRealChat(username,uid,dispname){
 }
 
 /* ---------- реальная отправка сообщений ---------- */
-const _origSendMsg=sendMsg;
 function sendMsg(){
   let inp=document.getElementById('cwInput');
   let text=inp.value.trim();
   let chatName=curChat;
   let meta=chatMeta[chatName];
-  _origSendMsg();
+  localSendMsg();
   if(text&&meta&&meta.uid&&vchatUser){
     sb.from('messages').insert({sender_id:vchatUser.id,receiver_id:meta.uid,content:text})
       .then(({error})=>{ if(error)console.error(error); });
