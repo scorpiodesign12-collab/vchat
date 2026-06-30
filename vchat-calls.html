@@ -168,33 +168,24 @@ if(mode==='outgoing'){
   document.getElementById('controlsOutgoing').style.display='flex';
   avatarWrap.classList.add('ringing');
   document.getElementById('callStatus').textContent='Вызов...';
-  (async ()=>{
-    const online = await checkOnline(otherUid);
-    if(!online){
-      document.getElementById('callStatus').textContent='Собеседник не в сети';
-      showToast(otherName+' сейчас не в сети');
-      setTimeout(()=>{ window.location.href='vchat-menu.html'; },1800);
-      return;
+  const outCh = sb.channel('call-'+otherUid);
+  outCh.subscribe((status)=>{
+    if(status==='SUBSCRIBED'){
+      outCh.send({
+        type:'broadcast', event:'incoming_call',
+        payload:{ from:myId, fromName:myName, callId:callId }
+      });
     }
-    const outCh = sb.channel('call-'+otherUid);
-    outCh.subscribe((status)=>{
-      if(status==='SUBSCRIBED'){
-        outCh.send({
-          type:'broadcast', event:'incoming_call',
-          payload:{ from:myId, fromName:myName, callId:callId }
-        });
-      }
-    });
-    // на случай если собеседник не ответит совсем — завершаем сами через 35 сек
-    setTimeout(()=>{
-      if(!ended && document.getElementById('callStatus').textContent==='Вызов...'){
-        document.getElementById('callStatus').textContent='Нет ответа';
-        showToast(otherName+' не отвечает');
-        ended=true;
-        setTimeout(()=>{ window.location.href='vchat-menu.html'; },1500);
-      }
-    },35000);
-  })();
+  });
+  // на случай если собеседник не ответит совсем — завершаем сами через 35 сек
+  setTimeout(()=>{
+    if(!ended && document.getElementById('callStatus').textContent==='Вызов...'){
+      document.getElementById('callStatus').textContent='Нет ответа';
+      showToast(otherName+' не отвечает');
+      ended=true;
+      setTimeout(()=>{ window.location.href='vchat-menu.html'; },1500);
+    }
+  },35000);
 }
 
 if(mode==='incoming'){

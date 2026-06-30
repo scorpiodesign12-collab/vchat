@@ -515,10 +515,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   <div class="ctxItem" onclick="ctxReply()"><span data-icon="reply"></span>Ответить</div>
   <div class="ctxItem" id="ctxPinItem" onclick="ctxPinClick()"><span data-icon="pin"></span>Закрепить</div>
 </div>
-<div class="pinChoice" id="pinChoice">
-  <div class="ctxItem" onclick="pinMessage('me')"><span data-icon="pin"></span>Закрепить у себя</div>
-  <div class="ctxItem" onclick="pinMessage('both')"><span data-icon="pin"></span>Закрепить у обоих</div>
-</div>
 
 </div>
 <script>
@@ -747,8 +743,10 @@ function openChat(name){
   if(callBtn){
     if(name!=='Избранное'&&meta&&meta.uid){
       callBtn.style.display='flex';
+      callBtn.onclick=()=>vchatStartCall(name,meta.uid,name);
     }else{
       callBtn.style.display='none';
+      callBtn.onclick=null;
     }
   }
   let pane=document.getElementById('chatDetailPane');
@@ -956,17 +954,9 @@ function ctxReply(){
   closeCtxMenu();
 }
 function ctxPinClick(){
-  let menu=document.getElementById('ctxMenu');
-  let pc=document.getElementById('pinChoice');
-  let r=menu.getBoundingClientRect();
-  pc.style.left=r.right+6+'px';
-  pc.style.top=r.top+'px';
-  if(parseFloat(pc.style.left)+200>window.innerWidth)pc.style.left=(r.left-206)+'px';
-  pc.classList.add('show');
+  pinMessage('both');
 }
-function closePinChoice(){
-  document.getElementById('pinChoice').classList.remove('show');
-}
+function closePinChoice(){}
 
 /* ---------- swipe to reply (mobile) ---------- */
 function attachSwipeHandlers(){
