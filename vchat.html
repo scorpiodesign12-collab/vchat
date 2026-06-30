@@ -376,7 +376,9 @@ function onDispnameInput(input,statusId,errId){
   else{setFieldStatus(statusId,'bad');if(err){err.textContent=dispnameStateMsg(state);err.style.display='block';}}
 }
 
-function doRegNext(){
+let regUsername='', regDispname='';
+
+async function doRegNext(){
   let uInput=document.getElementById('username');
   let dInput=document.getElementById('dispname');
   let uErr=document.getElementById('usernameError');
@@ -401,10 +403,22 @@ function doRegNext(){
     dErr.textContent=dispnameStateMsg(dState);dErr.style.display='block';
     setFieldStatus('dispStatus','bad');return;
   }
+  let btn=document.querySelector('#s3 .btn-primary');
+  if(btn)btn.textContent='Проверяю...';
+  const taken = await vchatUsernameTaken(uVal);
+  if(btn)btn.textContent='Далее';
+  if(taken){
+    uErr.textContent='Этот юзернейм уже занят';uErr.style.display='block';
+    setFieldStatus('regStatus','bad');return;
+  }
+  regUsername=uVal;
+  regDispname=dVal;
   nav('s4');
 }
 
-function doLoginNext(){
+let loginUsernameVal='';
+
+async function doLoginNext(){
   let input=document.getElementById('loginUsername');
   let err=document.getElementById('loginUsernameError');
   let val=input.value.replace('@','');
@@ -417,7 +431,16 @@ function doLoginNext(){
     err.textContent=usernameStateMsg(state);err.style.display='block';
     setFieldStatus('loginStatus','bad');return;
   }
+  let btn=document.querySelector('#s3login .btn-primary');
+  if(btn)btn.textContent='Проверяю...';
+  const taken = await vchatUsernameTaken(val);
+  if(btn)btn.textContent='Далее';
+  if(!taken){
+    err.textContent='Такого юзернейма нет';err.style.display='block';
+    setFieldStatus('loginStatus','bad');return;
+  }
   err.style.display='none';
+  loginUsernameVal=val;
   nav('s4login');
 }
 
@@ -626,15 +649,87 @@ renderDotsConfirm();
 /* ---------- password keypad (login) ---------- */
 let pwdLogin='';
 function renderDotsLogin(){let h='';for(let i=0;i<5;i++)h+=`<div class="dot ${i<pwdLogin.length?'fill':''}"></div>`;document.getElementById('pwdotsLogin').innerHTML=h;}
-function pressLogin(n){if(pwdLogin.length<5){pwdLogin+=n;renderDotsLogin();if(pwdLogin.length===5)setTimeout(()=>{pwdLogin='';renderDotsLogin();nav('s7');},300);}}
+function pressLogin(n){
+  if(pwdLogin.length<5){
+    pwdLogin+=n;renderDotsLogin();
+    if(pwdLogin.length===5){
+      setTimeout(async ()=>{
+        const ok = await vchatLogin(loginUsernameVal, pwdLogin);
+        pwdLogin='';renderDotsLogin();
+        if(ok){
+          window.location.href='vchat-menu.html';
+        }else{
+          let t=document.querySelector('#s4login .title');
+          t.textContent='Неверный пароль';
+          t.style.color='#e25555';
+          setTimeout(()=>{t.textContent='Введи пароль';t.style.color='var(--muted)';},1400);
+        }
+      },300);
+    }
+  }
+}
 function backspaceLogin(){pwdLogin=pwdLogin.slice(0,-1);renderDotsLogin();}
 renderDotsLogin();
 
-/* ---------- finish onboarding ---------- */
-function finishOnboarding(){
-  nav('sBlank');
+/* ---------- finish onboarding: реальная регистрация в Supabase ---------- */
+async function finishOnboarding(){
+  let btn=document.querySelector('#s7 .btn-primary');
+  if(btn)btn.textContent='Создаю аккаунт...';
+  const ok = await vchatSignUp(regUsername, regDispname, pwd);
+  if(ok){
+    window.location.href='vchat-menu.html';
+  }else{
+    if(btn)btn.textContent='Готово';
+    alert('Не получилось создать аккаунт. Проверь интернет и попробуй снова.');
+  }
 }
 
+/* ---------- VChat + Supabase (база данных, аккаунты, ники) ---------- */
+const VCHAT_EMAIL_DOMAIN='@vchatusers.app';
+const VCHAT_PASS_SUFFIX='Vx9!';
+function vchatEmailFor(username){ return username.toLowerCase()+VCHAT_EMAIL_DOMAIN; }
+function vchatPassFor(pin){ return pin+VCHAT_PASS_SUFFIX; }
+
+async function vchatUsernameTaken(username){
+  try{
+    const {data}=await supabase.from('profiles').select('id').eq('username',username).maybeSingle();
+    return !!data;
+  }catch(e){ console.error(e); return false; }
+}
+
+async function vchatSignUp(username, dispname, pin){
+  try{
+    const {data,error}=await supabase.auth.signUp({
+      email: vchatEmailFor(username),
+      password: vchatPassFor(pin)
+    });
+    if(error){ console.error(error); return false; }
+    const userId=data.user ? data.user.id : (data.session?data.session.user.id:null);
+    if(!userId) return false;
+    const {error:profErr}=await supabase.from('profiles').insert({
+      id:userId, username:username, display_name:dispname
+    });
+    if(profErr){ console.error(profErr); return false; }
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+
+async function vchatLogin(username, pin){
+  try{
+    const {error}=await supabase.auth.signInWithPassword({
+      email: vchatEmailFor(username),
+      password: vchatPassFor(pin)
+    });
+    if(error){ console.error(error); return false; }
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL='https://tosomuignedjiczygceh.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
 </body>
 </html>

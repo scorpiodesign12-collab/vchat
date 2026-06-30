@@ -690,7 +690,135 @@ function sheetBackdropClick(e){
 ─────────────────────────────────────── */
 loadDeviceNames();
 buildAudioRows();
-showIncoming('Никита', '#2C7EFF');
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://tosomuignedjiczygceh.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const vchatParams = new URLSearchParams(window.location.search);
+const vchatMode = vchatParams.get('mode');
+const vchatPeerUid = vchatParams.get('uid');
+const vchatPeerName = vchatParams.get('name') || 'Собеседник';
+const vchatMyId = vchatParams.get('myid');
+const vchatMyName = vchatParams.get('myname') || 'Я';
+
+let vchatPc=null, vchatLocalStream=null, vchatRtcChannel=null, vchatRtcReady=false;
+const vchatRtcChannelName = (vchatPeerUid && vchatMyId) ? 'rtc-'+[vchatMyId,vchatPeerUid].sort().join('_') : null;
+
+async function vchatGetMic(){
+  try{
+    vchatLocalStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    return true;
+  }catch(e){ alert('Нет доступа к микрофону — разреши доступ в браузере'); return false; }
+}
+
+function vchatCreatePC(){
+  vchatPc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+  vchatLocalStream.getTracks().forEach(t=>vchatPc.addTrack(t,vchatLocalStream));
+  vchatPc.ontrack=(e)=>{
+    let audioEl=document.getElementById('remoteAudio');
+    if(!audioEl){ audioEl=document.createElement('audio'); audioEl.id='remoteAudio'; audioEl.autoplay=true; document.body.appendChild(audioEl); }
+    audioEl.srcObject=e.streams[0];
+  };
+  vchatPc.onicecandidate=(e)=>{
+    if(e.candidate&&vchatRtcChannel&&vchatRtcReady){
+      vchatRtcChannel.send({type:'broadcast',event:'ice',payload:{candidate:e.candidate,from:vchatMyId}});
+    }
+  };
+  vchatPc.onconnectionstatechange=()=>{
+    if(vchatPc.connectionState==='connected'){
+      document.getElementById('callStatusText').textContent='Идёт разговор';
+      document.getElementById('callStatus').style.display='none';
+      document.getElementById('callTimer').style.display='block';
+      startTimer();
+    }
+  };
+}
+
+function vchatSubscribeRtc(onReady){
+  vchatRtcChannel=supabase.channel(vchatRtcChannelName);
+  vchatRtcChannel
+    .on('broadcast',{event:'ready'},()=>{ vchatCallerMakeOffer(); })
+    .on('broadcast',{event:'offer'},async (msg)=>{
+      let ok=await vchatGetMic(); if(!ok)return;
+      vchatCreatePC();
+      await vchatPc.setRemoteDescription(new RTCSessionDescription(msg.payload.sdp));
+      const answer=await vchatPc.createAnswer();
+      await vchatPc.setLocalDescription(answer);
+      vchatRtcChannel.send({type:'broadcast',event:'answer',payload:{sdp:answer}});
+    })
+    .on('broadcast',{event:'answer'},async (msg)=>{
+      if(vchatPc)await vchatPc.setRemoteDescription(new RTCSessionDescription(msg.payload.sdp));
+    })
+    .on('broadcast',{event:'ice'},async (msg)=>{
+      if(msg.payload.from===vchatMyId||!vchatPc)return;
+      try{ await vchatPc.addIceCandidate(msg.payload.candidate); }catch(e){}
+    })
+    .on('broadcast',{event:'hangup'},()=>{ vchatRemoteHangup(); })
+    .subscribe((status)=>{ if(status==='SUBSCRIBED'){ vchatRtcReady=true; if(onReady)onReady(); } });
+}
+
+async function vchatCallerMakeOffer(){
+  let ok=await vchatGetMic(); if(!ok)return;
+  vchatCreatePC();
+  const offer=await vchatPc.createOffer();
+  await vchatPc.setLocalDescription(offer);
+  vchatRtcChannel.send({type:'broadcast',event:'offer',payload:{sdp:offer}});
+}
+
+function vchatRemoteHangup(){
+  document.getElementById('callStatusText').textContent='Звонок завершён';
+  setTimeout(()=>{ endCall(); },700);
+}
+
+async function vchatInitCall(){
+  if(vchatMode==='outgoing'&&vchatPeerUid&&vchatMyId){
+    startCall(vchatPeerName,'#2C7EFF','outgoing');
+    vchatSubscribeRtc(()=>{
+      const inviteCh=supabase.channel('call-'+vchatPeerUid);
+      inviteCh.subscribe((status)=>{
+        if(status==='SUBSCRIBED'){
+          inviteCh.send({type:'broadcast',event:'incoming_call',payload:{from:vchatMyId,fromName:vchatMyName}});
+        }
+      });
+    });
+  }else if(vchatMode==='incoming'&&vchatPeerUid&&vchatMyId){
+    showIncoming(vchatPeerName,'#2C7EFF');
+    vchatSubscribeRtc();
+  }else{
+    document.getElementById('incomingScreen').classList.remove('active');
+  }
+}
+
+acceptCall=function(){
+  let name=document.getElementById('incomingName').textContent;
+  let col=document.getElementById('incomingAv').style.background;
+  document.getElementById('incomingScreen').classList.remove('active');
+  startCall(name,col,'incoming');
+  if(vchatRtcChannel&&vchatRtcReady)vchatRtcChannel.send({type:'broadcast',event:'ready',payload:{}});
+};
+declineCall=function(){
+  document.getElementById('incomingScreen').classList.remove('active');
+  if(vchatRtcChannel&&vchatRtcReady)vchatRtcChannel.send({type:'broadcast',event:'hangup',payload:{}});
+  window.location.href='vchat-menu.html';
+};
+const _vchatOrigEnd=endCall;
+endCall=function(){
+  if(vchatRtcChannel&&vchatRtcReady)vchatRtcChannel.send({type:'broadcast',event:'hangup',payload:{}});
+  if(vchatPc){ vchatPc.close(); vchatPc=null; }
+  if(vchatLocalStream){ vchatLocalStream.getTracks().forEach(t=>t.stop()); vchatLocalStream=null; }
+  _vchatOrigEnd();
+  setTimeout(()=>{ window.location.href='vchat-menu.html'; },400);
+};
+const _vchatOrigToggleMic=toggleMic;
+toggleMic=function(){
+  _vchatOrigToggleMic();
+  if(vchatLocalStream)vchatLocalStream.getAudioTracks().forEach(t=>t.enabled=micOn);
+};
+
+vchatInitCall();
 </script>
 </body>
 </html>
