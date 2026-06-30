@@ -52,6 +52,19 @@ body{display:flex;}
 #tabChats .header span{flex:1;}
 .content{flex:1;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;}
 .row{display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:12px;transition:.12s;}
+.rowBadge{flex-shrink:0;background:#2C7EFF;color:#fff;font-size:12px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+.typingText{color:#2C7EFF;font-weight:600;}
+.typingDotsRow{display:inline-flex;gap:3px;align-items:center;vertical-align:middle;margin-left:2px;}
+.typingDotsRow span{width:4px;height:4px;border-radius:50%;background:#2C7EFF;display:inline-block;animation:typingBlink 1.2s infinite ease-in-out;}
+.typingDotsRow span:nth-child(2){animation-delay:.2s;}
+.typingDotsRow span:nth-child(3){animation-delay:.4s;}
+@keyframes typingBlink{0%,80%,100%{transform:translateY(0);opacity:.4;}40%{transform:translateY(-3px);opacity:1;}}
+.typingBubble{display:none;align-self:flex-start;background:var(--card2);border-radius:16px;border-bottom-left-radius:4px;padding:11px 16px;margin:2px 0;width:fit-content;}
+.typingBubble.show{display:flex;}
+.typingBubble span{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block;margin:0 2px;animation:typingBounce 1.2s infinite ease-in-out;}
+.typingBubble span:nth-child(2){animation-delay:.2s;}
+.typingBubble span:nth-child(3){animation-delay:.4s;}
+@keyframes typingBounce{0%,80%,100%{transform:translateY(0);opacity:.5;}40%{transform:translateY(-6px);opacity:1;}}
 .row:hover{background:var(--card);}
 .av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0;}
 .rowtext{min-width:0;flex:1;}
@@ -365,7 +378,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <button class="attachBtn" onclick="triggerAttach()" title="Прикрепить файл">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
-            <textarea id="cwInput" placeholder="Сообщение..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <textarea id="cwInput" placeholder="Сообщение..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this);onChatInputTyping();" onblur="onChatInputBlur()"></textarea>
             <button class="sendBtn" onclick="sendMsg()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
@@ -585,7 +598,8 @@ const BOOKMARK_SVG=`<svg viewBox="0 0 24 24" fill="currentColor" width="22" heig
 let chats={};
 let curChat='';
 let msgIdSeq=1;
-let pinnedMap={}; // chatName -> messageId
+let pinnedMap={}; // chatName -> {id, scope}
+let typingMap={}; // chatName -> true/false (печатает ли собеседник)
 let chatMeta={
   'Избранное':{kind:'saved',color:'#2C7EFF',icon:BOOKMARK_SVG,last:'Здесь хранятся твои заметки'}
 };
@@ -619,9 +633,18 @@ function avatarHtmlFor(name){
 function chatRowHtml(name){
   let meta=chatMeta[name];
   const ch=`<span class="rowchev">${ICONS.chevron}</span>`;
+  let unread=meta.unread||0;
+  let badge=unread>0?`<div class="rowBadge">${unread>99?'99+':unread}</div>`:'';
+  let preview;
+  if(typingMap[name]){
+    preview=`<span class="typingText">печатает</span><span class="typingDotsRow"><span></span><span></span><span></span></span>`;
+  }else{
+    preview=escHtml(meta.last||'');
+  }
   return `<div class="row" data-chat="${escHtml(name)}">
       ${avatarHtmlFor(name)}
-      <div class="rowtext"><b>${escHtml(name)}</b><div class="rowPreview">${escHtml(meta.last||'')}</div></div>
+      <div class="rowtext"><b>${escHtml(name)}</b><div class="rowPreview">${preview}</div></div>
+      ${badge}
       ${ch}
     </div>`;
 }
@@ -719,6 +742,7 @@ function openChat(name){
   if(!chats[name])chats[name]=[];
   closeCwSearch();
   cancelReply();
+  setupTypingChannelFor(meta&&meta.uid?meta.uid:null);
   let callBtn=document.getElementById('cwCallBtn');
   if(callBtn){
     if(name!=='Избранное'&&meta&&meta.uid){
@@ -735,6 +759,8 @@ function openChat(name){
 function backToChats(){
   document.getElementById('chatDetailPane').classList.remove('open','chatActive');
   closeCwSearch();
+  sendTypingStop();
+  setupTypingChannelFor(null);
   curChat='';
   let callBtn=document.getElementById('cwCallBtn');
   if(callBtn)callBtn.style.display='none';
@@ -758,7 +784,7 @@ function renderReplyQuote(m){
 }
 
 function renderTimeRow(m){
-  let pinned=pinnedMap[curChat]===m.id;
+  let pinned=pinnedMap[curChat]&&pinnedMap[curChat].id===m.id;
   return `<div class="msgTime">${pinned?`<span class="pinIcon">${ICONS.pinned}</span>`:''}${m.time||''}</div>`;
 }
 
@@ -766,7 +792,7 @@ function renderChat(highlight){
   let w=document.getElementById('cwMsgs');
   if(!chats[curChat]){w.innerHTML='';return;}
   w.innerHTML=chats[curChat].map(m=>{
-    let pinnedCls=pinnedMap[curChat]===m.id?' pinned':'';
+    let pinnedCls=(pinnedMap[curChat]&&pinnedMap[curChat].id===m.id)?' pinned':'';
     if(m.type==='file'){
       return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
         <div class="msgInner">
@@ -788,7 +814,7 @@ function renderChat(highlight){
       </div>
       ${renderTimeRow(m)}
     </div>`;
-  }).join('');
+  }).join('') + (typingMap[curChat]?`<div class="typingBubble show"><span></span><span></span><span></span></div>`:'');
   w.scrollTop=w.scrollHeight;
   attachSwipeHandlers();
 }
@@ -858,20 +884,20 @@ function cancelReply(){
 /* ---------- pin ---------- */
 function updatePinnedBar(){
   let bar=document.getElementById('pinnedBar');
-  let id=pinnedMap[curChat];
-  let m=id?findMsgById(id):null;
+  let p=pinnedMap[curChat];
+  let m=p?findMsgById(p.id):null;
   if(!m){bar.classList.remove('show');return;}
   let txt=m.type==='file'?('📎 '+m.name):(m.text||'');
   document.getElementById('pinnedBarText').textContent=txt;
   bar.classList.add('show');
 }
 function jumpToPinned(){
-  let id=pinnedMap[curChat];
-  if(id)jumpToMessage(id);
+  let p=pinnedMap[curChat];
+  if(p)jumpToMessage(p.id);
 }
 function pinMessage(scope){
   if(!ctxActiveId)return;
-  pinnedMap[curChat]=ctxActiveId;
+  pinnedMap[curChat]={id:ctxActiveId,scope:scope};
   closeCtxMenu();
   closePinChoice();
   renderChat();
@@ -887,14 +913,14 @@ function pinMessage(scope){
   }
 }
 function unpinMessage(){
-  let id=pinnedMap[curChat];
+  let p=pinnedMap[curChat];
   delete pinnedMap[curChat];
   closeCtxMenu();
   renderChat();
   updatePinnedBar();
   let meta=chatMeta[curChat];
-  if(id&&meta&&meta.uid&&vchatUser){
-    sb.from('messages').update({pinned:false}).eq('id',id).then(({error})=>{ if(error)console.error(error); });
+  if(p&&p.scope==='both'&&meta&&meta.uid&&vchatUser){
+    sb.from('messages').update({pinned:false}).eq('id',p.id).then(({error})=>{ if(error)console.error(error); });
   }
   showToast('Сообщение откреплено');
 }
@@ -907,7 +933,7 @@ function openCtxMenu(e,id){
   let menu=document.getElementById('ctxMenu');
   let overlay=document.getElementById('ctxOverlay');
   let pinItem=document.getElementById('ctxPinItem');
-  let isPinned=pinnedMap[curChat]===id;
+  let isPinned=pinnedMap[curChat]&&pinnedMap[curChat].id===id;
   pinItem.innerHTML=isPinned?`<span data-icon="unpin"></span>Открепить`:`<span data-icon="pin"></span>Закрепить`;
   pinItem.onclick=isPinned?unpinMessage:ctxPinClick;
   document.querySelectorAll('#ctxMenu [data-icon]').forEach(el=>{if(ICONS[el.dataset.icon])el.innerHTML=ICONS[el.dataset.icon];});
@@ -973,6 +999,61 @@ function attachSwipeHandlers(){
       curX=0;
     });
   });
+}
+
+/* ---------- индикатор "печатает" ---------- */
+let currentTypingChannel=null;
+let typingStopTimer=null;
+let isTypingSent=false;
+let typingAutoClear={};
+
+function vchatListenTyping(){
+  sb.channel('typing-'+vchatUser.id)
+    .on('broadcast',{event:'typing'},(msg)=>{
+      const p=msg.payload||{};
+      let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===p.from);
+      if(!name)return;
+      typingMap[name]=!!p.typing;
+      clearTimeout(typingAutoClear[name]);
+      if(p.typing){
+        typingAutoClear[name]=setTimeout(()=>{
+          typingMap[name]=false;
+          renderChatRows();
+          if(curChat===name)renderChat();
+        },5000);
+      }
+      renderChatRows();
+      if(curChat===name)renderChat();
+    }).subscribe();
+}
+function setupTypingChannelFor(uid){
+  if(currentTypingChannel){ try{ sb.removeChannel(currentTypingChannel); }catch(e){} }
+  currentTypingChannel=null;
+  isTypingSent=false;
+  clearTimeout(typingStopTimer);
+  if(!uid)return;
+  currentTypingChannel=sb.channel('typing-'+uid);
+  currentTypingChannel.subscribe();
+}
+function onChatInputTyping(){
+  let meta=chatMeta[curChat];
+  if(!meta||!meta.uid||!currentTypingChannel||!vchatUser)return;
+  if(!isTypingSent){
+    isTypingSent=true;
+    currentTypingChannel.send({type:'broadcast',event:'typing',payload:{from:vchatUser.id,typing:true}});
+  }
+  clearTimeout(typingStopTimer);
+  typingStopTimer=setTimeout(sendTypingStop,2500);
+}
+function onChatInputBlur(){
+  sendTypingStop();
+}
+function sendTypingStop(){
+  if(isTypingSent&&currentTypingChannel&&vchatUser){
+    currentTypingChannel.send({type:'broadcast',event:'typing',payload:{from:vchatUser.id,typing:false}});
+  }
+  isTypingSent=false;
+  clearTimeout(typingStopTimer);
 }
 
 /* ---------- send message ---------- */
@@ -1138,6 +1219,7 @@ async function vchatInit(){
   setInterval(vchatHeartbeat,20000);
   vchatSubscribeMessages();
   vchatListenForCalls();
+  vchatListenTyping();
 }
 async function vchatLoadConversations(){
   const {data,error}=await sb.from('messages').select('*')
@@ -1168,7 +1250,7 @@ async function vchatLoadConversations(){
     let myMsgs=data.filter(m=>m.sender_id===uid||m.receiver_id===uid);
     chats[username]=myMsgs.map(m=>dbRowToLocal(m));
     let lastPinned=myMsgs.filter(m=>m.pinned).pop();
-    if(lastPinned)pinnedMap[username]=lastPinned.id;
+    if(lastPinned)pinnedMap[username]={id:lastPinned.id,scope:'both'};
     if(myMsgs.length){
       let lastM=myMsgs[myMsgs.length-1];
       chatMeta[username].last=lastM.type==='file'?('📎 '+(lastM.file_name||'Файл')):(lastM.content||'');
@@ -1234,12 +1316,13 @@ async function selectUser(username,uid,dispname){
 
 async function vchatOpenRealChat(username,uid,dispname){
   openChat(username);
+  setupTypingChannelFor(uid);
   const {data}=await sb.from('messages').select('*')
     .or(`and(sender_id.eq.${vchatUser.id},receiver_id.eq.${uid}),and(sender_id.eq.${uid},receiver_id.eq.${vchatUser.id})`)
     .order('created_at',{ascending:true});
   chats[username]=(data||[]).map(m=>dbRowToLocal(m));
   let lastPinned=(data||[]).filter(m=>m.pinned).pop();
-  if(lastPinned)pinnedMap[username]=lastPinned.id; else delete pinnedMap[username];
+  if(lastPinned)pinnedMap[username]={id:lastPinned.id,scope:'both'}; else if(!(pinnedMap[username]&&pinnedMap[username].scope==='me'))delete pinnedMap[username];
   renderChat();
   updatePinnedBar();
   let callBtn=document.getElementById('cwCallBtn');
@@ -1260,6 +1343,7 @@ async function sendMsg(){
   if(!curChat)return;
   let chatName=curChat;
   let meta=chatMeta[chatName];
+  sendTypingStop();
 
   // "Избранное" — локальные заметки, на сервер не уходят
   if(chatName==='Избранное'||!meta||!meta.uid||!vchatUser){
@@ -1348,7 +1432,7 @@ function vchatHandlePinUpdate(m){
   let otherId=m.sender_id===vchatUser.id?m.receiver_id:m.sender_id;
   let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===otherId);
   if(!name)return;
-  if(m.pinned){pinnedMap[name]=m.id;}else if(pinnedMap[name]===m.id){delete pinnedMap[name];}
+  if(m.pinned){pinnedMap[name]={id:m.id,scope:'both'};}else if(pinnedMap[name]&&pinnedMap[name].id===m.id&&pinnedMap[name].scope==='both'){delete pinnedMap[name];}
   if(curChat===name){renderChat();updatePinnedBar();}
 }
 async function vchatPollPinUpdates(){
@@ -1367,8 +1451,8 @@ async function vchatPollPinUpdates(){
     if(!meta.uid)return;
     let pinnedId=byOther[meta.uid];
     if(pinnedId){
-      if(pinnedMap[name]!==pinnedId){pinnedMap[name]=pinnedId;if(curChat===name){renderChat();updatePinnedBar();}}
-    }else if(pinnedMap[name]){
+      if(!pinnedMap[name]||pinnedMap[name].id!==pinnedId){pinnedMap[name]={id:pinnedId,scope:'both'};if(curChat===name){renderChat();updatePinnedBar();}}
+    }else if(pinnedMap[name]&&pinnedMap[name].scope==='both'){
       delete pinnedMap[name];if(curChat===name){renderChat();updatePinnedBar();}
     }
   });
@@ -1405,7 +1489,7 @@ function vchatPushIncoming(name,m){
     chatMeta[name].unread=(chatMeta[name].unread||0)+1;
     updateUnreadBadge();
   }
-  if(m.pinned){pinnedMap[name]=m.id;}
+  if(m.pinned){pinnedMap[name]={id:m.id,scope:'both'};}
   renderChatRows();
   if(curChat===name){renderChat();updatePinnedBar();}
 }

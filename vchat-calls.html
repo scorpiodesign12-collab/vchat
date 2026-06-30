@@ -176,14 +176,24 @@ if(mode==='outgoing'){
       setTimeout(()=>{ window.location.href='vchat-menu.html'; },1800);
       return;
     }
-    sb.channel('call-'+otherUid).subscribe((status)=>{
+    const outCh = sb.channel('call-'+otherUid);
+    outCh.subscribe((status)=>{
       if(status==='SUBSCRIBED'){
-        sb.channel('call-'+otherUid).send({
+        outCh.send({
           type:'broadcast', event:'incoming_call',
           payload:{ from:myId, fromName:myName, callId:callId }
         });
       }
     });
+    // на случай если собеседник не ответит совсем — завершаем сами через 35 сек
+    setTimeout(()=>{
+      if(!ended && document.getElementById('callStatus').textContent==='Вызов...'){
+        document.getElementById('callStatus').textContent='Нет ответа';
+        showToast(otherName+' не отвечает');
+        ended=true;
+        setTimeout(()=>{ window.location.href='vchat-menu.html'; },1500);
+      }
+    },35000);
   })();
 }
 
