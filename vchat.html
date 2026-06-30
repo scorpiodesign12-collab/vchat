@@ -91,6 +91,15 @@ textarea.input{resize:none;height:74px;}
 #captchaCanvas{width:100%;height:280px;display:block;touch-action:none;cursor:crosshair;}
 .captchaClear{position:absolute;top:10px;right:10px;width:32px;height:32px;}
 .captchaClear svg{width:15px;height:15px;}
+.onbIconWrap{width:96px;height:96px;border-radius:28px;background:var(--card);display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--fg);}
+.onbIconWrap svg{width:46px;height:46px;}
+.onbDots{display:flex;gap:6px;justify-content:center;margin:18px 0 4px;z-index:1;}
+.onbDot{width:7px;height:7px;border-radius:50%;background:var(--card2);transition:.2s;}
+.onbDot.on{background:var(--fg);width:20px;border-radius:4px;}
+@media(max-width:600px){
+  .onbIconWrap{width:80px;height:80px;border-radius:24px;margin-bottom:14px;}
+  .onbIconWrap svg{width:38px;height:38px;}
+}
 @media(max-width:600px){
   .screen{padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));}
   .btn{padding:15.5px;font-size:16px;border-radius:26px;}
@@ -136,7 +145,58 @@ textarea.input{resize:none;height:74px;}
 <div class="screen active" id="s1">
   <div class="topbar"><span></span><button class="iconbtn splashBtn" onclick="toggleDark()" id="dm1"></button></div>
   <div class="center"><div class="logo splashLogo" style="width:230px;height:230px;">{{LOGO}}</div></div>
-  <button class="btn btn-primary splashBtn" onclick="nav('s2')">Начать</button>
+  <button class="btn btn-primary splashBtn" onclick="nav('onb1')">Начать</button>
+</div>
+
+<!-- 1b-1e. Презентация для новых пользователей -->
+<div class="screen" id="onb1">
+  <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dmOnb1"></button></div>
+  <div class="center">
+    <div class="onbIconWrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg></div>
+    <div class="title">Анонимность</div>
+    <div class="sub">Общайтесь свободно и оставайтесь собой. Вы сами решаете, какую информацию о себе показывать другим.</div>
+  </div>
+  <div class="onbDots"><span class="onbDot on"></span><span class="onbDot"></span><span class="onbDot"></span><span class="onbDot"></span></div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="nav('onb2')">Далее</button>
+</div>
+
+<div class="screen" id="onb2">
+  <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dmOnb2"></button></div>
+  <div class="center">
+    <div class="onbIconWrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+    <div class="title">Сообщения</div>
+    <div class="sub">Обменивайтесь сообщениями мгновенно. Отправляйте текст, файлы.</div>
+  </div>
+  <div class="onbDots"><span class="onbDot"></span><span class="onbDot on"></span><span class="onbDot"></span><span class="onbDot"></span></div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="nav('onb3')">Далее</button>
+</div>
+
+<div class="screen" id="onb3">
+  <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dmOnb3"></button></div>
+  <div class="center">
+    <div class="onbIconWrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <div class="title">Безопасность</div>
+    <div class="sub">Ваш аккаунт защищён современными технологиями безопасности. Ничего сложного даже нет.</div>
+  </div>
+  <div class="onbDots"><span class="onbDot"></span><span class="onbDot"></span><span class="onbDot on"></span><span class="onbDot"></span></div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="nav('onb4')">Далее</button>
+</div>
+
+<div class="screen" id="onb4">
+  <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dmOnb4"></button></div>
+  <div class="center">
+    <div class="onbIconWrap"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z"/></svg></div>
+    <div class="title">Звонки</div>
+    <div class="sub">Совершайте голосовые звонки в высоком качестве с друзьями, близкими и коллегами.</div>
+  </div>
+  <div class="onbDots"><span class="onbDot"></span><span class="onbDot"></span><span class="onbDot"></span><span class="onbDot on"></span></div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="nav('onbEnd')">Далее</button>
+</div>
+
+<div class="screen" id="onbEnd">
+  <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dmOnbEnd"></button></div>
+  <div class="center"><div class="logo" style="width:170px;height:170px;">{{LOGO}}</div></div>
+  <button class="btn btn-primary" onclick="nav('s2')">Начать</button>
 </div>
 
 <!-- 2. Intro -->
@@ -454,14 +514,14 @@ function nav(id){
 function toggleDark(){setDark(document.getElementById('app').getAttribute('data-theme')!=='dark');}
 function setDark(on){
   document.getElementById('app').setAttribute('data-theme',on?'dark':'light');
-  ['dm1','dm2','dm3l','dm3','dm4l','dm4','dm4b','dm5','dm6','dm6b'].forEach(id=>{
+  ['dm1','dm2','dm3l','dm3','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>{
     let el=document.getElementById(id); if(el)el.innerHTML=ICONS[on?'sun':'moon'];
     if(el)el.onclick=toggleDark;
   });
   ['tDark','sDark'].forEach(i=>document.getElementById(i)&&document.getElementById(i).classList.toggle('on',on));
   ['tLight','sLight'].forEach(i=>document.getElementById(i)&&document.getElementById(i).classList.toggle('on',!on));
 }
-['dm1','dm2','dm3l','dm3','dm4l','dm4','dm4b','dm5','dm6','dm6b'].forEach(id=>document.getElementById(id).innerHTML=ICONS.moon);
+['dm1','dm2','dm3l','dm3','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>document.getElementById(id).innerHTML=ICONS.moon);
 
 /* ---------- accent colors (theme: чёрный / белый / персиковый) ---------- */
 const accentPalette=[
