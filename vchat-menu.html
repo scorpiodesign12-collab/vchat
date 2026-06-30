@@ -1231,6 +1231,29 @@ async function vchatInit(){
   vchatSubscribeMessages();
   vchatListenForCalls();
   vchatListenTyping();
+  await vchatOpenFromUrl();
+}
+async function vchatOpenFromUrl(){
+  const p=new URLSearchParams(window.location.search);
+  const uid=p.get('openuid');
+  if(!uid)return;
+  history.replaceState(null,'',window.location.pathname);
+  let username=Object.keys(chatMeta).find(n=>chatMeta[n].uid===uid);
+  let dispname=p.get('openname')||'Пользователь';
+  if(!username){
+    const {data:prof}=await sb.from('profiles').select('username,display_name').eq('id',uid).single();
+    if(!prof)return;
+    username=prof.username;
+    dispname=prof.display_name||prof.username;
+    if(!chatMeta[username]){
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0};
+      chats[username]=[];
+    }
+    if(!chatOrder.includes(username))chatOrder=[username,...chatOrder];
+    renderChatRows();
+  }
+  showTab('Chats');
+  await vchatOpenRealChat(username,uid,dispname);
 }
 async function vchatLoadConversations(){
   const {data,error}=await sb.from('messages').select('*')

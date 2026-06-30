@@ -22,6 +22,9 @@ body{display:flex;}
 .callStatus.connected{color:#34c759;}
 .avatarWrap{width:128px;height:128px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:700;color:#fff;margin:18px 0 6px;box-shadow:0 8px 30px rgba(0,0,0,.18);position:relative;}
 .avatarWrap.ringing{animation:pulse 1.6s ease-in-out infinite;}
+.micBadge{position:absolute;right:2px;bottom:2px;width:34px;height:34px;border-radius:50%;background:#ff3b30;display:none;align-items:center;justify-content:center;border:3px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.micBadge.show{display:flex;}
+.micBadge svg{width:17px;height:17px;color:#fff;}
 @keyframes pulse{
   0%{box-shadow:0 0 0 0 rgba(44,126,255,.35);}
   70%{box-shadow:0 0 0 22px rgba(44,126,255,0);}
@@ -57,7 +60,9 @@ body{display:flex;}
   </div>
 
   <div style="display:flex;flex-direction:column;align-items:center;">
-    <div class="avatarWrap" id="avatarWrap">?</div>
+    <div class="avatarWrap" id="avatarWrap"><span id="avatarLetter">?</span>
+      <div class="micBadge" id="micBadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2M19 12v0"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+    </div>
     <div class="callName" id="callName">—</div>
     <div class="callTimer" id="callTimer" style="display:none;">00:00</div>
   </div>
@@ -132,7 +137,7 @@ function showToast(msg){
 
 document.getElementById('callName').textContent = otherName;
 const avatarWrap = document.getElementById('avatarWrap');
-avatarWrap.textContent = otherName[0] ? otherName[0].toUpperCase() : '?';
+document.getElementById('avatarLetter').textContent = otherName[0] ? otherName[0].toUpperCase() : '?';
 avatarWrap.style.background = colorFor(otherName);
 
 let callTimerInterval=null, callSeconds=0, ended=false;
@@ -177,13 +182,15 @@ function createPeer(){
     audioEl.play().catch(()=>{ showToast('Нажмите экран, чтобы включить звук'); });
   };
   pc.oniceconnectionstatechange=()=>{
-    if(pc && (pc.iceConnectionState==='failed')){
-      showToast('Не удалось установить соединение для звука');
+    if(!pc)return;
+    if(pc.iceConnectionState==='failed'){
+      showToast('Проблема со связью, пробуем переподключиться...');
+      try{ pc.restartIce && pc.restartIce(); }catch(e){}
     }
   };
   pc.onicecandidate=(e)=>{
     if(e.candidate){
-      sessionChannel.send({type:'broadcast',event:'webrtc-ice',payload:{candidate:e.candidate}});
+      safeSend('webrtc-ice',{candidate:e.candidate});
     }
   };
   if(localStream){
@@ -197,7 +204,8 @@ async function startAsCaller(){
   createPeer();
   const offer=await pc.createOffer();
   await pc.setLocalDescription(offer);
-  sessionChannel.send({type:'broadcast',event:'webrtc-offer',payload:{sdp:pc.localDescription}});
+  safeSend('webrtc-offer',{sdp:pc.localDescription});
+  safeSend('mic-state',{muted:muted});
 }
 
 async function handleOffer(sdp){
@@ -208,7 +216,8 @@ async function handleOffer(sdp){
   pendingIce=[];
   const answer=await pc.createAnswer();
   await pc.setLocalDescription(answer);
-  sessionChannel.send({type:'broadcast',event:'webrtc-answer',payload:{sdp:pc.localDescription}});
+  safeSend('webrtc-answer',{sdp:pc.localDescription});
+  safeSend('mic-state',{muted:muted});
 }
 
 async function handleAnswer(sdp){
@@ -252,7 +261,16 @@ function setConnected(){
 }
 
 // Канал для конкретной сессии звонка — оба участника слушают и шлют события сюда
-const sessionChannel = sb.channel('callsession-'+callId, { config:{ broadcast:{ self:false } } });
+let channelReady=false;
+let sendQueue=[];
+const sessionChannel = sb.channel('callsession-'+callId, { config:{ broadcast:{ self:false, ack:true } } });
+function safeSend(event,payload){
+  if(channelReady){
+    sessionChannel.send({type:'broadcast',event:event,payload:payload||{}});
+  }else{
+    sendQueue.push({event:event,payload:payload||{}});
+  }
+}
 sessionChannel
   .on('broadcast',{event:'accepted'},()=>{ if(mode==='outgoing'){ setConnected(); startAsCaller(); } })
   .on('broadcast',{event:'declined'},()=>{ if(!ended){ document.getElementById('callStatus').textContent='Отклонено'; logCall('declined'); closeSoon(); } })
@@ -260,13 +278,24 @@ sessionChannel
   .on('broadcast',{event:'webrtc-offer'},(msg)=>{ handleOffer(msg.payload.sdp); })
   .on('broadcast',{event:'webrtc-answer'},(msg)=>{ handleAnswer(msg.payload.sdp); })
   .on('broadcast',{event:'webrtc-ice'},(msg)=>{ handleIce(msg.payload.candidate); })
-  .subscribe();
+  .on('broadcast',{event:'mic-state'},(msg)=>{ updateMicBadge(!!msg.payload.muted); })
+  .subscribe((status)=>{
+    if(status==='SUBSCRIBED'){
+      channelReady=true;
+      const q=sendQueue; sendQueue=[];
+      q.forEach(m=>sessionChannel.send({type:'broadcast',event:m.event,payload:m.payload}));
+    }
+  });
+
+function updateMicBadge(otherMuted){
+  document.getElementById('micBadge').classList.toggle('show',otherMuted);
+}
 
 function closeSoon(){
   ended=true;
   clearInterval(callTimerInterval);
   stopMedia();
-  setTimeout(()=>{ window.location.href='vchat-menu.html'; },1000);
+  setTimeout(()=>{ window.location.href=chatReturnUrl(); },1000);
 }
 
 async function logCall(status){
@@ -308,7 +337,7 @@ if(mode==='outgoing'){
       ended=true;
       logCall('missed');
       stopMedia();
-      setTimeout(()=>{ window.location.href='vchat-menu.html'; },1500);
+      setTimeout(()=>{ window.location.href=chatReturnUrl(); },1500);
     }
   },35000);
 }
@@ -319,33 +348,38 @@ if(mode==='incoming'){
   document.getElementById('callStatus').textContent='Входящий звонок';
 }
 
+function chatReturnUrl(){
+  return 'vchat-menu.html?openuid='+encodeURIComponent(otherUid)+'&openname='+encodeURIComponent(otherName);
+}
+
 function acceptCall(){
   document.getElementById('controlsIncoming').style.display='none';
   document.getElementById('controlsOutgoing').style.display='flex';
-  sessionChannel.send({type:'broadcast',event:'accepted',payload:{}});
+  safeSend('accepted',{});
   setConnected();
   getMic().then(()=>createPeer());
 }
 function declineCall(){
-  sessionChannel.send({type:'broadcast',event:'declined',payload:{}});
+  safeSend('declined',{});
   document.getElementById('callStatus').textContent='Вы отклонили звонок';
   ended=true;
   stopMedia();
-  setTimeout(()=>{ window.location.href='vchat-menu.html'; },700);
+  setTimeout(()=>{ window.location.href=chatReturnUrl(); },700);
 }
 function endCall(){
-  sessionChannel.send({type:'broadcast',event:'hangup',payload:{}});
+  safeSend('hangup',{});
   logCall('ended');
   ended=true;
   clearInterval(callTimerInterval);
   stopMedia();
-  window.location.href='vchat-menu.html';
+  window.location.href=chatReturnUrl();
 }
 function toggleMute(){
   muted=!muted;
   document.getElementById('muteBtn').classList.toggle('on',muted);
   let lbl=document.getElementById('muteLabel'); if(lbl)lbl.textContent=muted?'Без звука':'Микрофон';
   if(localStream){ localStream.getAudioTracks().forEach(t=>t.enabled=!muted); }
+  safeSend('mic-state',{muted:muted});
 }
 function toggleSpeaker(){
   speakerOn=!speakerOn;
