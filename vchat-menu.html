@@ -31,6 +31,8 @@ body{display:flex;}
 /* file msg */
 .msg.file{display:flex;align-items:center;gap:9px;padding:10px 14px;cursor:pointer;}
 .msg.file svg{width:20px;height:20px;flex-shrink:0;}
+.msg.call{display:flex;align-items:center;gap:8px;padding:10px 14px;}
+.msg.call svg{width:18px;height:18px;flex-shrink:0;opacity:.85;}
 .fileinfo{min-width:0;}
 .fileinfo b{font-size:13.5px;display:block;word-break:break-word;}
 .fileinfo span{font-size:11.5px;opacity:.65;}
@@ -540,7 +542,9 @@ pencil:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 at:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-5.5 8.3"/></svg>`,
 status:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
 device:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>`,
-clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`
+clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`,
+call:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z"/></svg>`,
+callMissed:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 7 17 13 11 7"/><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z" fill="currentColor" stroke="none"/></svg>`
 };
 const LOGO_SVG=`<svg viewBox="0 0 757 594"><path fill="currentColor" d="M144.149 288.366C173.497 341.032 44.8848 145.047 44.8848 145.047L250.319 175.265C283.983 176.991 273.625 176.991 290.888 157.997L414.322 0L435.901 128.099C441.08 157.997 435.901 153.68 465.249 145.047L757 50.0756L296.93 341.032C269.309 357.436 305.562 359.163 315.057 359.163C324.552 359.163 520.491 366.07 478.196 298.727C435.901 231.384 597.314 459.314 597.314 459.314L386.7 423.511C350.447 419.599 360.805 410.102 340.089 436.003L223.561 594L194.213 449.817C187.308 415.282 194.213 418.735 166.592 425.642C138.97 432.549 55.5306 459.026 0 475.718L328.513 257.285C377.205 229.657 374.616 231.384 315.057 233.974C255.498 236.564 114.802 235.701 144.149 288.366Z"/></svg>`;
 
@@ -796,6 +800,22 @@ function renderChat(highlight){
         <div class="msgInner">
           <span class="swipeArrow">${ICONS.chevron}</span>
           <div class="msg file ${m.from}" oncontextmenu="openCtxMenu(event,${m.id})" onclick="downloadFile(${m.id})" title="Скачать файл">${renderReplyQuote(m)}${ICONS.file}<div class="fileinfo"><b>${escHtml(m.name)}</b><span>${m.size}</span></div></div>
+        </div>
+        ${renderTimeRow(m)}
+      </div>`;
+    }
+    if(m.type==='call'){
+      let mm=Math.floor(m.duration/60).toString().padStart(2,'0');
+      let ss=(m.duration%60).toString().padStart(2,'0');
+      let label;
+      if(m.status==='missed') label = m.from==='out' ? 'Нет ответа' : 'Пропущенный звонок';
+      else if(m.status==='declined') label = m.from==='out' ? 'Звонок отклонён' : 'Вы отклонили звонок';
+      else label = (m.from==='out'?'Исходящий звонок':'Входящий звонок')+' • '+mm+':'+ss;
+      let icon = (m.status==='missed'||m.status==='declined') ? ICONS.callMissed : ICONS.call;
+      return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
+        <div class="msgInner">
+          <span class="swipeArrow">${ICONS.chevron}</span>
+          <div class="msg call ${m.from}" oncontextmenu="openCtxMenu(event,${m.id})">${icon}<span>${label}</span></div>
         </div>
         ${renderTimeRow(m)}
       </div>`;
@@ -1185,12 +1205,22 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let vchatUser=null;
 
+function previewForRow(m){
+  if(m.type==='file') return '📎 '+(m.file_name||'Файл');
+  if(m.type==='call') return '📞 Звонок';
+  return m.content||'';
+}
 function dbRowToLocal(m){
   let d=new Date(m.created_at);
   let time=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
   let from=m.sender_id===vchatUser.id?'out':'in';
   if(m.type==='file'){
     return {id:m.id,from:from,type:'file',name:m.file_name||'Файл',size:m.file_size||'',url:m.file_url||null,time:time,replyTo:m.reply_to||null};
+  }
+  if(m.type==='call'){
+    let info={duration:0,status:'ended'};
+    try{ info=Object.assign(info,JSON.parse(m.content||'{}')); }catch(e){}
+    return {id:m.id,from:from,type:'call',duration:info.duration||0,status:info.status||'ended',time:time};
   }
   return {id:m.id,from:from,type:'text',text:m.content||'',time:time,replyTo:m.reply_to||null};
 }
@@ -1243,7 +1273,7 @@ async function vchatLoadConversations(){
     if(lastPinned)pinnedMap[username]={id:lastPinned.id,scope:'both'};
     if(myMsgs.length){
       let lastM=myMsgs[myMsgs.length-1];
-      chatMeta[username].last=lastM.type==='file'?('📎 '+(lastM.file_name||'Файл')):(lastM.content||'');
+      chatMeta[username].last=previewForRow(lastM);
     }
     newOrder.push(username);
   });
@@ -1473,7 +1503,7 @@ async function vchatPollNewMessages(){
 function vchatPushIncoming(name,m){
   if(!chats[name])chats[name]=[];
   chats[name].push(dbRowToLocal(m));
-  chatMeta[name].last=m.type==='file'?('📎 '+(m.file_name||'Файл')):(m.content||'');
+  chatMeta[name].last=previewForRow(m);
   chatOrder=[name,...chatOrder.filter(n=>n!==name)];
   if(curChat!==name){
     chatMeta[name].unread=(chatMeta[name].unread||0)+1;
