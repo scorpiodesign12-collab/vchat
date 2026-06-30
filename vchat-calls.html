@@ -1072,14 +1072,14 @@ setDark(false);
 <script>
 const SUPABASE_URL='https://tosomuignedjiczygceh.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let vchatUser=null;
 
 async function vchatInit(){
-  const {data:{user}}=await supabase.auth.getUser();
+  const {data:{user}}=await sb.auth.getUser();
   if(!user){ window.location.href='vchat.html'; return; }
-  let {data:profile}=await supabase.from('profiles').select('*').eq('id',user.id).single();
+  let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
   if(!profile){ window.location.href='vchat.html'; return; }
   vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username};
   profileData.name=vchatUser.display_name;
@@ -1091,7 +1091,7 @@ async function vchatInit(){
   vchatListenForCalls();
 }
 function vchatListenForCalls(){
-  supabase.channel('call-'+vchatUser.id)
+  sb.channel('call-'+vchatUser.id)
     .on('broadcast',{event:'incoming_call'},(msg)=>{
       const p=msg.payload;
       window.location.href='vchat-calls.html?mode=incoming&uid='+encodeURIComponent(p.from)+'&name='+encodeURIComponent(p.fromName)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name);
@@ -1099,7 +1099,7 @@ function vchatListenForCalls(){
 }
 async function vchatHeartbeat(){
   if(!vchatUser)return;
-  await supabase.from('profiles').update({online_at:new Date().toISOString()}).eq('id',vchatUser.id);
+  await sb.from('profiles').update({online_at:new Date().toISOString()}).eq('id',vchatUser.id);
 }
 
 /* ---------- реальный поиск людей по нику ---------- */
@@ -1117,7 +1117,7 @@ function onUserSearchInput(q){
   wrap.classList.add('loading');
   vchatSearchTimer=setTimeout(async ()=>{
     if(!vchatUser){return;}
-    const {data}=await supabase.from('profiles').select('id,username,display_name').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    const {data}=await sb.from('profiles').select('id,username,display_name').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
     wrap.classList.remove('loading');
     if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
     box.innerHTML=data.map(u=>{
@@ -1146,7 +1146,7 @@ async function selectUser(username,uid,dispname){
 
 async function vchatOpenRealChat(username,uid,dispname){
   openChat(username);
-  const {data}=await supabase.from('messages').select('*')
+  const {data}=await sb.from('messages').select('*')
     .or(`and(sender_id.eq.${vchatUser.id},receiver_id.eq.${uid}),and(sender_id.eq.${uid},receiver_id.eq.${vchatUser.id})`)
     .order('created_at',{ascending:true});
   chats[username]=(data||[]).map(m=>{
@@ -1172,21 +1172,21 @@ function sendMsg(){
   let meta=chatMeta[chatName];
   _origSendMsg();
   if(text&&meta&&meta.uid&&vchatUser){
-    supabase.from('messages').insert({sender_id:vchatUser.id,receiver_id:meta.uid,content:text})
+    sb.from('messages').insert({sender_id:vchatUser.id,receiver_id:meta.uid,content:text})
       .then(({error})=>{ if(error)console.error(error); });
   }
 }
 
 /* ---------- получение сообщений в реальном времени ---------- */
 function vchatSubscribeMessages(){
-  supabase.channel('messages-listen-'+vchatUser.id)
+  sb.channel('messages-listen-'+vchatUser.id)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`receiver_id=eq.${vchatUser.id}`},payload=>{
       const m=payload.new;
       let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===m.sender_id);
       if(name){
         vchatPushIncoming(name,m);
       }else{
-        supabase.from('profiles').select('username,display_name').eq('id',m.sender_id).single().then(({data})=>{
+        sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single().then(({data})=>{
           if(!data)return;
           let nm=data.username, dn=data.display_name||data.username;
           chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id};
@@ -1208,7 +1208,7 @@ function vchatPushIncoming(name,m){
 
 /* ---------- звонок ---------- */
 async function vchatStartCall(username,uid,dispname){
-  const {data}=await supabase.from('profiles').select('online_at').eq('id',uid).single();
+  const {data}=await sb.from('profiles').select('online_at').eq('id',uid).single();
   const online=data&&(Date.now()-new Date(data.online_at).getTime()<35000);
   if(!online){ showToast('Пользователь сейчас не в сети'); return; }
   window.location.href='vchat-calls.html?mode=outgoing&uid='+encodeURIComponent(uid)+'&name='+encodeURIComponent(dispname)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name);
