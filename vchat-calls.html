@@ -155,7 +155,9 @@ let pc=null, localStream=null, remoteStream=null;
 let pendingIce=[];
 let logged=false;
 
-const RTC_CONFIG={iceServers:[
+const RTC_CONFIG={
+  iceTransportPolicy:'relay', // принудительно через TURN-сервер — прямое P2P часто ломается VPN/мобильными сетями
+  iceServers:[
   {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
   {urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject'},
   {urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject'},
@@ -178,7 +180,7 @@ function showMicError(name){
   const titleEl=banner.querySelector('b');
   if(name==='vpn'){
     titleEl.textContent='Не получается соединиться';
-    txt.textContent='Микрофон в порядке, но связь между устройствами не устанавливается дольше 8 секунд. Чаще всего это вызывает включённый VPN — он блокирует прямое соединение. Выключите VPN на обоих устройствах и позвоните заново.';
+    txt.textContent='Связь не устанавливается дольше 8 секунд. Возможно перегружены сервера-посредники (TURN) или слабый интернет. Попробуйте перезвонить ещё раз, а если не поможет — проверьте интернет-соединение на обоих устройствах.';
   }else if(name==='NotFoundError'){
     titleEl.textContent='Нет доступа к микрофону';
     txt.textContent='Микрофон не найден на этом устройстве. Проверьте, что он подключён и не занят другим приложением.';
