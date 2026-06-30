@@ -702,14 +702,6 @@ function openChat(name){
   if(!chats[name])chats[name]=[];
   closeCwSearch();
   cancelReply();
-  let callBtn=document.getElementById('cwCallBtn');
-  if(callBtn){
-    if(name!=='Избранное'&&meta&&meta.uid){
-      callBtn.style.display='flex';
-    }else{
-      callBtn.style.display='none';
-    }
-  }
   let pane=document.getElementById('chatDetailPane');
   pane.classList.add('open','chatActive');
   renderChat();
@@ -719,8 +711,6 @@ function backToChats(){
   document.getElementById('chatDetailPane').classList.remove('open','chatActive');
   closeCwSearch();
   curChat='';
-  let callBtn=document.getElementById('cwCallBtn');
-  if(callBtn)callBtn.style.display='none';
 }
 
 /* ---------- render chat ---------- */
@@ -953,7 +943,7 @@ function autoResize(el){
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight,140)+'px';
 }
-function localSendMsg(){
+function sendMsg(){
   let inp=document.getElementById('cwInput');
   let text=inp.value.trim();
   let hasFile=pendingFile!==null;
@@ -1174,12 +1164,13 @@ async function vchatOpenRealChat(username,uid,dispname){
 }
 
 /* ---------- реальная отправка сообщений ---------- */
+const _origSendMsg=sendMsg;
 function sendMsg(){
   let inp=document.getElementById('cwInput');
   let text=inp.value.trim();
   let chatName=curChat;
   let meta=chatMeta[chatName];
-  localSendMsg();
+  _origSendMsg();
   if(text&&meta&&meta.uid&&vchatUser){
     sb.from('messages').insert({sender_id:vchatUser.id,receiver_id:meta.uid,content:text})
       .then(({error})=>{ if(error)console.error(error); });
