@@ -1233,6 +1233,13 @@ async function vchatInit(){
   vchatListenTyping();
   await vchatOpenFromUrl();
 }
+async function markChatRead(uid){
+  if(!uid||!vchatUser)return;
+  try{
+    await sb.from('messages').update({read:true})
+      .eq('sender_id',uid).eq('receiver_id',vchatUser.id).eq('read',false);
+  }catch(e){}
+}
 async function vchatOpenFromUrl(){
   const p=new URLSearchParams(window.location.search);
   const uid=p.get('openuid');
@@ -1289,6 +1296,7 @@ async function vchatLoadConversations(){
       let lastM=myMsgs[myMsgs.length-1];
       chatMeta[username].last=previewForRow(lastM);
     }
+    chatMeta[username].unread=myMsgs.filter(m=>m.receiver_id===vchatUser.id && !m.read).length;
     newOrder.push(username);
   });
   chatOrder=[...newOrder,...chatOrder.filter(n=>!newOrder.includes(n))];
@@ -1359,6 +1367,7 @@ async function vchatOpenRealChat(username,uid,dispname){
   if(lastPinned)pinnedMap[username]={id:lastPinned.id,scope:'both'}; else if(!(pinnedMap[username]&&pinnedMap[username].scope==='me'))delete pinnedMap[username];
   renderChat();
   updatePinnedBar();
+  if(uid){ markChatRead(uid); if(chatMeta[username])chatMeta[username].unread=0; renderChatRows(); }
   let callBtn=document.getElementById('cwCallBtn');
   if(username==='Избранное'){
     callBtn.style.display='none';
@@ -1522,6 +1531,8 @@ function vchatPushIncoming(name,m){
   if(curChat!==name){
     chatMeta[name].unread=(chatMeta[name].unread||0)+1;
     updateUnreadBadge();
+  }else{
+    markChatRead(m.sender_id);
   }
   if(m.pinned){pinnedMap[name]={id:m.id,scope:'both'};}
   renderChatRows();

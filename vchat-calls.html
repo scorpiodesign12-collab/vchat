@@ -150,8 +150,12 @@ const RTC_CONFIG={iceServers:[
   {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
   {urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject'},
   {urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject'}
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject'},
+  {urls:'turn:relay1.expressturn.com:3478', username:'efJBQ56OXLLT0RC4WK', credential:'B3PnNHm4q3M1HMXp'},
+  {urls:'turn:a.relay.metered.ca:80', username:'e899dc1c5da1c5d2e7a4d271', credential:'1NTKgu5bRvz3Ax9C'},
+  {urls:'turn:a.relay.metered.ca:443', username:'e899dc1c5da1c5d2e7a4d271', credential:'1NTKgu5bRvz3Ax9C'}
 ]};
+function log(...a){ try{ console.log('[vchat-call]',...a); }catch(e){} }
 
 function unlockAudioPlayback(){
   const audioEl=document.getElementById('remoteAudio');
@@ -163,8 +167,10 @@ async function getMic(){
   if(localStream) return localStream;
   try{
     localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    log('mic OK, tracks:', localStream.getAudioTracks().map(t=>t.label||'(no label)'));
   }catch(e){
-    showToast('Нет доступа к микрофону');
+    log('mic ERROR', e.name, e.message);
+    showToast('Нет доступа к микрофону: '+e.name);
     localStream=null;
   }
   return localStream;
@@ -176,39 +182,55 @@ function createPeer(){
   remoteStream=new MediaStream();
   document.getElementById('remoteAudio').srcObject=remoteStream;
   pc.ontrack=(e)=>{
+    log('ontrack fired, kind:', e.track.kind, 'readyState:', e.track.readyState);
     e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
     const audioEl=document.getElementById('remoteAudio');
     audioEl.srcObject=remoteStream;
-    audioEl.play().catch(()=>{ showToast('Нажмите экран, чтобы включить звук'); });
+    audioEl.play().then(()=>log('audio.play() resolved')).catch((err)=>{ log('audio.play() blocked:',err.name); showToast('Нажмите экран, чтобы включить звук'); });
   };
   pc.oniceconnectionstatechange=()=>{
     if(!pc)return;
+    log('iceConnectionState ->', pc.iceConnectionState);
     if(pc.iceConnectionState==='failed'){
       showToast('Проблема со связью, пробуем переподключиться...');
       try{ pc.restartIce && pc.restartIce(); }catch(e){}
     }
+    if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
+      showToast('Соединение установлено');
+    }
   };
+  pc.onconnectionstatechange=()=>{ if(pc) log('connectionState ->', pc.connectionState); };
+  pc.onicegatheringstatechange=()=>{ if(pc) log('iceGatheringState ->', pc.iceGatheringState); };
   pc.onicecandidate=(e)=>{
     if(e.candidate){
+      log('local candidate type:', e.candidate.type, e.candidate.protocol);
       safeSend('webrtc-ice',{candidate:e.candidate});
+    }else{
+      log('ICE gathering complete');
     }
   };
   if(localStream){
     localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    log('local track(s) added to peer connection');
+  }else{
+    log('WARNING: creating peer without local stream — no microphone track will be sent!');
   }
   return pc;
 }
 
 async function startAsCaller(){
+  log('startAsCaller: requesting mic + creating offer');
   await getMic();
   createPeer();
   const offer=await pc.createOffer();
   await pc.setLocalDescription(offer);
+  log('offer created and sent');
   safeSend('webrtc-offer',{sdp:pc.localDescription});
   safeSend('mic-state',{muted:muted});
 }
 
 async function handleOffer(sdp){
+  log('handleOffer: got offer, requesting mic + creating answer');
   await getMic();
   createPeer();
   await pc.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -216,12 +238,14 @@ async function handleOffer(sdp){
   pendingIce=[];
   const answer=await pc.createAnswer();
   await pc.setLocalDescription(answer);
+  log('answer created and sent');
   safeSend('webrtc-answer',{sdp:pc.localDescription});
   safeSend('mic-state',{muted:muted});
 }
 
 async function handleAnswer(sdp){
   if(!pc)return;
+  log('handleAnswer: got answer');
   await pc.setRemoteDescription(new RTCSessionDescription(sdp));
   for(const c of pendingIce){ try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){} }
   pendingIce=[];
@@ -229,9 +253,10 @@ async function handleAnswer(sdp){
 
 async function handleIce(candidate){
   if(pc && pc.remoteDescription && pc.remoteDescription.type){
-    try{ await pc.addIceCandidate(new RTCIceCandidate(candidate)); }catch(e){}
+    try{ await pc.addIceCandidate(new RTCIceCandidate(candidate)); log('remote candidate added'); }catch(e){ log('remote candidate ERROR', e.message); }
   }else{
     pendingIce.push(candidate);
+    log('remote candidate queued (no remote description yet)');
   }
 }
 
@@ -280,6 +305,7 @@ sessionChannel
   .on('broadcast',{event:'webrtc-ice'},(msg)=>{ handleIce(msg.payload.candidate); })
   .on('broadcast',{event:'mic-state'},(msg)=>{ updateMicBadge(!!msg.payload.muted); })
   .subscribe((status)=>{
+    log('sessionChannel status:', status);
     if(status==='SUBSCRIBED'){
       channelReady=true;
       const q=sendQueue; sendQueue=[];
@@ -353,6 +379,7 @@ function chatReturnUrl(){
 }
 
 function acceptCall(){
+  log('acceptCall clicked');
   document.getElementById('controlsIncoming').style.display='none';
   document.getElementById('controlsOutgoing').style.display='flex';
   safeSend('accepted',{});
