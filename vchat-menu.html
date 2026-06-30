@@ -1242,7 +1242,35 @@ function vchatSubscribeMessages(){
           vchatPushIncoming(nm,m);
         });
       }
-    }).subscribe();
+    }).subscribe((status,err)=>{
+      console.log('VCHAT REALTIME STATUS:',status,err||'');
+    });
+  // запасной вариант: на случай если realtime не доходит, проверяем новые сообщения каждые 4 секунды
+  setInterval(vchatPollNewMessages,4000);
+}
+let vchatLastPoll=new Date().toISOString();
+async function vchatPollNewMessages(){
+  if(!vchatUser)return;
+  const {data,error}=await sb.from('messages').select('*')
+    .eq('receiver_id',vchatUser.id)
+    .gt('created_at',vchatLastPoll)
+    .order('created_at',{ascending:true});
+  if(error||!data||!data.length)return;
+  vchatLastPoll=data[data.length-1].created_at;
+  for(const m of data){
+    let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===m.sender_id);
+    if(name){
+      vchatPushIncoming(name,m);
+    }else{
+      const {data:p}=await sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single();
+      if(!p)continue;
+      let nm=p.username, dn=p.display_name||p.username;
+      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id};
+      chats[nm]=[];
+      if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
+      vchatPushIncoming(nm,m);
+    }
+  }
 }
 function vchatPushIncoming(name,m){
   if(!chats[name])chats[name]=[];
@@ -1255,9 +1283,6 @@ function vchatPushIncoming(name,m){
 
 /* ---------- звонок ---------- */
 async function vchatStartCall(username,uid,dispname){
-  const {data}=await sb.from('profiles').select('online_at').eq('id',uid).single();
-  const online=data&&(Date.now()-new Date(data.online_at).getTime()<35000);
-  if(!online){ showToast('Пользователь сейчас не в сети'); return; }
   window.location.href='vchat-calls.html?mode=outgoing&uid='+encodeURIComponent(uid)+'&name='+encodeURIComponent(dispname)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name);
 }
 
