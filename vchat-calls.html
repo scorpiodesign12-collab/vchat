@@ -175,9 +175,15 @@ document.addEventListener('click',unlockAudioPlayback,{once:false});
 function showMicError(name){
   const banner=document.getElementById('micErrBanner');
   const txt=document.getElementById('micErrText');
-  if(name==='NotFoundError'){
+  const titleEl=banner.querySelector('b');
+  if(name==='vpn'){
+    titleEl.textContent='Не получается соединиться';
+    txt.textContent='Микрофон в порядке, но связь между устройствами не устанавливается дольше 8 секунд. Чаще всего это вызывает включённый VPN — он блокирует прямое соединение. Выключите VPN на обоих устройствах и позвоните заново.';
+  }else if(name==='NotFoundError'){
+    titleEl.textContent='Нет доступа к микрофону';
     txt.textContent='Микрофон не найден на этом устройстве. Проверьте, что он подключён и не занят другим приложением.';
   }else{
+    titleEl.textContent='Нет доступа к микрофону';
     txt.textContent='Микрофон заблокирован. Сначала проверьте настройки САЙТА (значок 🔒/настроек рядом с адресом → Микрофон → Разрешить). Если пункта "Микрофон" там нет вообще — доступ закрыт на уровне приложения: зайдите в настройки телефона → Приложения → Chrome (или ваш браузер) → Разрешения → Микрофон → Разрешить. После этого обновите страницу и позвоните заново.';
   }
   banner.classList.add('show');
@@ -244,7 +250,14 @@ function createPeer(){
       try{ pc.restartIce && pc.restartIce(); }catch(e){}
     }
     if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
+      mediaConnected=true;
+      clearTimeout(connectWatchdog);
+      hideMicError();
+      showRealConnectedStatus();
       showToast('Соединение установлено');
+    }
+    if(pc.iceConnectionState==='disconnected'){
+      mediaConnected=false;
     }
   };
   pc.onconnectionstatechange=()=>{ if(pc) log('connectionState ->', pc.connectionState); };
@@ -325,12 +338,25 @@ function startTimer(){
     document.getElementById('callTimer').textContent=fmtTime(callSeconds);
   },1000);
 }
+let mediaConnected=false, connectWatchdog=null;
 function setConnected(){
   avatarWrap.classList.remove('ringing');
   const st=document.getElementById('callStatus');
+  st.textContent='Подключение...';
+  st.classList.remove('connected');
+  startTimer();
+  clearTimeout(connectWatchdog);
+  connectWatchdog=setTimeout(()=>{
+    if(!mediaConnected && !ended){
+      log('connect watchdog: no media connection after 8s');
+      showMicError('vpn');
+    }
+  },8000);
+}
+function showRealConnectedStatus(){
+  const st=document.getElementById('callStatus');
   st.textContent='Соединено';
   st.classList.add('connected');
-  startTimer();
 }
 
 // Канал для конкретной сессии звонка — оба участника слушают и шлют события сюда
