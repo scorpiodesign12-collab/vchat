@@ -313,15 +313,17 @@ async function handleAnswer(sdp){
 }
 
 async function handleIce(candidate){
+  let ctype='?'; try{ ctype=(candidate.candidate||'').match(/typ (\w+)/); ctype=ctype?ctype[1]:'?'; }catch(e){}
   if(pc && pc.remoteDescription && pc.remoteDescription.type){
-    try{ await pc.addIceCandidate(new RTCIceCandidate(candidate)); log('remote candidate added'); }catch(e){ log('remote candidate ERROR', e.message); }
+    try{ await pc.addIceCandidate(new RTCIceCandidate(candidate)); log('remote candidate added, type:', ctype); }catch(e){ log('remote candidate ERROR', e.message); }
   }else{
     pendingIce.push(candidate);
-    log('remote candidate queued (no remote description yet)');
+    log('remote candidate queued (no remote description yet), type:', ctype);
   }
 }
 
 function stopMedia(){
+  clearInterval(statsInterval);
   if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
   if(pc){ pc.close(); pc=null; }
 }
@@ -338,7 +340,7 @@ function startTimer(){
     document.getElementById('callTimer').textContent=fmtTime(callSeconds);
   },1000);
 }
-let mediaConnected=false, connectWatchdog=null;
+let mediaConnected=false, connectWatchdog=null, statsInterval=null;
 function setConnected(){
   avatarWrap.classList.remove('ringing');
   const st=document.getElementById('callStatus');
@@ -352,6 +354,25 @@ function setConnected(){
       showMicError('vpn');
     }
   },8000);
+  clearInterval(statsInterval);
+  statsInterval=setInterval(diagStats,3000);
+}
+async function diagStats(){
+  if(!pc || ended) { clearInterval(statsInterval); return; }
+  try{
+    const stats=await pc.getStats();
+    let pair=null, candidates={};
+    stats.forEach(r=>{
+      if(r.type==='candidate-pair' && r.state==='succeeded') pair=r;
+      if(r.type==='local-candidate'||r.type==='remote-candidate') candidates[r.id]=r;
+    });
+    if(pair){
+      const loc=candidates[pair.localCandidateId], rem=candidates[pair.remoteCandidateId];
+      log('ACTIVE PAIR -> local:', loc&&loc.candidateType, loc&&loc.protocol, '| remote:', rem&&rem.candidateType, rem&&rem.protocol, '| bytesSent:', pair.bytesSent, 'bytesReceived:', pair.bytesReceived);
+    }else{
+      log('no succeeded candidate-pair yet, iceConnectionState:', pc.iceConnectionState);
+    }
+  }catch(e){ log('getStats error', e.message); }
 }
 function showRealConnectedStatus(){
   const st=document.getElementById('callStatus');
