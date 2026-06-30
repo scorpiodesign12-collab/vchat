@@ -692,21 +692,21 @@ function vchatPassFor(pin){ return pin+VCHAT_PASS_SUFFIX; }
 
 async function vchatUsernameTaken(username){
   try{
-    const {data}=await supabase.from('profiles').select('id').eq('username',username).maybeSingle();
+    const {data}=await sb.from('profiles').select('id').eq('username',username).maybeSingle();
     return !!data;
   }catch(e){ console.error(e); return false; }
 }
 
 async function vchatSignUp(username, dispname, pin){
   try{
-    const {data,error}=await supabase.auth.signUp({
+    const {data,error}=await sb.auth.signUp({
       email: vchatEmailFor(username),
       password: vchatPassFor(pin)
     });
     if(error){ console.error(error); return false; }
     const userId=data.user ? data.user.id : (data.session?data.session.user.id:null);
     if(!userId) return false;
-    const {error:profErr}=await supabase.from('profiles').insert({
+    const {error:profErr}=await sb.from('profiles').insert({
       id:userId, username:username, display_name:dispname
     });
     if(profErr){ console.error(profErr); return false; }
@@ -716,7 +716,7 @@ async function vchatSignUp(username, dispname, pin){
 
 async function vchatLogin(username, pin){
   try{
-    const {error}=await supabase.auth.signInWithPassword({
+    const {error}=await sb.auth.signInWithPassword({
       email: vchatEmailFor(username),
       password: vchatPassFor(pin)
     });
@@ -729,7 +729,7 @@ async function vchatLogin(username, pin){
 <script>
   const SUPABASE_URL='https://tosomuignedjiczygceh.supabase.co';
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
 </body>
 </html>
