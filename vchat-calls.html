@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>VChat — Звонки</title>
+<style>
+/* ── Design tokens (same as main VChat) ── */
+:root{
+  --bg:#fff; --fg:#111114; --card:#f1f1f4; --card2:#e8e8ec;
+  --muted:#94949c; --line:#ececef;
+  --accent:#1c1c1e; --accent-fg:#fff;
+  --btn:#1c1c1e; --btn-fg:#fff;
+  --accent2:#2C7EFF;
+  --call-bg:#ffffff;
+  --call-card:rgba(0,0,0,.05);
+  --call-card2:rgba(0,0,0,.09);
+  --call-line:rgba(0,0,0,.08);
+  --call-muted:rgba(0,0,0,.45);
+  --call-fg:#111114;
+}
+[data-theme="dark"]{
+  --bg:#0b0b0d; --fg:#f5f5f7; --card:#1c1c1f; --card2:#262629;
+  --muted:#9a9aa2; --line:#222225; --btn:#f5f5f7; --btn-fg:#0b0b0d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;}
+body{display:flex;background:var(--bg);color:var(--fg);}
+
+/* ── App shell ── */
+#app{width:100%;height:100vh;height:100dvh;position:relative;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);}
+
+/* ── Top nav (contacts list view) ── */
+.topnav{display:flex;align-items:center;padding:16px 16px 8px;gap:8px;flex-shrink:0;border-bottom:1px solid var(--line);}
+.topnav-title{font-size:19px;font-weight:700;letter-spacing:-.01em;flex:1;color:var(--fg);}
+.iconbtn{width:36px;height:36px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);transition:.15s;flex-shrink:0;}
+.iconbtn:hover{background:var(--card);}
+.iconbtn svg{width:20px;height:20px;}
+
+/* ── Contacts list ── */
+.contacts-list{flex:1;overflow-y:auto;padding:8px 14px 24px;scrollbar-width:none;}
+.contacts-list::-webkit-scrollbar{display:none;}
+.section-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:14px 4px 6px;}
+.contact-row{display:flex;align-items:center;gap:13px;padding:9px 8px;border-radius:14px;cursor:pointer;transition:.12s;}
+.contact-row:hover{background:var(--card);}
+.av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:0;}
+.av-sm{width:38px;height:38px;font-size:14px;}
+.contact-info{flex:1;min-width:0;}
+.contact-name{font-size:15px;font-weight:600;color:var(--fg);}
+.contact-sub{font-size:12.5px;color:var(--muted);margin-top:1px;}
+.call-btns{display:flex;gap:6px;flex-shrink:0;}
+.call-icon-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;}
+.call-icon-btn:hover{background:var(--card2);color:var(--fg);}
+.call-icon-btn svg{width:18px;height:18px;}
+
+/* ── Recent calls ── */
+.recent-row{display:flex;align-items:center;gap:13px;padding:9px 8px;border-radius:14px;cursor:pointer;transition:.12s;}
+.recent-row:hover{background:var(--card);}
+.recent-info{flex:1;min-width:0;}
+.recent-name{font-size:14.5px;font-weight:600;color:var(--fg);}
+.recent-meta{font-size:12.5px;color:var(--muted);margin-top:1px;display:flex;align-items:center;gap:4px;}
+.recent-meta svg{width:12px;height:12px;}
+.recent-meta.missed{color:#ff4c4c;}
+.recent-time{font-size:12px;color:var(--muted);margin-left:auto;flex-shrink:0;}
+
+/* ── CALL SCREEN (full overlay) ── */
+#callScreen{
+  position:fixed;inset:0;z-index:100;
+  display:none;flex-direction:column;
+  background:var(--call-bg);
+  color:var(--call-fg);
+  overflow:hidden;
+}
+#callScreen.active{display:flex;}
+
+/* animated gradient bg */
+.call-bg-anim{
+  position:absolute;inset:0;z-index:0;
+  background:var(--call-bg);
+  overflow:hidden;
+}
+.call-bg-anim::before{
+  content:'';position:absolute;inset:-50%;
+  background:conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(0,0,0,.035) 60deg, transparent 120deg, rgba(0,0,0,.025) 180deg, transparent 240deg, rgba(0,0,0,.035) 300deg, transparent 360deg);
+  animation:bgSpin 12s linear infinite;
+  border-radius:50%;
+}
+@keyframes bgSpin{to{transform:rotate(360deg);}}
+
+/* wave rings */
+.call-waves{position:absolute;top:50%;left:50%;transform:translate(-50%,-65%);z-index:1;pointer-events:none;}
+.wave{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;border:1.5px solid rgba(0,0,0,.08);
+  animation:waveExpand 2.8s ease-out infinite;
+}
+.wave:nth-child(1){width:140px;height:140px;animation-delay:0s;}
+.wave:nth-child(2){width:200px;height:200px;animation-delay:.7s;}
+.wave:nth-child(3){width:270px;height:270px;animation-delay:1.4s;}
+.wave:nth-child(4){width:350px;height:350px;animation-delay:2.1s;}
+@keyframes waveExpand{
+  0%{opacity:.6;transform:translate(-50%,-50%) scale(.85);}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.1);}
+}
+
+/* call top bar */
+.call-topbar{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 0;
+  flex-shrink:0;
+}
+.call-topbar-btn{
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:var(--call-card);
+  color:var(--call-fg);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:.15s;
+  backdrop-filter:blur(8px);
+}
+.call-topbar-btn:hover{background:var(--call-card2);}
+.call-topbar-btn svg{width:18px;height:18px;}
+.call-quality{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--call-muted);background:var(--call-card);backdrop-filter:blur(8px);padding:5px 10px;border-radius:20px;}
+.call-quality-dot{width:6px;height:6px;border-radius:50%;background:#3ed05c;}
+
+/* call center */
+.call-center{
+  position:relative;z-index:10;
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px 24px;gap:0;
+}
+.call-avatar{
+  width:96px;height:96px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;font-weight:700;color:#fff;
+  position:relative;z-index:2;
+  box-shadow:0 0 0 4px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.12);
+  flex-shrink:0;
+}
+.call-name{font-size:26px;font-weight:700;margin-top:20px;letter-spacing:-.02em;color:var(--call-fg);}
+.call-status{font-size:14px;color:var(--call-muted);margin-top:6px;display:flex;align-items:center;gap:6px;}
+.call-status-dot{width:6px;height:6px;border-radius:50%;background:#3ed05c;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.call-timer{font-size:28px;font-weight:300;color:var(--call-fg);margin-top:10px;letter-spacing:.05em;font-variant-numeric:tabular-nums;}
+
+/* ── Audio output badge ── */
+.audio-badge{
+  margin-top:14px;
+  background:var(--call-card);backdrop-filter:blur(8px);
+  border:1px solid var(--call-line);
+  border-radius:20px;padding:6px 14px;
+  display:flex;align-items:center;gap:6px;
+  font-size:12.5px;color:var(--call-muted);
+  cursor:pointer;transition:.15s;
+}
+.audio-badge:hover{background:var(--call-card2);}
+.audio-badge svg{width:14px;height:14px;flex-shrink:0;}
+
+/* ── Controls ── */
+.call-controls{
+  position:relative;z-index:10;
+  padding:0 20px 28px;
+  display:flex;flex-direction:column;gap:14px;
+  flex-shrink:0;
+}
+.controls-row{display:flex;align-items:flex-end;justify-content:center;gap:18px;}
+
+/* control button */
+.ctrl{
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  cursor:pointer;background:none;border:none;
+}
+.ctrl-circle{
+  width:60px;height:60px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:.18s;
+  border:none;cursor:pointer;
+}
+.ctrl-circle svg{width:24px;height:24px;}
+.ctrl-label{font-size:11px;color:var(--call-muted);font-weight:500;letter-spacing:.01em;text-align:center;max-width:64px;line-height:1.3;}
+
+/* states */
+.ctrl-circle.grey{background:var(--call-card);color:var(--call-fg);backdrop-filter:blur(8px);}
+.ctrl-circle.grey:hover{background:var(--call-card2);}
+.ctrl-circle.active{background:#1c1c1e;color:#fff;}
+.ctrl-circle.active:hover{background:#000;}
+.ctrl-circle.danger{background:#ff3b30;color:#fff;}
+.ctrl-circle.danger:hover{background:#e0302a;}
+
+/* end call — bigger */
+.ctrl-end .ctrl-circle{width:72px;height:72px;}
+.ctrl-end .ctrl-circle svg{width:28px;height:28px;}
+
+/* ── Settings panel (slide-up sheet) ── */
+#settingsSheet{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;
+  pointer-events:none;
+}
+#settingsSheet.open{pointer-events:all;}
+.sheet-backdrop{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.5);
+  opacity:0;transition:opacity .28s;
+  backdrop-filter:blur(4px);
+}
+#settingsSheet.open .sheet-backdrop{opacity:1;}
+.sheet-panel{
+  position:relative;z-index:1;
+  width:100%;max-width:480px;
+  background:var(--call-bg);
+  border:1px solid var(--call-line);
+  border-bottom:none;
+  border-radius:22px 22px 0 0;
+  padding:0 0 32px;
+  transform:translateY(110%);
+  transition:transform .32s cubic-bezier(.22,.68,0,1.2);
+  overflow:hidden;
+}
+#settingsSheet.open .sheet-panel{transform:translateY(0);}
+.sheet-handle{width:38px;height:4px;border-radius:2px;background:rgba(0,0,0,.15);margin:12px auto 0;}
+.sheet-title{font-size:16px;font-weight:700;color:var(--call-fg);padding:14px 20px 4px;letter-spacing:-.01em;}
+.sheet-section-label{font-size:11px;font-weight:700;color:var(--call-muted);text-transform:uppercase;letter-spacing:.07em;padding:14px 20px 6px;}
+.sheet-row{
+  display:flex;align-items:center;gap:13px;
+  padding:11px 20px;
+  cursor:pointer;transition:.12s;
+}
+.sheet-row:hover{background:rgba(0,0,0,.04);}
+.sheet-row.sel{background:rgba(44,126,255,.12);}
+.sheet-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:rgba(0,0,0,.05);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--call-fg);
+}
+.sheet-icon svg{width:18px;height:18px;}
+.sheet-row-body{flex:1;min-width:0;}
+.sheet-row-title{font-size:14.5px;font-weight:600;color:var(--call-fg);}
+.sheet-row-sub{font-size:12px;color:var(--call-muted);margin-top:1px;}
+.sheet-check{width:20px;height:20px;border-radius:50%;background:#2C7EFF;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transition:.15s;}
+.sheet-check svg{width:12px;height:12px;color:#fff;}
+.sheet-row.sel .sheet-check{opacity:1;}
+.sheet-divider{height:1px;background:var(--call-line);margin:6px 20px;}
+.sheet-info-row{display:flex;align-items:center;gap:10px;padding:9px 20px;}
+.sheet-info-label{font-size:13px;color:var(--call-muted);}
+.sheet-info-val{font-size:13px;font-weight:600;color:var(--call-fg);margin-left:auto;}
+
+/* (камера временно не используется) */
+
+/* ── Incoming call overlay (fullscreen) ── */
+#incomingScreen{
+  position:fixed;inset:0;z-index:300;
+  display:none;flex-direction:column;align-items:center;justify-content:space-between;
+  padding:env(safe-area-inset-top,0) 24px calc(env(safe-area-inset-bottom,0) + 40px);
+  padding-top:max(64px, env(safe-area-inset-top,0));
+  background:var(--call-bg);
+  color:var(--call-fg);
+}
+#incomingScreen.active{display:flex;}
+.incoming-content{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+}
+.incoming-label{font-size:13px;color:var(--call-muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
+.incoming-name{font-size:30px;font-weight:700;color:var(--call-fg);margin-top:6px;letter-spacing:-.02em;}
+.incoming-type{font-size:14.5px;color:var(--call-muted);margin-top:2px;}
+.incoming-av{width:120px;height:120px;border-radius:50%;font-size:46px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:6px;box-shadow:0 8px 28px rgba(0,0,0,.18);}
+.incoming-actions{display:flex;gap:64px;flex-shrink:0;}
+.inc-btn{display:flex;flex-direction:column;align-items:center;gap:10px;background:none;border:none;cursor:pointer;}
+.inc-btn-circle{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.18);}
+.inc-btn-circle svg{width:27px;height:27px;}
+.inc-btn-label{font-size:12.5px;color:var(--call-muted);font-weight:500;}
+
+/* ── PC desktop layout ── */
+@media(min-width:860px){
+  #app{flex-direction:row;}
+  .left-pane{
+    width:320px;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;height:100%;flex-shrink:0;
+  }
+  .right-pane{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    background:var(--card);min-height:0;
+  }
+  .right-empty{
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    color:var(--muted);
+  }
+  .right-empty svg{width:48px;height:48px;opacity:.2;}
+  .right-empty span{font-size:14px;font-weight:500;opacity:.4;}
+  #callScreen{border-radius:20px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .sheet-panel{border-radius:22px 22px 0 0;}
+}
+@media(max-width:859px){
+  .left-pane{width:100%;display:flex;flex-direction:column;height:100%;}
+  .right-pane{display:none;}
+}
+</style>
+</head>
+<body>
+<!-- ── CALL SCREEN ── -->
+<div id="callScreen">
+  <div class="call-bg-anim"></div>
+  <div class="call-waves">
+    <div class="wave"></div><div class="wave"></div>
+    <div class="wave"></div><div class="wave"></div>
+  </div>
+
+  <!-- top bar -->
+  <div class="call-topbar">
+    <button class="call-topbar-btn" onclick="minimizeCall()" title="Свернуть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="call-quality">
+      <div class="call-quality-dot" id="qualityDot"></div>
+      <span id="qualityLabel">Отличное соединение</span>
+    </div>
+    <button class="call-topbar-btn" onclick="openSettings()" title="Настройки звонка">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.65 1.65 0 0 0-1.8-.3 1.65 1.65 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.65 1.65 0 0 0 .3-1.8 1.65 1.65 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.65 1.65 0 0 0 1.8.3H9a1.65 1.65 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.65 1.65 0 0 0 1 1.5 1.65 1.65 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.65 1.65 0 0 0-.3 1.8V9a1.65 1.65 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.65 1.65 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- center -->
+  <div class="call-center">
+    <div class="call-avatar" id="callAvatar"></div>
+    <div class="call-name" id="callName">Имя</div>
+    <div class="call-status" id="callStatus">
+      <span class="call-status-dot"></span>
+      <span id="callStatusText">Соединение...</span>
+    </div>
+    <div class="call-timer" id="callTimer" style="display:none;">0:00</div>
+    <button class="audio-badge" onclick="cycleAudio()" id="audioBadge">
+      <svg id="audioIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <span id="audioLabel">Телефон</span>
+    </button>
+  </div>
+
+  <!-- controls -->
+  <div class="call-controls">
+    <div class="controls-row">
+      <!-- Mic -->
+      <button class="ctrl" onclick="toggleMic()" id="micCtrl">
+        <div class="ctrl-circle grey" id="micCircle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <span class="ctrl-label" id="micLabel">Микрофон</span>
+      </button>
+
+      <!-- Speaker/Audio -->
+      <button class="ctrl" onclick="cycleAudio()" id="speakerCtrl">
+        <div class="ctrl-circle grey" id="speakerCircle">
+          <svg id="speakerIcon2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </div>
+        <span class="ctrl-label" id="speakerLabel">Телефон</span>
+      </button>
+
+      <!-- End call -->
+      <button class="ctrl ctrl-end" onclick="endCall()">
+        <div class="ctrl-circle danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.96.33 1.98.52 3 .56a2 2 0 0 1 2 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6A19.79 19.79 0 0 1 2.12 3.18 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72c.1 1.03.29 2.04.62 3a2 2 0 0 1-.45 2.11L8.09 8.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+        </div>
+        <span class="ctrl-label">Завершить</span>
+      </button>
+
+      <!-- More -->
+      <button class="ctrl" onclick="openSettings()">
+        <div class="ctrl-circle grey">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+        <span class="ctrl-label">Ещё</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Incoming call overlay (fullscreen) ── -->
+<div id="incomingScreen" class="active">
+  <div class="incoming-content">
+    <div class="incoming-label">Входящий звонок VChat</div>
+    <div class="incoming-av" id="incomingAv" style="background:#2C7EFF;">Н</div>
+    <div class="incoming-name" id="incomingName">Никита</div>
+    <div class="incoming-type">Голосовой звонок</div>
+  </div>
+  <div class="incoming-actions">
+    <button class="inc-btn" onclick="declineCall()">
+      <div class="inc-btn-circle" style="background:#ff3b30;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="23" y1="1" x2="1" y2="23"/><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.96.33 1.98.52 3 .56a2 2 0 0 1 2 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6"/></svg>
+      </div>
+      <span class="inc-btn-label">Отклонить</span>
+    </button>
+    <button class="inc-btn" onclick="acceptCall()">
+      <div class="inc-btn-circle" style="background:#34c759;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A20 20 0 0 1 3.1 4.2 2 2 0 0 1 5.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L9.1 9.91a16 16 0 0 0 6.72 6.72l1.28-1.28a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.9z"/></svg>
+      </div>
+      <span class="inc-btn-label">Принять</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── Settings sheet ── -->
+<div id="settingsSheet" onclick="sheetBackdropClick(event)">
+  <div class="sheet-backdrop"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Настройки звонка</div>
+
+    <div class="sheet-section-label">Аудиовыход</div>
+    <div id="audioRows"></div>
+
+    <div class="sheet-divider"></div>
+
+    <div class="sheet-section-label">Устройства</div>
+    <div class="sheet-info-row">
+      <span class="sheet-info-label">Микрофон</span>
+      <span class="sheet-info-val" id="micDeviceName">—</span>
+    </div>
+    <div class="sheet-info-row">
+      <span class="sheet-info-label">Динамик</span>
+      <span class="sheet-info-val" id="speakerDeviceName">—</span>
+    </div>
+    <div class="sheet-info-row">
+      <span class="sheet-info-label">Устройство</span>
+      <span class="sheet-info-val" id="deviceName">—</span>
+    </div>
+
+    <div class="sheet-divider"></div>
+    <div class="sheet-section-label">Управление</div>
+    <div class="sheet-row" onclick="toggleMic();closeSettings();">
+      <div class="sheet-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      </div>
+      <div class="sheet-row-body">
+        <div class="sheet-row-title" id="sheetMicTitle">Выключить микрофон</div>
+        <div class="sheet-row-sub">Собеседник не будет вас слышать</div>
+      </div>
+    </div>
+    <div class="sheet-row" onclick="endCall();closeSettings();">
+      <div class="sheet-icon" style="background:rgba(255,59,48,.15);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="23" y1="1" x2="1" y2="23"/><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.96.33 1.98.52 3 .56a2 2 0 0 1 2 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6"/></svg>
+      </div>
+      <div class="sheet-row-body">
+        <div class="sheet-row-title" style="color:#ff3b30;">Завершить звонок</div>
+        <div class="sheet-row-sub">Отключиться от разговора</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ───────────────────────────────────────
+   State
+─────────────────────────────────────── */
+let callActive = false;
+let callName = '';
+let callColor = '#2C7EFF';
+let micOn = true;
+let timerInterval = null;
+let timerSec = 0;
+
+// Audio output modes: earpiece → speaker → headset → earpiece …
+const AUDIO_MODES = [
+  {id:'earpiece', label:'Телефон',  sub:'Встроенный динамик', icon:earIcon()},
+  {id:'speaker',  label:'Динамик',  sub:'Громкая связь',      icon:speakerIcon()},
+  {id:'headset',  label:'Наушники', sub:'Подключённые наушники', icon:headIcon()},
+];
+let audioMode = 0; // index into AUDIO_MODES
+
+/* ───────────────────────────────────────
+   SVG helpers
+─────────────────────────────────────── */
+function earIcon(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-7.35 16.76L6 20.5V22h4v-2h2v-2h2a4 4 0 0 0 0-8h-2V8a2 2 0 0 1 4 0v1h2V8a4 4 0 0 0-4-4 4 4 0 0 0-4 4v2"/></svg>`;
+}
+function speakerIcon(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+}
+function headIcon(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>`;
+}
+function micIcon(muted){
+  if(muted) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+}
+
+/* ───────────────────────────────────────
+   Device detection
+─────────────────────────────────────── */
+function detectDevice(){
+  let ua = navigator.userAgent || '';
+  if(/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iPad';
+  if(/iPhone/.test(ua)) return 'iPhone';
+  if(/Android/.test(ua)) return 'Android';
+  if(/Windows/.test(ua)) return 'Windows';
+  if(/Macintosh/.test(ua)) return 'Mac';
+  if(/Linux/.test(ua)) return 'Linux';
+  return 'Браузер';
+}
+
+/* ───────────────────────────────────────
+   Start / End call
+─────────────────────────────────────── */
+function startCall(name, color, type){
+  callName = name;
+  callColor = color;
+  callActive = true;
+  micOn = true;
+  audioMode = 0;
+  timerSec = 0;
+
+  document.getElementById('callAvatar').textContent = name[0].toUpperCase();
+  document.getElementById('callAvatar').style.background = color;
+  document.getElementById('callName').textContent = name;
+  document.getElementById('callStatusText').textContent = type === 'outgoing' ? 'Исходящий...' : type === 'incoming' ? 'Входящий...' : 'Звонок...';
+  document.getElementById('callTimer').style.display = 'none';
+  document.getElementById('callStatus').style.display = 'flex';
+
+  updateMicUI();
+  updateAudioUI();
+  buildAudioRows();
+  loadDeviceNames();
+
+  document.getElementById('callScreen').classList.add('active');
+
+  // simulate connected after 2s
+  setTimeout(() => {
+    if (!callActive) return;
+    document.getElementById('callStatusText').textContent = 'Идёт разговор';
+    document.getElementById('callStatus').style.display = 'none';
+    document.getElementById('callTimer').style.display = 'block';
+    startTimer();
+  }, 2000);
+}
+
+function endCall(){
+  callActive = false;
+  stopTimer();
+  document.getElementById('callScreen').classList.remove('active');
+  document.getElementById('incomingScreen').classList.remove('active');
+}
+
+function minimizeCall(){
+  document.getElementById('callScreen').classList.remove('active');
+}
+
+/* ───────────────────────────────────────
+   Timer
+─────────────────────────────────────── */
+function startTimer(){
+  stopTimer();
+  timerInterval = setInterval(() => {
+    timerSec++;
+    let m = Math.floor(timerSec / 60);
+    let s = timerSec % 60;
+    document.getElementById('callTimer').textContent = m + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+function stopTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+}
+
+/* ───────────────────────────────────────
+   Mic
+─────────────────────────────────────── */
+function toggleMic(){
+  micOn = !micOn;
+  updateMicUI();
+}
+function updateMicUI(){
+  let circle = document.getElementById('micCircle');
+  let label  = document.getElementById('micLabel');
+  let sheetTitle = document.getElementById('sheetMicTitle');
+  circle.innerHTML = micIcon(!micOn);
+  if(micOn){
+    circle.className = 'ctrl-circle grey';
+    label.textContent = 'Микрофон';
+    if(sheetTitle) sheetTitle.textContent = 'Выключить микрофон';
+  } else {
+    circle.className = 'ctrl-circle active';
+    label.textContent = 'Без звука';
+    if(sheetTitle) sheetTitle.textContent = 'Включить микрофон';
+  }
+}
+
+/* ───────────────────────────────────────
+   Audio output
+─────────────────────────────────────── */
+function cycleAudio(){
+  audioMode = (audioMode + 1) % AUDIO_MODES.length;
+  updateAudioUI();
+}
+function setAudioMode(idx){
+  audioMode = idx;
+  updateAudioUI();
+  buildAudioRows();
+}
+function updateAudioUI(){
+  let mode = AUDIO_MODES[audioMode];
+  document.getElementById('audioLabel').textContent = mode.label;
+  document.getElementById('audioIcon').outerHTML = `<span id="audioIcon">${mode.icon}</span>`;
+  document.getElementById('speakerLabel').textContent = mode.label;
+  document.getElementById('speakerIcon2').outerHTML = `<svg id="speakerIcon2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${mode.id==='earpiece'?'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M14.5 9a5 5 0 0 1 0 6"/>':mode.id==='speaker'?'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>':'<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>'}</svg>`;
+  // audioBadge icon
+  let badge = document.getElementById('audioBadge');
+  if(badge){
+    let sp = badge.querySelector('svg, span');
+    if(sp) sp.outerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">${mode.id==='earpiece'?'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M14.5 9a5 5 0 0 1 0 6"/>':mode.id==='speaker'?'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>':'<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>'}</svg>`;
+  }
+  buildAudioRows();
+}
+function buildAudioRows(){
+  let box = document.getElementById('audioRows');
+  box.innerHTML = AUDIO_MODES.map((m, i) => `
+    <div class="sheet-row ${i===audioMode?'sel':''}" onclick="setAudioMode(${i})">
+      <div class="sheet-icon">${m.icon}</div>
+      <div class="sheet-row-body">
+        <div class="sheet-row-title">${m.label}</div>
+        <div class="sheet-row-sub">${m.sub}</div>
+      </div>
+      <div class="sheet-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ───────────────────────────────────────
+   Device names
+─────────────────────────────────────── */
+function loadDeviceNames(){
+  document.getElementById('deviceName').textContent = detectDevice();
+  if(!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices){
+    setFallbackDeviceNames(); return;
+  }
+  navigator.mediaDevices.enumerateDevices().then(devices => {
+    let mic = devices.find(d => d.kind === 'audioinput');
+    let spk = devices.find(d => d.kind === 'audiooutput');
+    document.getElementById('micDeviceName').textContent  = cleanDeviceName(mic?.label) || 'Встроенный микрофон';
+    document.getElementById('speakerDeviceName').textContent = cleanDeviceName(spk?.label) || 'Встроенный динамик';
+  }).catch(setFallbackDeviceNames);
+}
+function setFallbackDeviceNames(){
+  document.getElementById('micDeviceName').textContent  = 'Встроенный микрофон';
+  document.getElementById('speakerDeviceName').textContent = 'Встроенный динамик';
+}
+function cleanDeviceName(label){
+  if(!label) return '';
+  // strip trailing technical ids
+  return label.replace(/\s*\([\da-f:]+\)\s*$/i,'').trim();
+}
+
+/* ───────────────────────────────────────
+   Incoming call
+─────────────────────────────────────── */
+function showIncoming(name, color){
+  name = name || 'Никита';
+  color = color || '#2C7EFF';
+  document.getElementById('incomingAv').textContent = name[0].toUpperCase();
+  document.getElementById('incomingAv').style.background = color;
+  document.getElementById('incomingName').textContent = name;
+  document.getElementById('incomingScreen').classList.add('active');
+}
+function acceptCall(){
+  let name = document.getElementById('incomingName').textContent;
+  let col  = document.getElementById('incomingAv').style.background;
+  document.getElementById('incomingScreen').classList.remove('active');
+  startCall(name, col, 'incoming');
+}
+function declineCall(){
+  document.getElementById('incomingScreen').classList.remove('active');
+}
+
+/* ───────────────────────────────────────
+   Settings sheet
+─────────────────────────────────────── */
+function openSettings(){
+  loadDeviceNames();
+  buildAudioRows();
+  updateMicUI();
+  document.getElementById('settingsSheet').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settingsSheet').classList.remove('open');
+}
+function sheetBackdropClick(e){
+  if(e.target.classList.contains('sheet-backdrop') || e.target === e.currentTarget) closeSettings();
+}
+
+/* ───────────────────────────────────────
+   Init
+─────────────────────────────────────── */
+loadDeviceNames();
+buildAudioRows();
+showIncoming('Никита', '#2C7EFF');
+</script>
+</body>
+</html>
