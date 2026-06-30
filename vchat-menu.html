@@ -45,6 +45,8 @@ body{display:flex;}
 .iconbtn:hover{background:var(--card);}
 .header{display:flex;align-items:center;gap:8px;padding:16px 16px 8px;font-size:19px;font-weight:700;letter-spacing:-.01em;flex-shrink:0;color:var(--fg);justify-content:center;}
 .header span{flex:unset;}
+.headerBadge{display:none;align-items:center;justify-content:center;background:#FF3B30;color:#fff;font-size:12px;font-weight:700;min-width:21px;height:21px;border-radius:11px;padding:0 6px;margin-left:auto;}
+.headerBadge.show{display:inline-flex;}
 /* chats header stays left always */
 #tabChats .header{justify-content:flex-start;}
 #tabChats .header span{flex:1;}
@@ -293,7 +295,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div class="tab on" id="tabChats">
       <!-- Chat list -->
       <div class="chatListPane">
-        <div class="header"><span>Чаты</span></div>
+        <div class="header"><span>Чаты</span><div class="headerBadge" id="chatsBadge"></div></div>
         <div class="searchWrap">
           <div class="searchBox" id="userSearchBox">
             <svg class="uSearchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -594,6 +596,20 @@ function nowTime(){
   return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
 }
 
+/* ---------- непрочитанные сообщения (бейдж) ---------- */
+function updateUnreadBadge(){
+  let total=0;
+  Object.keys(chatMeta).forEach(n=>{ total+=(chatMeta[n].unread||0); });
+  let badge=document.getElementById('chatsBadge');
+  if(!badge)return;
+  if(total>0){
+    badge.textContent=total>99?'99+':String(total);
+    badge.classList.add('show');
+  }else{
+    badge.classList.remove('show');
+  }
+}
+
 function avatarHtmlFor(name){
   let meta=chatMeta[name];
   if(!meta)return '';
@@ -691,6 +707,7 @@ function saveProfileEdit(){
 /* ---------- open / close chat ---------- */
 function openChat(name){
   curChat=name;
+  if(chatMeta[name]){chatMeta[name].unread=0;updateUnreadBadge();renderChatRows();}
   document.getElementById('cwName').textContent=name;
   let meta=chatMeta[name];
   let av=document.getElementById('cwAv');
@@ -859,14 +876,27 @@ function pinMessage(scope){
   closePinChoice();
   renderChat();
   updatePinnedBar();
-  showToast(scope==='both'?'Закреплено у обоих':'Закреплено у себя');
+  if(scope==='both'){
+    let meta=chatMeta[curChat];
+    if(meta&&meta.uid&&vchatUser&&typeof ctxActiveId==='number'){
+      sb.from('messages').update({pinned:true}).eq('id',ctxActiveId).then(({error})=>{ if(error)console.error(error); });
+    }
+    showToast('Закреплено у обоих');
+  }else{
+    showToast('Закреплено у себя');
+  }
 }
 function unpinMessage(){
+  let id=pinnedMap[curChat];
   delete pinnedMap[curChat];
   closeCtxMenu();
   renderChat();
   updatePinnedBar();
-  showToast('Сообщение открепено');
+  let meta=chatMeta[curChat];
+  if(id&&meta&&meta.uid&&vchatUser){
+    sb.from('messages').update({pinned:false}).eq('id',id).then(({error})=>{ if(error)console.error(error); });
+  }
+  showToast('Сообщение откреплено');
 }
 
 /* ---------- context menu (right click) ---------- */
@@ -989,9 +1019,7 @@ function localSendMsg(){
 function downloadFile(id){
   let m=findMsgById(id);
   if(!m||!m.url){showToast('Файл недоступен для скачивания');return;}
-  let a=document.createElement('a');
-  a.href=m.url;a.download=m.name;
-  document.body.appendChild(a);a.click();a.remove();
+  window.open(m.url,'_blank');
 }
 
 /* ---------- file attach ---------- */
@@ -1086,6 +1114,16 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let vchatUser=null;
 
+function dbRowToLocal(m){
+  let d=new Date(m.created_at);
+  let time=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  let from=m.sender_id===vchatUser.id?'out':'in';
+  if(m.type==='file'){
+    return {id:m.id,from:from,type:'file',name:m.file_name||'Файл',size:m.file_size||'',url:m.file_url||null,time:time,replyTo:m.reply_to||null};
+  }
+  return {id:m.id,from:from,type:'text',text:m.content||'',time:time,replyTo:m.reply_to||null};
+}
+
 async function vchatInit(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){ window.location.href='vchat.html'; return; }
@@ -1123,16 +1161,18 @@ async function vchatLoadConversations(){
     if(!p)return;
     let username=p.username, dispname=p.display_name||p.username;
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0};
     }else{
       chatMeta[username].uid=uid;
     }
     let myMsgs=data.filter(m=>m.sender_id===uid||m.receiver_id===uid);
-    chats[username]=myMsgs.map(m=>{
-      let d=new Date(m.created_at);
-      return {id:m.id,from:m.sender_id===vchatUser.id?'out':'in',text:m.content,type:'text',time:d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')};
-    });
-    if(myMsgs.length)chatMeta[username].last=myMsgs[myMsgs.length-1].content;
+    chats[username]=myMsgs.map(m=>dbRowToLocal(m));
+    let lastPinned=myMsgs.filter(m=>m.pinned).pop();
+    if(lastPinned)pinnedMap[username]=lastPinned.id;
+    if(myMsgs.length){
+      let lastM=myMsgs[myMsgs.length-1];
+      chatMeta[username].last=lastM.type==='file'?('📎 '+(lastM.file_name||'Файл')):(lastM.content||'');
+    }
     newOrder.push(username);
   });
   chatOrder=[...newOrder,...chatOrder.filter(n=>!newOrder.includes(n))];
@@ -1183,7 +1223,7 @@ async function selectUser(username,uid,dispname){
   document.getElementById('uResults').innerHTML='';
   document.getElementById('chatRows').style.display='';
   if(!chatMeta[username]){
-    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:''};
+    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0};
     chats[username]=[];
   }
   chatMeta[username].uid=uid;
@@ -1197,11 +1237,11 @@ async function vchatOpenRealChat(username,uid,dispname){
   const {data}=await sb.from('messages').select('*')
     .or(`and(sender_id.eq.${vchatUser.id},receiver_id.eq.${uid}),and(sender_id.eq.${uid},receiver_id.eq.${vchatUser.id})`)
     .order('created_at',{ascending:true});
-  chats[username]=(data||[]).map(m=>{
-    let d=new Date(m.created_at);
-    return {id:m.id,from:m.sender_id===vchatUser.id?'out':'in',text:m.content,type:'text',time:d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')};
-  });
+  chats[username]=(data||[]).map(m=>dbRowToLocal(m));
+  let lastPinned=(data||[]).filter(m=>m.pinned).pop();
+  if(lastPinned)pinnedMap[username]=lastPinned.id; else delete pinnedMap[username];
   renderChat();
+  updatePinnedBar();
   let callBtn=document.getElementById('cwCallBtn');
   if(username==='Избранное'){
     callBtn.style.display='none';
@@ -1211,16 +1251,67 @@ async function vchatOpenRealChat(username,uid,dispname){
   }
 }
 
-/* ---------- реальная отправка сообщений ---------- */
-function sendMsg(){
+/* ---------- реальная отправка сообщений (текст / ответ / файл) ---------- */
+async function sendMsg(){
   let inp=document.getElementById('cwInput');
   let text=inp.value.trim();
+  let hasFile=pendingFile!==null;
+  if(!text&&!hasFile)return;
+  if(!curChat)return;
   let chatName=curChat;
   let meta=chatMeta[chatName];
-  localSendMsg();
-  if(text&&meta&&meta.uid&&vchatUser){
-    sb.from('messages').insert({sender_id:vchatUser.id,receiver_id:meta.uid,content:text})
-      .then(({error})=>{ if(error)console.error(error); });
+
+  // "Избранное" — локальные заметки, на сервер не уходят
+  if(chatName==='Избранное'||!meta||!meta.uid||!vchatUser){
+    localSendMsg();
+    return;
+  }
+
+  let replyId=replyTarget;
+  cancelReply();
+
+  if(hasFile){
+    let f=pendingFile;
+    cancelAttach();
+    inp.disabled=true;
+    showToast('Загрузка файла...');
+    try{
+      let path=vchatUser.id+'/'+Date.now()+'_'+f.file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      let {error:upErr}=await sb.storage.from('chat-files').upload(path,f.file);
+      if(upErr){ console.error(upErr); showToast('Не удалось загрузить файл'); inp.disabled=false; return; }
+      let {data:pub}=sb.storage.from('chat-files').getPublicUrl(path);
+      let fileUrl=pub.publicUrl;
+      let {data:row,error}=await sb.from('messages').insert({
+        sender_id:vchatUser.id, receiver_id:meta.uid, content:null,
+        type:'file', file_name:f.name, file_size:f.sizeStr, file_url:fileUrl,
+        reply_to:replyId
+      }).select().single();
+      if(error){ console.error(error); showToast('Не удалось отправить файл'); inp.disabled=false; return; }
+      chats[chatName].push(dbRowToLocal(row));
+      meta.last='📎 '+f.name;
+      bumpChatOrder(chatName);
+      renderChat();
+    }catch(e){ console.error(e); showToast('Ошибка отправки файла'); }
+    inp.disabled=false;
+    replyId=null;
+  }
+
+  if(text){
+    inp.value='';inp.style.height='auto';
+    let {data:row,error}=await sb.from('messages').insert({
+      sender_id:vchatUser.id, receiver_id:meta.uid, content:text, type:'text', reply_to:replyId
+    }).select().single();
+    if(error){ console.error(error); showToast('Не удалось отправить сообщение'); return; }
+    chats[chatName].push(dbRowToLocal(row));
+    meta.last=text;
+    bumpChatOrder(chatName);
+    if(curChat===chatName)renderChat();
+  }
+  renderChatRows();
+}
+function bumpChatOrder(name){
+  if(name!=='Избранное'){
+    chatOrder=[name,...chatOrder.filter(n=>n!==name)];
   }
 }
 
@@ -1236,19 +1327,52 @@ function vchatSubscribeMessages(){
         sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single().then(({data})=>{
           if(!data)return;
           let nm=data.username, dn=data.display_name||data.username;
-          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id};
+          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0};
           chats[nm]=[];
           if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
           vchatPushIncoming(nm,m);
         });
       }
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},payload=>{
+      vchatHandlePinUpdate(payload.new);
     }).subscribe((status,err)=>{
       console.log('VCHAT REALTIME STATUS:',status,err||'');
     });
   // запасной вариант: на случай если realtime не доходит, проверяем новые сообщения каждые 4 секунды
   setInterval(vchatPollNewMessages,4000);
+  setInterval(vchatPollPinUpdates,4000);
 }
 let vchatLastPoll=new Date().toISOString();
+function vchatHandlePinUpdate(m){
+  let otherId=m.sender_id===vchatUser.id?m.receiver_id:m.sender_id;
+  let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===otherId);
+  if(!name)return;
+  if(m.pinned){pinnedMap[name]=m.id;}else if(pinnedMap[name]===m.id){delete pinnedMap[name];}
+  if(curChat===name){renderChat();updatePinnedBar();}
+}
+async function vchatPollPinUpdates(){
+  if(!vchatUser)return;
+  const {data,error}=await sb.from('messages').select('id,sender_id,receiver_id,pinned')
+    .or(`sender_id.eq.${vchatUser.id},receiver_id.eq.${vchatUser.id}`)
+    .eq('pinned',true);
+  if(error)return;
+  let byOther={};
+  (data||[]).forEach(m=>{
+    let otherId=m.sender_id===vchatUser.id?m.receiver_id:m.sender_id;
+    byOther[otherId]=m.id;
+  });
+  Object.keys(chatMeta).forEach(name=>{
+    let meta=chatMeta[name];
+    if(!meta.uid)return;
+    let pinnedId=byOther[meta.uid];
+    if(pinnedId){
+      if(pinnedMap[name]!==pinnedId){pinnedMap[name]=pinnedId;if(curChat===name){renderChat();updatePinnedBar();}}
+    }else if(pinnedMap[name]){
+      delete pinnedMap[name];if(curChat===name){renderChat();updatePinnedBar();}
+    }
+  });
+}
 async function vchatPollNewMessages(){
   if(!vchatUser)return;
   const {data,error}=await sb.from('messages').select('*')
@@ -1260,12 +1384,12 @@ async function vchatPollNewMessages(){
   for(const m of data){
     let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===m.sender_id);
     if(name){
-      vchatPushIncoming(name,m);
+      if(!chats[name]||!chats[name].some(x=>x.id===m.id))vchatPushIncoming(name,m);
     }else{
       const {data:p}=await sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single();
       if(!p)continue;
       let nm=p.username, dn=p.display_name||p.username;
-      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id};
+      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0};
       chats[nm]=[];
       if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
       vchatPushIncoming(nm,m);
@@ -1274,11 +1398,16 @@ async function vchatPollNewMessages(){
 }
 function vchatPushIncoming(name,m){
   if(!chats[name])chats[name]=[];
-  chats[name].push({id:m.id,from:'in',text:m.content,type:'text',time:nowTime()});
-  chatMeta[name].last=m.content;
+  chats[name].push(dbRowToLocal(m));
+  chatMeta[name].last=m.type==='file'?('📎 '+(m.file_name||'Файл')):(m.content||'');
   chatOrder=[name,...chatOrder.filter(n=>n!==name)];
+  if(curChat!==name){
+    chatMeta[name].unread=(chatMeta[name].unread||0)+1;
+    updateUnreadBadge();
+  }
+  if(m.pinned){pinnedMap[name]=m.id;}
   renderChatRows();
-  if(curChat===name)renderChat();
+  if(curChat===name){renderChat();updatePinnedBar();}
 }
 
 /* ---------- звонок ---------- */
