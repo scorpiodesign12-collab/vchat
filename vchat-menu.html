@@ -1142,7 +1142,7 @@ function vchatListenForCalls(){
   sb.channel('call-'+vchatUser.id)
     .on('broadcast',{event:'incoming_call'},(msg)=>{
       const p=msg.payload;
-      window.location.href='vchat-calls.html?mode=incoming&uid='+encodeURIComponent(p.from)+'&name='+encodeURIComponent(p.fromName)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name);
+      window.location.href='vchat-calls.html?mode=incoming&uid='+encodeURIComponent(p.from)+'&name='+encodeURIComponent(p.fromName)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name)+'&callid='+encodeURIComponent(p.callId);
     }).subscribe();
 }
 async function vchatHeartbeat(){
