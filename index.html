@@ -846,13 +846,13 @@ async function finishOnboarding(){
   if(btn)btn.textContent='Создаю аккаунт...';
   let bioEl=document.getElementById('bio');
   let regBio=bioEl?bioEl.value.trim():'';
-  const ok = await vchatSignUp(regUsername, regDispname, pwd, regBio);
-  if(ok){
+  const result = await vchatSignUp(regUsername, regDispname, pwd, regBio);
+  if(result.ok){
     upsertSavedAccount(regUsername, regDispname);
     window.location.href='vchat-menu.html';
   }else{
     if(btn)btn.textContent='Готово';
-    alert('Не получилось создать аккаунт. Проверь интернет и попробуй снова.');
+    alert('Не получилось создать аккаунт: '+(result.message||'неизвестная ошибка'));
   }
 }
 
@@ -875,15 +875,15 @@ async function vchatSignUp(username, dispname, pin, bio){
       email: vchatEmailFor(username),
       password: vchatPassFor(pin)
     });
-    if(error){ console.error(error); return false; }
+    if(error){ console.error(error); return {ok:false, message:error.message||String(error)}; }
     const userId=data.user ? data.user.id : (data.session?data.session.user.id:null);
-    if(!userId) return false;
+    if(!userId) return {ok:false, message:'Не удалось получить ID пользователя после регистрации'};
     const {error:profErr}=await sb.from('profiles').insert({
       id:userId, username:username, display_name:dispname, bio:(bio||'')
     });
-    if(profErr){ console.error(profErr); return false; }
-    return true;
-  }catch(e){ console.error(e); return false; }
+    if(profErr){ console.error(profErr); return {ok:false, message:profErr.message||String(profErr)}; }
+    return {ok:true};
+  }catch(e){ console.error(e); return {ok:false, message:(e&&e.message)?e.message:String(e)}; }
 }
 
 async function vchatLogin(username, pin){
