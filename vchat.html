@@ -70,6 +70,11 @@ h2{font-size:25px;margin:8px 0 2px;font-weight:700;letter-spacing:-.02em;color:v
 [data-theme="dark"] .dot.fill{background:#fff;}
 .key svg{width:18px;height:18px;}
 .avatarRow{display:flex;align-items:center;gap:16px;z-index:1;margin-top:6px;}
+.savedAccounts{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:4px 0 20px;z-index:1;max-width:100%;overflow-x:auto;padding:2px;}
+.savedAcc{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;width:62px;flex-shrink:0;}
+.savedAcc:active .savedAccAv{transform:scale(.92);}
+.savedAccAv{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line);transition:transform .12s;}
+.savedAccName{font-size:11px;color:var(--muted);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .avatarBig{width:64px;height:64px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;background-size:cover;background-position:center;}
 .colors{display:flex;gap:12px;margin-top:14px;z-index:1;flex-wrap:wrap;justify-content:center;}
 .clr{width:36px;height:36px;border-radius:50%;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;transition:transform .15s;}
@@ -111,12 +116,16 @@ textarea.input{resize:none;height:74px;}
   .input{padding:13px 14px;font-size:14.5px;}
   .label{font-size:11.5px;margin-top:15px;}
   .hint{font-size:12px;padding:11px 12px;}
-  .key{padding:15px 8px;font-size:19px;}
-  .keypad{gap:8px;margin-top:26px;}
-  #s4login,#s4,#s4b{padding-left:11px;padding-right:11px;}
+  .key{padding:22px 6px;font-size:23px;border-radius:22px;}
+  .keypad{gap:11px;margin-top:28px;}
+  #s4login,#s4,#s4b{padding-left:16px;padding-right:16px;}
   .dot{width:26px;height:26px;}
   .dots{gap:13px;margin:20px 0;}
   .clr{width:32px;height:32px;}
+  .savedAccounts{gap:10px;margin:2px 0 16px;}
+  .savedAcc{width:54px;}
+  .savedAccAv{width:48px;height:48px;font-size:16px;}
+  .savedAccName{font-size:10px;max-width:54px;}
   .splashLogo{width:170px !important;height:170px !important;}
   #s2 .logo{width:130px !important;height:130px !important;}
   #s7 .logo{width:150px !important;height:150px !important;}
@@ -205,6 +214,7 @@ textarea.input{resize:none;height:74px;}
 <div class="screen" id="s2">
   <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dm2"></button></div>
   <div class="center"><div class="logo" style="width:170px;height:170px;">{{LOGO}}</div><div class="sub" style="font-size:13px;color:var(--muted);margin-top:4px;">Простой, Быстрый<br>мессенджер</div></div>
+  <div class="savedAccounts" id="savedAccountsRow" style="display:none;"></div>
   <div class="stack">
     <button class="btn btn-primary" onclick="nav('s3login')">Войти</button>
     <button class="btn btn-ghost" onclick="nav('s3')">Регистрация</button>
@@ -255,10 +265,11 @@ textarea.input{resize:none;height:74px;}
 
 <!-- 4login. Password entry for login -->
 <div class="screen" id="s4login">
-  <div class="topbar"><button class="iconbtn" onclick="nav('s3login')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4l"></button></div>
+  <div class="topbar"><button class="iconbtn" onclick="navLoginBack()" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4l"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
       <div class="title" style="font-size:20px;color:var(--muted);">Введи пароль</div>
+      <div class="sub" id="s4loginSub" style="margin-top:2px;"></div>
       <div class="dots" id="pwdotsLogin"></div>
     </div>
     <div class="keypad">
@@ -503,6 +514,9 @@ async function doLoginNext(){
   }
   err.style.display='none';
   loginUsernameVal=val;
+  loginBackTarget='s3login';
+  let sub=document.getElementById('s4loginSub');
+  if(sub)sub.textContent='@'+val;
   nav('s4login');
 }
 
@@ -511,6 +525,94 @@ function nav(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
+/* ---------- back button for login-password screen (ведёт либо на s2, либо на s3login) ---------- */
+let loginBackTarget='s3login';
+function navLoginBack(){
+  nav(loginBackTarget);
+  loginBackTarget='s3login';
+}
+
+/* ---------- сохранённые на устройстве аккаунты (кружочки над кнопкой "Войти") ---------- */
+const SAVED_ACC_KEY='vchat_saved_accounts';
+const savedAccPalette=['#e53935','#d81b60','#8e24aa','#5e35b1','#3949ab','#1e88e5','#039be5','#00acc1','#00897b','#43a047','#f4511e','#6d4c41'];
+function savedAccColor(username){
+  let h=0; for(let i=0;i<username.length;i++) h=(h*31+username.charCodeAt(i))>>>0;
+  return savedAccPalette[h%savedAccPalette.length];
+}
+function savedAccInitials(name){
+  if(!name)return '?';
+  return name.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase();
+}
+function loadSavedAccounts(){
+  try{ return JSON.parse(localStorage.getItem(SAVED_ACC_KEY)||'[]'); }catch(e){ return []; }
+}
+function persistSavedAccounts(list){
+  try{ localStorage.setItem(SAVED_ACC_KEY, JSON.stringify(list)); }catch(e){}
+}
+function upsertSavedAccount(username, dispname){
+  if(!username)return;
+  let list=loadSavedAccounts().filter(a=>a.username.toLowerCase()!==username.toLowerCase());
+  list.unshift({username:username, dispname:dispname||username, ts:Date.now()});
+  if(list.length>6)list=list.slice(0,6);
+  persistSavedAccounts(list);
+  renderSavedAccounts();
+}
+function removeSavedAccount(username){
+  let list=loadSavedAccounts().filter(a=>a.username.toLowerCase()!==username.toLowerCase());
+  persistSavedAccounts(list);
+  renderSavedAccounts();
+}
+function confirmRemoveSavedAccount(username){
+  if(confirm('Убрать @'+username+' из списка на этом устройстве?'))removeSavedAccount(username);
+}
+async function fetchDisplayNameByUsername(username){
+  try{
+    const {data}=await sb.from('profiles').select('display_name').eq('username',username).maybeSingle();
+    return data ? data.display_name : username;
+  }catch(e){ return username; }
+}
+async function saveAccountAfterLogin(username, knownDispname){
+  let dispname=knownDispname;
+  if(!dispname) dispname=await fetchDisplayNameByUsername(username);
+  upsertSavedAccount(username, dispname);
+}
+function openSavedAccountLogin(username){
+  loginUsernameVal=username;
+  loginBackTarget='s2';
+  let title=document.querySelector('#s4login .title');
+  if(title){ title.textContent='Введи пароль'; title.style.color='var(--muted)'; }
+  let sub=document.getElementById('s4loginSub');
+  if(sub)sub.textContent='@'+username;
+  pwdLogin='';renderDotsLogin();
+  nav('s4login');
+}
+function renderSavedAccounts(){
+  let wrap=document.getElementById('savedAccountsRow');
+  if(!wrap)return;
+  let list=loadSavedAccounts();
+  if(!list.length){ wrap.style.display='none'; wrap.innerHTML=''; return; }
+  wrap.style.display='flex';
+  wrap.innerHTML=list.map(a=>`<div class="savedAcc" data-u="${a.username}">
+      <div class="savedAccAv" style="background:${savedAccColor(a.username)};">${savedAccInitials(a.dispname)}</div>
+      <div class="savedAccName">${a.username}</div>
+    </div>`).join('');
+  wrap.querySelectorAll('.savedAcc').forEach(el=>{
+    let username=el.dataset.u;
+    let pressTimer=null, longPressed=false;
+    el.addEventListener('pointerdown',()=>{
+      longPressed=false;
+      pressTimer=setTimeout(()=>{ longPressed=true; confirmRemoveSavedAccount(username); },550);
+    });
+    el.addEventListener('pointerup',()=>{
+      if(pressTimer)clearTimeout(pressTimer);
+      if(!longPressed)openSavedAccountLogin(username);
+    });
+    el.addEventListener('pointerleave',()=>{ if(pressTimer)clearTimeout(pressTimer); });
+    el.addEventListener('pointercancel',()=>{ if(pressTimer)clearTimeout(pressTimer); });
+  });
+}
+renderSavedAccounts();
 
 /* ---------- dark mode ---------- */
 function toggleDark(){setDark(document.getElementById('app').getAttribute('data-theme')!=='dark');}
@@ -719,6 +821,7 @@ function pressLogin(n){
         const ok = await vchatLogin(loginUsernameVal, pwdLogin);
         pwdLogin='';renderDotsLogin();
         if(ok){
+          await saveAccountAfterLogin(loginUsernameVal);
           window.location.href='vchat-menu.html';
         }else{
           let t=document.querySelector('#s4login .title');
@@ -739,6 +842,7 @@ async function finishOnboarding(){
   if(btn)btn.textContent='Создаю аккаунт...';
   const ok = await vchatSignUp(regUsername, regDispname, pwd);
   if(ok){
+    upsertSavedAccount(regUsername, regDispname);
     window.location.href='vchat-menu.html';
   }else{
     if(btn)btn.textContent='Готово';
