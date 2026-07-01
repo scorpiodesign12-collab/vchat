@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>VChat — звонок</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VChat">
+<meta name="theme-color" content="#1c1c1e">
 <style>
 :root{
   --bg:#fff; --fg:#111114; --card:#f1f1f4; --card2:#e8e8ec; --muted:#94949c; --line:#ececef;
@@ -156,8 +164,12 @@ let pendingIce=[];
 let logged=false;
 
 const RTC_CONFIG={
-  iceTransportPolicy:'relay', // принудительно через TURN-сервер — прямое P2P часто ломается VPN/мобильными сетями
+  // было 'relay' (только через TURN) — если TURN-сервер перегружен/кончилась квота, звонок вообще
+  // не мог соединиться, хотя многим парам устройств хватило бы и прямого/STUN пути.
+  // 'all' пробует все варианты (host / STUN / TURN) и берёт тот, что реально заработал.
+  iceTransportPolicy:'all',
   iceServers:[
+  {urls:'stun:stun.l.google.com:19302'},
   {urls:'stun:stun.relay.metered.ca:80'},
   {urls:'turn:global.relay.metered.ca:80', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
   {urls:'turn:global.relay.metered.ca:80?transport=tcp', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
