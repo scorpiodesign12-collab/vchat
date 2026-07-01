@@ -14,7 +14,7 @@
 }
 [data-theme="dark"]{ --bg:#0b0b0d; --fg:#f5f5f7; --card:#1c1c1f; --card2:#262629; --muted:#9a9aa2; --line:#222225; --btn:#f5f5f7; --btn-fg:#0b0b0d; }
 *{box-sizing:border-box;}
-html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;}
+html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
 body{display:flex;}
 #app{width:100%;height:100vh;height:100dvh;position:relative;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:60px 28px 50px;text-align:center;}
 .topInfo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:30px;}
@@ -151,7 +151,7 @@ avatarWrap.style.background = colorFor(otherName);
 
 let callTimerInterval=null, callSeconds=0, ended=false;
 let muted=false, speakerOn=false;
-let pc=null, localStream=null, remoteStream=null;
+let pc=null, localStream=null, remoteStream=null, disconnectedTimer=null;
 let pendingIce=[];
 let logged=false;
 
@@ -252,12 +252,23 @@ function createPeer(){
     if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
       mediaConnected=true;
       clearTimeout(connectWatchdog);
+      if(disconnectedTimer){ clearTimeout(disconnectedTimer); disconnectedTimer=null; }
       hideMicError();
       showRealConnectedStatus();
       showToast('Соединение установлено');
     }
     if(pc.iceConnectionState==='disconnected'){
       mediaConnected=false;
+      // сеть могла поменяться (вкл/выкл VPN, переключение wifi/мобильный интернет) —
+      // даём 3 секунды на самовосстановление, иначе форсируем ice restart
+      if(disconnectedTimer) clearTimeout(disconnectedTimer);
+      disconnectedTimer=setTimeout(()=>{
+        if(pc && (pc.iceConnectionState==='disconnected'||pc.iceConnectionState==='failed')){
+          log('still disconnected after 3s, forcing ice restart');
+          showToast('Сеть изменилась, переподключаемся...');
+          try{ pc.restartIce && pc.restartIce(); }catch(e){}
+        }
+      },3000);
     }
   };
   pc.onconnectionstatechange=()=>{ if(pc) log('connectionState ->', pc.connectionState); };
@@ -275,6 +286,19 @@ function createPeer(){
     log('local track(s) added to peer connection');
   }else{
     log('WARNING: creating peer without local stream — no microphone track will be sent!');
+  }
+  // только звонящая сторона инициирует пересогласование (иначе оба одновременно
+  // пришлют offer и получится конфликт "glare")
+  if(mode==='outgoing'){
+    pc.onnegotiationneeded=async()=>{
+      if(!pc) return;
+      try{
+        const offer=await pc.createOffer({iceRestart:true});
+        await pc.setLocalDescription(offer);
+        safeSend('webrtc-offer',{sdp:pc.localDescription});
+        log('renegotiation offer sent (ice restart)');
+      }catch(e){ log('renegotiation failed', e.message); }
+    };
   }
   return pc;
 }
