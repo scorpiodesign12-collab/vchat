@@ -204,6 +204,28 @@ body{display:flex;}
 .pinChoice{position:fixed;z-index:210;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;min-width:190px;display:none;}
 .pinChoice.show{display:block;}
 
+/* profile card (click on avatar/nickname in chat) */
+.cwHeader .av,.cwHeader b{cursor:pointer;}
+.profileOverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.profileOverlay.show{opacity:1;pointer-events:auto;}
+.profileCard{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);width:270px;max-width:86vw;background:var(--bg);border-radius:22px;padding:28px 22px 22px;z-index:301;box-shadow:0 20px 50px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .3s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;align-items:center;text-align:center;}
+.profileCard.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+.profileCardClose{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:var(--card);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);}
+.profileCardClose:hover{background:var(--card2);}
+.profileCardClose svg{width:15px;height:15px;}
+.profileCardAv{width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin-bottom:14px;flex-shrink:0;}
+.profileCardName{font-size:17px;font-weight:700;color:var(--fg);margin-bottom:10px;word-break:break-word;}
+.profileCardUser{font-size:13.5px;color:var(--muted);background:var(--card);padding:8px 16px;border-radius:20px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;max-width:100%;}
+.profileCardUser:hover{background:var(--card2);}
+.profileCardUser svg{width:13px;height:13px;flex-shrink:0;}
+.profileCardUser span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.profileCardCopied{font-size:11.5px;color:#2e9e5b;margin-top:9px;height:14px;opacity:0;transition:opacity .2s;}
+.profileCardCopied.show{opacity:1;}
+@media(max-width:859px){
+  .profileCard{top:auto;left:0;right:0;bottom:0;transform:translateY(100%);width:100%;max-width:none;border-radius:24px 24px 0 0;padding:22px 22px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(0,0,0,.28);}
+  .profileCard.show{transform:translateY(0);}
+}
+
 /* message highlight-on-jump */
 .msg.jumpHL{animation:jumpglow 1.4s ease;}
 @keyframes jumpglow{0%{box-shadow:0 0 0 2px rgba(255,200,0,.7);}100%{box-shadow:0 0 0 0 rgba(255,200,0,0);}}
@@ -334,10 +356,10 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="chatDetailPane" id="chatDetailPane">
         <div class="cwHeader">
           <button class="iconbtn cwBack" onclick="backToChats()" data-icon="back" title="Назад к чатам"></button>
-          <div class="av" id="cwAv"></div>
-          <b id="cwName"></b>
+          <div class="av" id="cwAv" onclick="openProfileCard()"></div>
+          <b id="cwName" onclick="openProfileCard()"></b>
           <button class="iconbtn" id="cwCallBtn" title="Позвонить" style="display:none;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </button>
           <button class="iconbtn cwSearchBtn" onclick="toggleCwSearch()" data-icon="search" title="Поиск по сообщениям"></button>
         </div>
@@ -528,6 +550,18 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 <div class="ctxMenu" id="ctxMenu">
   <div class="ctxItem" onclick="ctxReply()"><span data-icon="reply"></span>Ответить</div>
   <div class="ctxItem" id="ctxPinItem" onclick="ctxPinClick()"><span data-icon="pin"></span>Закрепить</div>
+</div>
+
+<div class="profileOverlay" id="profileOverlay" onclick="closeProfileCard()"></div>
+<div class="profileCard" id="profileCard">
+  <button class="profileCardClose" onclick="closeProfileCard()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="profileCardAv" id="profileCardAv"></div>
+  <div class="profileCardName" id="profileCardName"></div>
+  <div class="profileCardUser" id="profileCardUser" onclick="copyProfileUsername()" title="Скопировать юзернейм">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <span id="profileCardUserText"></span>
+  </div>
+  <div class="profileCardCopied" id="profileCardCopied">Скопировано</div>
 </div>
 
 </div>
@@ -815,7 +849,7 @@ function renderChat(highlight){
       return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
         <div class="msgInner">
           <span class="swipeArrow">${ICONS.chevron}</span>
-          <div class="msg file ${m.from}" oncontextmenu="openCtxMenu(event,${m.id})" onclick="downloadFile(${m.id})" title="Скачать файл">${renderReplyQuote(m)}${ICONS.file}<div class="fileinfo"><b>${escHtml(m.name)}</b><span>${m.size}</span></div></div>
+          <div class="msg file ${m.from}" onclick="downloadFile(${m.id})" title="Скачать файл">${renderReplyQuote(m)}${ICONS.file}<div class="fileinfo"><b>${escHtml(m.name)}</b><span>${m.size}</span></div></div>
         </div>
         ${renderTimeRow(m)}
       </div>`;
@@ -831,7 +865,7 @@ function renderChat(highlight){
       return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
         <div class="msgInner">
           <span class="swipeArrow">${ICONS.chevron}</span>
-          <div class="msg call ${m.from}" oncontextmenu="openCtxMenu(event,${m.id})">${icon}<span>${label}</span></div>
+          <div class="msg call ${m.from}">${icon}<span>${label}</span></div>
         </div>
         ${renderTimeRow(m)}
       </div>`;
@@ -931,6 +965,8 @@ function jumpToPinned(){
 }
 function pinMessage(scope){
   if(!ctxActiveId)return;
+  let prev=pinnedMap[curChat];
+  let prevId=(prev&&prev.id!==ctxActiveId)?prev.id:null;
   pinnedMap[curChat]={id:ctxActiveId,scope:scope};
   closeCtxMenu();
   closePinChoice();
@@ -939,7 +975,14 @@ function pinMessage(scope){
   if(scope==='both'){
     let meta=chatMeta[curChat];
     if(meta&&meta.uid&&vchatUser&&typeof ctxActiveId==='number'){
-      sb.from('messages').update({pinned:true}).eq('id',ctxActiveId).then(({error})=>{ if(error)console.error(error); });
+      // сначала снимаем старую закреплённую метку (если была), чтобы в чате никогда не было
+      // одновременно двух сообщений с pinned=true — иначе шапка и подсветка могут разъехаться
+      let doPin=()=>sb.from('messages').update({pinned:true}).eq('id',ctxActiveId).then(({error})=>{ if(error)console.error(error); });
+      if(prevId){
+        sb.from('messages').update({pinned:false}).eq('id',prevId).then(()=>doPin());
+      }else{
+        doPin();
+      }
     }
     showToast('Закреплено у обоих');
   }else{
@@ -994,12 +1037,40 @@ function ctxPinClick(){
 }
 function closePinChoice(){}
 
+/* ---------- карточка профиля (клик на аватар/ник в чате) ---------- */
+function openProfileCard(){
+  if(!curChat||curChat==='Избранное')return;
+  let meta=chatMeta[curChat];
+  let av=document.getElementById('profileCardAv');
+  av.style.background=meta?meta.color:'var(--card2)';
+  av.textContent=meta?(meta.initials||''):'';
+  document.getElementById('profileCardName').textContent=(meta&&meta.dispname)?meta.dispname:curChat;
+  document.getElementById('profileCardUserText').textContent='@'+curChat;
+  document.getElementById('profileCardCopied').classList.remove('show');
+  document.getElementById('profileOverlay').classList.add('show');
+  document.getElementById('profileCard').classList.add('show');
+}
+function closeProfileCard(){
+  document.getElementById('profileOverlay').classList.remove('show');
+  document.getElementById('profileCard').classList.remove('show');
+}
+function copyProfileUsername(){
+  let text=document.getElementById('profileCardUserText').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    let tag=document.getElementById('profileCardCopied');
+    tag.classList.add('show');
+    setTimeout(()=>tag.classList.remove('show'),1400);
+  }).catch(()=>{showToast('Не удалось скопировать');});
+}
+
 /* ---------- swipe to reply (mobile) ---------- */
 function attachSwipeHandlers(){
   document.querySelectorAll('#cwMsgs .msgInner').forEach(inner=>{
-    let startX=0,curX=0,dragging=false;
     const wrap=inner.closest('.msgWrap');
     const id=parseInt(wrap.dataset.id,10);
+    const srcMsg=findMsgById(id);
+    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'))return; // нельзя отвечать свайпом на звонки и файлы
+    let startX=0,curX=0,dragging=false;
     const arrow=inner.querySelector('.swipeArrow');
     const isOut=wrap.classList.contains('out');
     inner.addEventListener('touchstart',e=>{
@@ -1278,7 +1349,7 @@ async function vchatOpenFromUrl(){
     username=prof.username;
     dispname=prof.display_name||prof.username;
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
       chats[username]=[];
     }
     if(!chatOrder.includes(username))chatOrder=[username,...chatOrder];
@@ -1309,7 +1380,7 @@ async function vchatLoadConversations(){
     if(!p)return;
     let username=p.username, dispname=p.display_name||p.username;
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
     }else{
       chatMeta[username].uid=uid;
     }
@@ -1372,7 +1443,7 @@ async function selectUser(username,uid,dispname){
   document.getElementById('uResults').innerHTML='';
   document.getElementById('chatRows').style.display='';
   if(!chatMeta[username]){
-    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0};
+    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0,dispname:dispname};
     chats[username]=[];
   }
   chatMeta[username].uid=uid;
@@ -1479,7 +1550,7 @@ function vchatSubscribeMessages(){
         sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single().then(({data})=>{
           if(!data)return;
           let nm=data.username, dn=data.display_name||data.username;
-          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0};
+          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
           chats[nm]=[];
           if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
           vchatPushIncoming(nm,m);
@@ -1512,7 +1583,8 @@ async function vchatPollPinUpdates(){
   let byOther={};
   (data||[]).forEach(m=>{
     let otherId=m.sender_id===vchatUser.id?m.receiver_id:m.sender_id;
-    byOther[otherId]=m.id;
+    // если вдруг у собеседника окажется больше одной pinned=true записи, берём самую свежую (наибольший id)
+    if(byOther[otherId]===undefined||m.id>byOther[otherId])byOther[otherId]=m.id;
   });
   Object.keys(chatMeta).forEach(name=>{
     let meta=chatMeta[name];
@@ -1541,7 +1613,7 @@ async function vchatPollNewMessages(){
       const {data:p}=await sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single();
       if(!p)continue;
       let nm=p.username, dn=p.display_name||p.username;
-      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0};
+      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
       chats[nm]=[];
       if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
       vchatPushIncoming(nm,m);
