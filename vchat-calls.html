@@ -158,13 +158,11 @@ let logged=false;
 const RTC_CONFIG={
   iceTransportPolicy:'relay', // принудительно через TURN-сервер — прямое P2P часто ломается VPN/мобильными сетями
   iceServers:[
-  {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
-  {urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject'},
-  {urls:'turn:relay1.expressturn.com:3478', username:'efJBQ56OXLLT0RC4WK', credential:'B3PnNHm4q3M1HMXp'},
-  {urls:'turn:a.relay.metered.ca:80', username:'e899dc1c5da1c5d2e7a4d271', credential:'1NTKgu5bRvz3Ax9C'},
-  {urls:'turn:a.relay.metered.ca:443', username:'e899dc1c5da1c5d2e7a4d271', credential:'1NTKgu5bRvz3Ax9C'}
+  {urls:'stun:stun.relay.metered.ca:80'},
+  {urls:'turn:global.relay.metered.ca:80', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
+  {urls:'turn:global.relay.metered.ca:80?transport=tcp', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
+  {urls:'turn:global.relay.metered.ca:443', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
+  {urls:'turns:global.relay.metered.ca:443?transport=tcp', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'}
 ]};
 function log(...a){ try{ console.log('[vchat-call]',...a); }catch(e){} }
 
