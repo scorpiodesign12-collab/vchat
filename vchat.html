@@ -321,7 +321,7 @@ textarea.input{resize:none;height:74px;}
   <h2 class="fadeUp" style="animation-delay:.05s;">О себе</h2>
   <div class="sub fadeUp" style="text-align:left;animation-delay:.1s;">Это необязательно — можно пропустить</div>
   <div class="label fadeUp" style="animation-delay:.15s;">О себе</div>
-  <textarea class="input fadeUp" id="bio" placeholder="Расскажи о себе..." style="animation-delay:.2s;height:120px;"></textarea>
+  <textarea class="input fadeUp" id="bio" placeholder="Расскажи о себе..." style="animation-delay:.2s;height:120px;" oninput="limitBioLines(this)"></textarea>
   <div class="spacer"></div>
   <button class="btn btn-primary fadeUp" style="animation-delay:.25s;" onclick="nav('s6')">Продолжить</button>
   <button class="skip fadeUp" style="animation-delay:.3s;" onclick="nav('s6')">Пропустить</button>
@@ -449,6 +449,10 @@ function onDispnameInput(input,statusId,errId){
   else{setFieldStatus(statusId,'bad');if(err){err.textContent=dispnameStateMsg(state);err.style.display='block';}}
 }
 
+function limitBioLines(el){
+  let lines=el.value.split('\n');
+  if(lines.length>3){ lines=lines.slice(0,3); el.value=lines.join('\n'); }
+}
 let regUsername='', regDispname='';
 
 async function doRegNext(){
@@ -840,7 +844,9 @@ renderDotsLogin();
 async function finishOnboarding(){
   let btn=document.querySelector('#s7 .btn-primary');
   if(btn)btn.textContent='Создаю аккаунт...';
-  const ok = await vchatSignUp(regUsername, regDispname, pwd);
+  let bioEl=document.getElementById('bio');
+  let regBio=bioEl?bioEl.value.trim():'';
+  const ok = await vchatSignUp(regUsername, regDispname, pwd, regBio);
   if(ok){
     upsertSavedAccount(regUsername, regDispname);
     window.location.href='vchat-menu.html';
@@ -863,7 +869,7 @@ async function vchatUsernameTaken(username){
   }catch(e){ console.error(e); return false; }
 }
 
-async function vchatSignUp(username, dispname, pin){
+async function vchatSignUp(username, dispname, pin, bio){
   try{
     const {data,error}=await sb.auth.signUp({
       email: vchatEmailFor(username),
@@ -873,7 +879,7 @@ async function vchatSignUp(username, dispname, pin){
     const userId=data.user ? data.user.id : (data.session?data.session.user.id:null);
     if(!userId) return false;
     const {error:profErr}=await sb.from('profiles').insert({
-      id:userId, username:username, display_name:dispname
+      id:userId, username:username, display_name:dispname, bio:(bio||'')
     });
     if(profErr){ console.error(profErr); return false; }
     return true;

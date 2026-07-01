@@ -221,6 +221,7 @@ body{display:flex;}
 .profileCardUser span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .profileCardCopied{font-size:11.5px;color:#2e9e5b;margin-top:9px;height:14px;opacity:0;transition:opacity .2s;}
 .profileCardCopied.show{opacity:1;}
+.profileCardBio{margin-top:14px;padding:12px 13px;background:var(--card);border-radius:14px;font-size:13.5px;line-height:1.5;color:var(--fg);white-space:pre-line;width:100%;text-align:left;}
 @media(max-width:859px){
   .profileCard{top:auto;left:0;right:0;bottom:0;transform:translateY(100%);width:100%;max-width:none;border-radius:24px 24px 0 0;padding:22px 22px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(0,0,0,.28);}
   .profileCard.show{transform:translateY(0);}
@@ -459,6 +460,10 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
               <div class="pIconWrap" style="background:#8a8a92;" data-icon="status"></div>
               <div class="pItemBody"><div class="pItemLabel">Статус</div><div class="pItemValue" id="pStatusVal">в сети</div></div>
             </div>
+            <div class="pItem" style="cursor:pointer;align-items:flex-start;" onclick="openProfileEdit()">
+              <div class="pIconWrap" style="background:#34c759;" data-icon="pencil"></div>
+              <div class="pItemBody"><div class="pItemLabel">О себе</div><div class="pItemValue" id="pBioVal" style="white-space:pre-line;color:var(--fg);">Добавить описание</div></div>
+            </div>
           </div>
         </div>
 
@@ -474,24 +479,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       </div>
       </div>
 
-      <!-- Edit profile overlay (kept for internal use but button removed) -->
+      <!-- Edit bio overlay -->
       <div class="pEditPane" id="pEditPane">
         <div class="pEditTopbar">
           <button class="peBtn peCancel" onclick="closeProfileEdit()">Отмена</button>
-          <div class="peTitle">Редактировать...</div>
+          <div class="peTitle">О себе</div>
           <button class="peBtn peSave" onclick="saveProfileEdit()">Сохранить</button>
         </div>
         <div class="pEditBody">
-          <div class="pEditAvWrap">
-            <div class="pAvBig" id="peAvBig" style="width:96px;height:96px;font-size:44px;font-weight:700;color:#fff;"></div>
-          </div>
-          <div class="pSecLabel" style="padding-left:4px;">Основное</div>
-          <div class="peGroup" style="margin-bottom:20px;">
-            <div class="peRow"><label>Имя</label><input id="peName" placeholder="Имя"></div>
-            <div class="peRow"><label>Ник</label><input id="peNick" placeholder="Ник"></div>
-          </div>
           <div class="pSecLabel" style="padding-left:4px;">О себе</div>
-          <div class="peBioBox"><textarea id="peBio" placeholder="Расскажите о себе..." oninput="autoResize(this)"></textarea></div>
+          <div class="peBioBox"><textarea id="peBio" placeholder="Расскажите о себе... (максимум 3 строки)" oninput="limitBioLines(this);autoResize(this);"></textarea></div>
         </div>
       </div>
     </div>
@@ -562,6 +559,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <span id="profileCardUserText"></span>
   </div>
   <div class="profileCardCopied" id="profileCardCopied">Скопировано</div>
+  <div class="profileCardBio" id="profileCardBio" style="display:none;"></div>
 </div>
 
 </div>
@@ -741,6 +739,15 @@ function renderProfileView(){
   document.getElementById('pName').innerHTML=escHtml(profileData.name)+verifiedBadgeHtml(profileData.nick);
   document.getElementById('pUser').textContent='@'+profileData.nick;
   document.getElementById('pUserVal').textContent='@'+profileData.nick;
+  let bioVal=document.getElementById('pBioVal');
+  if(bioVal){
+    if(profileData.bio){ bioVal.textContent=profileData.bio; bioVal.style.color='var(--fg)'; }
+    else{ bioVal.textContent='Добавить описание'; bioVal.style.color='var(--muted)'; }
+  }
+}
+function limitBioLines(el){
+  let lines=el.value.split('\n');
+  if(lines.length>3){ lines=lines.slice(0,3); el.value=lines.join('\n'); }
 }
 
 function initProfile(){
@@ -751,31 +758,28 @@ function initProfile(){
   if(sdev)sdev.textContent=dev;
 }
 
-/* ---------- profile edit overlay ---------- */
+/* ---------- profile edit overlay (о себе) ---------- */
 function openProfileEdit(){
-  document.getElementById('peName').value=profileData.name;
-  document.getElementById('peNick').value=profileData.nick;
   let bioEl=document.getElementById('peBio');
-  bioEl.value=profileData.bio;
-  document.getElementById('peAvBig').textContent=profileData.avatar;
+  bioEl.value=profileData.bio||'';
   document.getElementById('pEditPane').classList.add('open');
   autoResize(bioEl);
 }
 function closeProfileEdit(){
   document.getElementById('pEditPane').classList.remove('open');
 }
-function saveProfileEdit(){
-  let name=document.getElementById('peName').value.trim();
-  let nick=document.getElementById('peNick').value.trim().replace(/^@/,'');
+async function saveProfileEdit(){
   let bio=document.getElementById('peBio').value.trim();
-  if(!name){showToast('Введите имя');return;}
-  if(!nick){showToast('Введите ник');return;}
-  profileData.name=name;
-  profileData.nick=nick;
+  let lines=bio.split('\n');
+  if(lines.length>3)bio=lines.slice(0,3).join('\n');
   profileData.bio=bio;
   renderProfileView();
   closeProfileEdit();
   showToast('Профиль обновлён');
+  if(vchatUser&&vchatUser.id){
+    try{ await sb.from('profiles').update({bio:bio}).eq('id',vchatUser.id); }
+    catch(e){ console.error(e); }
+  }
 }
 
 /* ---------- open / close chat ---------- */
@@ -1048,8 +1052,21 @@ function openProfileCard(){
   document.getElementById('profileCardName').innerHTML=escHtml((meta&&meta.dispname)?meta.dispname:curChat)+verifiedBadgeHtml(curChat);
   document.getElementById('profileCardUserText').textContent='@'+curChat;
   document.getElementById('profileCardCopied').classList.remove('show');
+  let bioBox=document.getElementById('profileCardBio');
+  bioBox.style.display='none';
+  bioBox.textContent='';
   document.getElementById('profileOverlay').classList.add('show');
   document.getElementById('profileCard').classList.add('show');
+  let uid=meta?meta.uid:null;
+  let openedChat=curChat;
+  if(uid){
+    sb.from('profiles').select('bio').eq('id',uid).maybeSingle().then(({data})=>{
+      if(data&&data.bio&&curChat===openedChat){
+        bioBox.textContent=data.bio;
+        bioBox.style.display='block';
+      }
+    }).catch(()=>{});
+  }
 }
 function closeProfileCard(){
   document.getElementById('profileOverlay').classList.remove('show');
@@ -1321,6 +1338,7 @@ async function vchatInit(){
   vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username};
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
+  profileData.bio=profile.bio||'';
   renderProfileView();
   await vchatLoadConversations();
   vchatHeartbeat();
