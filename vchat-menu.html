@@ -144,10 +144,11 @@ body{display:flex;}
 .cwHeader{display:flex;align-items:center;gap:10px;padding:14px 0 8px;flex-shrink:0;}
 .cwHeader b{font-size:16px;color:var(--fg);flex:1;}
 /* chatwin: hidden scrollbar */
+.chatwinWrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
 .chatwin{flex:1;overflow-y:auto;padding:4px 2px;display:flex;flex-direction:column;scrollbar-width:none;}
 .chatwin::-webkit-scrollbar{display:none;}
 /* scroll-to-bottom floating button */
-.scrollDownBtn{position:absolute;right:14px;bottom:84px;width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--fg);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:6;opacity:0;transform:translateY(6px);transition:opacity .15s,transform .15s;}
+.scrollDownBtn{position:absolute;right:10px;bottom:10px;width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--fg);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:6;opacity:0;transform:translateY(6px);transition:opacity .15s,transform .15s;}
 .scrollDownBtn.show{display:flex;opacity:1;transform:translateY(0);}
 .scrollDownBtn:active{transform:scale(.92);}
 .scrollDownBtn svg{width:19px;height:19px;}
@@ -395,11 +396,13 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           </button>
         </div>
         <div class="searchCount" id="searchCount" style="display:none"></div>
-        <div class="chatwin" id="cwMsgs"></div>
-        <button class="scrollDownBtn" id="scrollDownBtn" onclick="scrollChatToBottom()" title="Вниз">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          <span class="scrollDownBadge" id="scrollDownBadge">0</span>
-        </button>
+        <div class="chatwinWrap" id="chatwinWrap">
+          <div class="chatwin" id="cwMsgs"></div>
+          <button class="scrollDownBtn" id="scrollDownBtn" onclick="scrollChatToBottom()" title="Вниз">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="scrollDownBadge" id="scrollDownBadge">0</span>
+          </button>
+        </div>
         <!-- File preview -->
         <div class="filePreview" id="filePreview">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -884,6 +887,10 @@ function updateScrollDownBtn(){
     badge.classList.remove('show');
   }
 }
+function countUnseenIncoming(){
+  if(!chats[curChat])return 0;
+  return chats[curChat].slice(lastSeenMsgCount).filter(m=>m.from==='in').length;
+}
 function scrollChatToBottom(){
   let w=document.getElementById('cwMsgs');
   if(!w)return;
@@ -899,6 +906,8 @@ function scrollChatToBottom(){
       if(isChatAtBottom(w)){
         chatUnseenCount=0;
         lastSeenMsgCount=chats[curChat]?chats[curChat].length:0;
+      }else{
+        chatUnseenCount=countUnseenIncoming();
       }
       updateScrollDownBtn();
     });
@@ -955,7 +964,7 @@ function renderChat(highlight, forceBottom){
     lastSeenMsgCount=chats[curChat].length;
   }else{
     w.scrollTop=prevScrollTop;
-    chatUnseenCount=Math.max(0, chats[curChat].length-lastSeenMsgCount);
+    chatUnseenCount=countUnseenIncoming();
   }
   updateScrollDownBtn();
   attachSwipeHandlers();
