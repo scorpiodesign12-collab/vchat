@@ -139,13 +139,20 @@ body{display:flex;}
 [data-accent="white"] .pinnedBarLabel{color:#111;}
 .pinnedBarText{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
 /* chat detail pane */
-.chatDetailPane{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
+.chatDetailPane{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;position:relative;}
 .chatDetailPane.open{display:flex;position:absolute;inset:0;background:var(--bg);z-index:5;padding:0 14px;}
 .cwHeader{display:flex;align-items:center;gap:10px;padding:14px 0 8px;flex-shrink:0;}
 .cwHeader b{font-size:16px;color:var(--fg);flex:1;}
 /* chatwin: hidden scrollbar */
 .chatwin{flex:1;overflow-y:auto;padding:4px 2px;display:flex;flex-direction:column;scrollbar-width:none;}
 .chatwin::-webkit-scrollbar{display:none;}
+/* scroll-to-bottom floating button */
+.scrollDownBtn{position:absolute;right:14px;bottom:84px;width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--fg);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:6;opacity:0;transform:translateY(6px);transition:opacity .15s,transform .15s;}
+.scrollDownBtn.show{display:flex;opacity:1;transform:translateY(0);}
+.scrollDownBtn:active{transform:scale(.92);}
+.scrollDownBtn svg{width:19px;height:19px;}
+.scrollDownBadge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 4px;border-radius:10px;background:#2C7EFF;color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid var(--bg);}
+.scrollDownBadge.show{display:flex;}
 /* file preview above sendbar */
 .filePreview{display:none;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:8px 12px;margin-bottom:6px;flex-shrink:0;}
 .filePreview.show{display:flex;}
@@ -389,6 +396,10 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
         <div class="searchCount" id="searchCount" style="display:none"></div>
         <div class="chatwin" id="cwMsgs"></div>
+        <button class="scrollDownBtn" id="scrollDownBtn" onclick="scrollChatToBottom()" title="Вниз">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <span class="scrollDownBadge" id="scrollDownBadge">0</span>
+        </button>
         <!-- File preview -->
         <div class="filePreview" id="filePreview">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -794,6 +805,7 @@ async function saveProfileEdit(){
 /* ---------- open / close chat ---------- */
 function openChat(name){
   curChat=name;
+  lastSeenMsgCount=0; chatUnseenCount=0;
   if(chatMeta[name]){chatMeta[name].unread=0;updateUnreadBadge();renderChatRows();}
   document.getElementById('cwName').innerHTML=escHtml(name)+verifiedBadgeHtml(name);
   let meta=chatMeta[name];
@@ -854,9 +866,49 @@ function renderTimeRow(m){
   return `<div class="msgTime">${pinned?`<span class="pinIcon">${ICONS.pinned}</span>`:''}${m.time||''}</div>`;
 }
 
-function renderChat(highlight){
+let lastSeenMsgCount=0, chatUnseenCount=0;
+function isChatAtBottom(w){
+  return w.scrollHeight - w.scrollTop - w.clientHeight < 60;
+}
+function updateScrollDownBtn(){
+  let btn=document.getElementById('scrollDownBtn');
+  let badge=document.getElementById('scrollDownBadge');
+  if(!btn||!badge)return;
   let w=document.getElementById('cwMsgs');
-  if(!chats[curChat]){w.innerHTML='';return;}
+  let atBottom = w ? isChatAtBottom(w) : true;
+  btn.classList.toggle('show', !atBottom);
+  if(chatUnseenCount>0 && !atBottom){
+    badge.textContent = chatUnseenCount>99?'99+':chatUnseenCount;
+    badge.classList.add('show');
+  }else{
+    badge.classList.remove('show');
+  }
+}
+function scrollChatToBottom(){
+  let w=document.getElementById('cwMsgs');
+  if(!w)return;
+  w.scrollTo({top:w.scrollHeight, behavior:'smooth'});
+  chatUnseenCount=0;
+  lastSeenMsgCount=chats[curChat]?chats[curChat].length:0;
+  updateScrollDownBtn();
+}
+(function(){
+  let w=document.getElementById('cwMsgs');
+  if(w){
+    w.addEventListener('scroll',()=>{
+      if(isChatAtBottom(w)){
+        chatUnseenCount=0;
+        lastSeenMsgCount=chats[curChat]?chats[curChat].length:0;
+      }
+      updateScrollDownBtn();
+    });
+  }
+})();
+function renderChat(highlight, forceBottom){
+  let w=document.getElementById('cwMsgs');
+  if(!chats[curChat]){w.innerHTML='';chatUnseenCount=0;updateScrollDownBtn();return;}
+  let wasAtBottom = forceBottom || isChatAtBottom(w);
+  let prevScrollTop = w.scrollTop;
   w.innerHTML=chats[curChat].map(m=>{
     let pinnedCls=(pinnedMap[curChat]&&pinnedMap[curChat].id===m.id)?' pinned':'';
     if(m.type==='file'){
@@ -897,7 +949,15 @@ function renderChat(highlight){
       ${renderTimeRow(m)}
     </div>`;
   }).join('') + (typingMap[curChat]?`<div class="typingBubble show"><span></span><span></span><span></span></div>`:'');
-  w.scrollTop=w.scrollHeight;
+  if(wasAtBottom){
+    w.scrollTop=w.scrollHeight;
+    chatUnseenCount=0;
+    lastSeenMsgCount=chats[curChat].length;
+  }else{
+    w.scrollTop=prevScrollTop;
+    chatUnseenCount=Math.max(0, chats[curChat].length-lastSeenMsgCount);
+  }
+  updateScrollDownBtn();
   attachSwipeHandlers();
 }
 
@@ -1218,7 +1278,7 @@ function localSendMsg(){
   }
   renderChatRows();
   let q=document.getElementById('searchInput')?document.getElementById('searchInput').value:'';
-  renderChat(q||null);
+  renderChat(q||null, true);
 }
 
 function downloadFile(id){
