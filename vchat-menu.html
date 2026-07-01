@@ -665,7 +665,8 @@ function updateUnreadBadge(){
 
 function verifiedBadgeHtml(username){
   if(!username)return '';
-  return username.toLowerCase()==='nikk' ? `<span class="verifiedBadge">${ICONS.verified}</span>` : '';
+  let u=username.toLowerCase();
+  return (u==='nikk'||u==='innskitty') ? `<span class="verifiedBadge">${ICONS.verified}</span>` : '';
 }
 function avatarHtmlFor(name){
   let meta=chatMeta[name];
@@ -737,7 +738,7 @@ function renderProfileView(){
   avEl.style.background=profileData.avatarColor;
   let peAvEl=document.getElementById('peAvBig');
   if(peAvEl){peAvEl.textContent=letter;peAvEl.style.background=profileData.avatarColor;}
-  document.getElementById('pName').textContent=profileData.name;
+  document.getElementById('pName').innerHTML=escHtml(profileData.name)+verifiedBadgeHtml(profileData.nick);
   document.getElementById('pUser').textContent='@'+profileData.nick;
   document.getElementById('pUserVal').textContent='@'+profileData.nick;
 }
@@ -1044,7 +1045,7 @@ function openProfileCard(){
   let av=document.getElementById('profileCardAv');
   av.style.background=meta?meta.color:'var(--card2)';
   av.textContent=meta?(meta.initials||''):'';
-  document.getElementById('profileCardName').textContent=(meta&&meta.dispname)?meta.dispname:curChat;
+  document.getElementById('profileCardName').innerHTML=escHtml((meta&&meta.dispname)?meta.dispname:curChat)+verifiedBadgeHtml(curChat);
   document.getElementById('profileCardUserText').textContent='@'+curChat;
   document.getElementById('profileCardCopied').classList.remove('show');
   document.getElementById('profileOverlay').classList.add('show');
