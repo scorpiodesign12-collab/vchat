@@ -309,10 +309,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .peRow label{font-size:14.5px;color:var(--fg);width:64px;flex-shrink:0;}
 .peRow input{flex:1;border:none;background:transparent;outline:none;font-size:14.5px;color:var(--fg);font-family:inherit;min-width:0;}
 .peBioBox{background:var(--card);border-radius:16px;padding:12px 14px;}
-.peBioBox textarea{width:100%;border:none;background:transparent;outline:none;font-size:14.5px;color:var(--fg);font-family:inherit;resize:none;min-height:64px;line-height:1.45;overflow-y:auto;scrollbar-width:none;}
-.peBioBox textarea::-webkit-scrollbar{display:none;}
+.peBioBox textarea{width:100%;border:none;background:transparent;outline:none;font-size:14.5px;color:var(--fg);font-family:inherit;resize:none;min-height:64px;line-height:1.45;}
 .peBioBox textarea::placeholder{color:var(--muted);}
-.peBioCount{text-align:right;font-size:12px;color:var(--muted);margin-top:4px;padding:0 2px;}
 
 /* friends coming-soon */
 .comingSoon{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;text-align:center;width:100%;}
@@ -490,8 +488,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
         <div class="pEditBody">
           <div class="pSecLabel" style="padding-left:4px;">О себе</div>
-          <div class="peBioBox"><textarea id="peBio" placeholder="Расскажите о себе... (максимум 150 символов)" maxlength="150" oninput="limitBioLines(this);autoResize(this);"></textarea></div>
-          <div class="peBioCount" id="peBioCount">0 / 150</div>
+          <div class="peBioBox"><textarea id="peBio" placeholder="Расскажите о себе... (максимум 3 строки)" oninput="limitBioLines(this);autoResize(this);"></textarea></div>
         </div>
       </div>
     </div>
@@ -709,7 +706,7 @@ async function logoutVchat(){
   if(!confirm('Выйти из аккаунта?'))return;
   try{ await sb.auth.signOut(); }catch(e){}
   try{ localStorage.removeItem('vchat_last_account'); }catch(e){}
-  window.location.href='vchat.html';
+  window.location.href='index.html';
 }
 
 function randomAvatarColor(){
@@ -748,13 +745,9 @@ function renderProfileView(){
     else{ bioVal.textContent='Добавить описание'; bioVal.style.color='var(--muted)'; }
   }
 }
-const BIO_MAX_LEN=150;
 function limitBioLines(el){
   let lines=el.value.split('\n');
   if(lines.length>3){ lines=lines.slice(0,3); el.value=lines.join('\n'); }
-  if(el.value.length>BIO_MAX_LEN){ el.value=el.value.slice(0,BIO_MAX_LEN); }
-  let counter=document.getElementById('peBioCount');
-  if(counter) counter.textContent=el.value.length+' / '+BIO_MAX_LEN;
 }
 
 function initProfile(){
@@ -771,7 +764,6 @@ function openProfileEdit(){
   bioEl.value=profileData.bio||'';
   document.getElementById('pEditPane').classList.add('open');
   autoResize(bioEl);
-  limitBioLines(bioEl);
 }
 function closeProfileEdit(){
   document.getElementById('pEditPane').classList.remove('open');
@@ -780,7 +772,6 @@ async function saveProfileEdit(){
   let bio=document.getElementById('peBio').value.trim();
   let lines=bio.split('\n');
   if(lines.length>3)bio=lines.slice(0,3).join('\n');
-  if(bio.length>BIO_MAX_LEN)bio=bio.slice(0,BIO_MAX_LEN);
   profileData.bio=bio;
   renderProfileView();
   closeProfileEdit();
@@ -1341,9 +1332,9 @@ function dbRowToLocal(m){
 
 async function vchatInit(){
   const {data:{user}}=await sb.auth.getUser();
-  if(!user){ window.location.href='vchat.html'; return; }
+  if(!user){ window.location.href='index.html'; return; }
   let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
-  if(!profile){ window.location.href='vchat.html'; return; }
+  if(!profile){ window.location.href='index.html'; return; }
   vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username};
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
