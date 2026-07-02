@@ -916,5 +916,18 @@ async function vchatLogin(username, pin){
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
+<script>
+  // Красим статус-бар под цвет приложения (работает только внутри APK, в браузере ничего не делает)
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
+        const { StatusBar } = window.Capacitor.Plugins;
+        StatusBar.setOverlaysWebView({ overlay: false });
+        StatusBar.setBackgroundColor({ color: '#0b0b0d' });
+        StatusBar.setStyle({ style: 'DARK' });
+      }
+    } catch(e) { console.error('StatusBar error:', e); }
+  });
+</script>
 </body>
 </html>
