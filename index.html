@@ -915,6 +915,16 @@ async function vchatLogin(username, pin){
   const SUPABASE_URL='https://vchat-proxy.scorpiodesign12.workers.dev';
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Проверяем, есть ли уже активная сессия — если да, сразу в меню, минуя онбординг
+  (async function checkExistingSession(){
+    try {
+      const { data, error } = await sb.auth.getSession();
+      if (!error && data && data.session) {
+        window.location.href = 'vchat-menu.html';
+      }
+    } catch(e) { console.error('Session check error:', e); }
+  })();
 </script>
 <script>
   // Красим статус-бар под цвет приложения (работает только внутри APK, в браузере ничего не делает)
@@ -923,8 +933,8 @@ async function vchatLogin(username, pin){
       if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar) {
         const { StatusBar } = window.Capacitor.Plugins;
         StatusBar.setOverlaysWebView({ overlay: false });
-        StatusBar.setBackgroundColor({ color: '#0b0b0d' });
-        StatusBar.setStyle({ style: 'DARK' });
+        StatusBar.setBackgroundColor({ color: '#ffffff' });
+        StatusBar.setStyle({ style: 'LIGHT' });
       }
     } catch(e) { console.error('StatusBar error:', e); }
   });
