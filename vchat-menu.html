@@ -338,9 +338,13 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .subBannerClose:hover{color:var(--fg);}
 .subBannerLogo{height:34px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
 .subBannerLogo svg{height:100%;width:auto;}
-.subBannerTitle{font-size:16px;font-weight:700;color:var(--fg);}
-.subBannerText{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;max-width:280px;}
-.subBannerBtn{display:inline-block;margin-top:14px;padding:11px 22px;border-radius:14px;background:#D81B60;color:#fff;font-size:14px;font-weight:700;text-decoration:none;}
+.subBannerTitle{font-size:18px;font-weight:800;color:var(--fg);letter-spacing:.02em;}
+.subBannerFeatures{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px;width:100%;text-align:left;}
+.subBannerFeatures li{font-size:13px;color:var(--fg);background:var(--card2);border-radius:12px;padding:10px 12px;line-height:1.4;display:flex;gap:8px;align-items:flex-start;}
+.subBannerFeatures li b{font-weight:700;}
+.subBannerPrice{font-size:21px;font-weight:800;color:var(--fg);margin-top:14px;}
+.subBannerPrice span{font-size:13px;font-weight:500;color:var(--muted);margin-left:4px;}
+.subBannerBtn{display:inline-block;margin-top:12px;padding:11px 22px;border-radius:14px;background:#D81B60;color:#fff;font-size:14px;font-weight:700;text-decoration:none;}
 .subBannerBtn:active{opacity:.85;}
 
 /* friends coming-soon */
@@ -485,9 +489,13 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <div class="subBannerLogo"></div>
-          <div class="subBannerTitle">VChat Plus</div>
-          <div class="subBannerText">Розовый значок у ника, поддержка проекта и новые возможности первыми.</div>
-          <a class="subBannerBtn" href="https://t.me/vchat_support" target="_blank" rel="noopener">Оформить подписку</a>
+          <div class="subBannerTitle">VChat PLUS</div>
+          <ul class="subBannerFeatures">
+            <li>🎙️ <span><b>Голосовые сообщения</b> в чатах — записывай и отправляй голосовые вместо долгого набора текста</span></li>
+            <li>📰 <span><b>Лента с постами</b> — публикуй фото и мысли, читай ленту и общайся под постами других пользователей</span></li>
+          </ul>
+          <div class="subBannerPrice">200 ₽<span>/ мес</span></div>
+          <a class="subBannerBtn" href="https://t.me/vchatsocial" target="_blank" rel="noopener">Оформить подписку</a>
         </div>
 
         <div class="pSection">
@@ -555,9 +563,13 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <div class="subBannerLogo"></div>
-          <div class="subBannerTitle">VChat Plus</div>
-          <div class="subBannerText">Розовый значок у ника, поддержка проекта и новые возможности первыми.</div>
-          <a class="subBannerBtn" href="https://t.me/vchat_support" target="_blank" rel="noopener">Оформить подписку</a>
+          <div class="subBannerTitle">VChat PLUS</div>
+          <ul class="subBannerFeatures">
+            <li>🎙️ <span><b>Голосовые сообщения</b> в чатах — записывай и отправляй голосовые вместо долгого набора текста</span></li>
+            <li>📰 <span><b>Лента с постами</b> — публикуй фото и мысли, читай ленту и общайся под постами других пользователей</span></li>
+          </ul>
+          <div class="subBannerPrice">200 ₽<span>/ мес</span></div>
+          <a class="subBannerBtn" href="https://t.me/vchatsocial" target="_blank" rel="noopener">Оформить подписку</a>
         </div>
 
         <div class="label" style="margin-top:20px;">Кастомизация</div>
@@ -771,9 +783,17 @@ function updateUnreadBadge(){
   // глобальный бейдж у заголовка "Чаты" убран по просьбе — бейджи остаются только на строках чатов
 }
 
+function isOfficialVerified(username){
+  if(!username)return false;
+  let u=username.toLowerCase();
+  return u==='nikk'||u==='innskitty';
+}
 function verifiedBadgeHtml(username){
   if(!username)return '';
-  return isSubActive(username) ? `<span class="verifiedBadge" title="VChat Plus">${SUB_BADGE_SVG}</span>` : '';
+  let html='';
+  if(isOfficialVerified(username)) html+=`<span class="verifiedBadge" title="Верифицирован">${ICONS.verified}</span>`;
+  if(isSubActive(username)) html+=`<span class="verifiedBadge" title="VChat Plus">${SUB_BADGE_SVG}</span>`;
+  return html;
 }
 function subLogoBigHtml(username){
   if(!isSubActive(username))return '';
