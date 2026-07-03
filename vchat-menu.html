@@ -329,6 +329,20 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .peBioBox textarea{width:100%;border:none;background:transparent;outline:none;font-size:14.5px;color:var(--fg);font-family:inherit;resize:none;min-height:64px;line-height:1.45;}
 .peBioBox textarea::placeholder{color:var(--muted);}
 
+/* ---------- subscription badge / logo / promo banner ---------- */
+.subLogoBig{display:inline-flex;align-items:center;height:15px;vertical-align:middle;margin-left:6px;position:relative;top:-1px;}
+.subLogoBig svg{height:100%;width:auto;display:block;}
+.subBanner{display:none;position:relative;background:var(--card);border-radius:20px;padding:22px 18px 18px;margin-top:14px;flex-direction:column;align-items:center;text-align:center;}
+.subBannerClose{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:var(--card2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);}
+.subBannerClose svg{width:14px;height:14px;}
+.subBannerClose:hover{color:var(--fg);}
+.subBannerLogo{height:34px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.subBannerLogo svg{height:100%;width:auto;}
+.subBannerTitle{font-size:16px;font-weight:700;color:var(--fg);}
+.subBannerText{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;max-width:280px;}
+.subBannerBtn{display:inline-block;margin-top:14px;padding:11px 22px;border-radius:14px;background:#D81B60;color:#fff;font-size:14px;font-weight:700;text-decoration:none;}
+.subBannerBtn:active{opacity:.85;}
+
 /* friends coming-soon */
 .comingSoon{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;text-align:center;width:100%;}
 .comingSoonIcon{width:74px;height:74px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;color:var(--muted);}
@@ -466,6 +480,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           <div class="pCardUser" id="pUser">@username</div>
         </div>
 
+        <div class="subBanner" id="subBannerProfile">
+          <button class="subBannerClose" onclick="closeSubBanner()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="subBannerLogo"></div>
+          <div class="subBannerTitle">VChat Plus</div>
+          <div class="subBannerText">Розовый значок у ника, поддержка проекта и новые возможности первыми.</div>
+          <a class="subBannerBtn" href="https://t.me/vchat_support" target="_blank" rel="noopener">Оформить подписку</a>
+        </div>
+
         <div class="pSection">
           <div class="pSecLabel">Контакты</div>
           <div class="pGroup">
@@ -526,6 +550,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           <button class="tbtn on" id="sLight" onclick="setDark(false)"><span data-icon="sun" style="width:15px;height:15px;display:inline-flex;"></span>Светлая</button>
         </div>
 
+        <div class="subBanner" id="subBannerSettings" style="margin-top:20px;">
+          <button class="subBannerClose" onclick="closeSubBanner()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="subBannerLogo"></div>
+          <div class="subBannerTitle">VChat Plus</div>
+          <div class="subBannerText">Розовый значок у ника, поддержка проекта и новые возможности первыми.</div>
+          <a class="subBannerBtn" href="https://t.me/vchat_support" target="_blank" rel="noopener">Оформить подписку</a>
+        </div>
+
         <div class="label" style="margin-top:20px;">Кастомизация</div>
         <div class="hint" style="margin-bottom:10px;">Акцентный цвет</div>
         <div class="colors" id="accentColors"></div>
@@ -541,7 +575,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         <div class="label" style="margin-top:20px;">Аккаунт</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
           <div class="pItem" id="adminPanelBtn" style="cursor:pointer;display:none;" onclick="window.location.href='admin.html'">
-            <div class="pIconWrap" style="background:#D81B60;">⚙️</div>
+            <div class="pIconWrap" style="background:#D81B60;"><svg viewBox="0 0 257 257" fill="none"><path fill="#fff" d="M122.163 4.96878C123.319 -1.65686 132.83 -1.65684 133.985 4.9688L150.663 100.606C151.098 103.099 153.05 105.051 155.543 105.486L251.18 122.163C257.805 123.319 257.805 132.83 251.18 133.985L155.543 150.663C153.05 151.098 151.098 153.05 150.663 155.543L133.985 251.18C132.83 257.805 123.319 257.805 122.163 251.18L105.486 155.543C105.051 153.05 103.099 151.098 100.606 150.663L4.96878 133.985C-1.65686 132.83 -1.65684 123.319 4.9688 122.163L100.606 105.486C103.099 105.051 105.051 103.099 105.486 100.606L122.163 4.96878Z"/></svg></div>
             <div class="pItemBody"><div class="pItemLabel" style="font-weight:600;">Админ-панель</div></div>
           </div>
           <div class="pItem" style="cursor:pointer;" onclick="logoutVchat()">
@@ -621,6 +655,35 @@ verified:`<svg viewBox="0 0 24 24"><path fill="#2C7EFF" d="M12 2l2.39 1.7 2.9-.3
 };
 const LOGO_SVG=`<svg viewBox="0 0 757 594"><path fill="currentColor" d="M144.149 288.366C173.497 341.032 44.8848 145.047 44.8848 145.047L250.319 175.265C283.983 176.991 273.625 176.991 290.888 157.997L414.322 0L435.901 128.099C441.08 157.997 435.901 153.68 465.249 145.047L757 50.0756L296.93 341.032C269.309 357.436 305.562 359.163 315.057 359.163C324.552 359.163 520.491 366.07 478.196 298.727C435.901 231.384 597.314 459.314 597.314 459.314L386.7 423.511C350.447 419.599 360.805 410.102 340.089 436.003L223.561 594L194.213 449.817C187.308 415.282 194.213 418.735 166.592 425.642C138.97 432.549 55.5306 459.026 0 475.718L328.513 257.285C377.205 229.657 374.616 231.384 315.057 233.974C255.498 236.564 114.802 235.701 144.149 288.366Z"/></svg>`;
 
+/* ---------- подписка VChat Plus: SVG-иконки ---------- */
+// маленький значок (звёздочка) — рядом с ником в чатах/поиске
+const SUB_BADGE_SVG=`<svg viewBox="0 0 257 257" xmlns="http://www.w3.org/2000/svg"><path fill="#D81B60" d="M122.163 4.96878C123.319 -1.65686 132.83 -1.65684 133.985 4.9688L150.663 100.606C151.098 103.099 153.05 105.051 155.543 105.486L251.18 122.163C257.805 123.319 257.805 132.83 251.18 133.985L155.543 150.663C153.05 151.098 151.098 153.05 150.663 155.543L133.985 251.18C132.83 257.805 123.319 257.805 122.163 251.18L105.486 155.543C105.051 153.05 103.099 151.098 100.606 150.663L4.96878 133.985C-1.65686 132.83 -1.65684 123.319 4.9688 122.163L100.606 105.486C103.099 105.051 105.051 103.099 105.486 100.606L122.163 4.96878Z"/></svg>`;
+// большой логотип подписки — светлая тема (чёрный)
+const SUB_LOGO_LIGHT=`<svg viewBox="0 0 521 313" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#subclip_l)"><path d="M106.941 225.059V65H86.9219V225.059H106.941ZM67 265V45.0781H126.961V245.078H86.9219V265H67ZM147.078 265V45.0781H167V245.078H187.02V265H147.078ZM207.039 265V45.0781H226.961V245.078H246.98V45.0781H267V265H207.039ZM287.117 265V145.078H307.039V245.078H327.059V125.059H287.117V45.0781H347.078V85.0195H327.059V65H307.039V105.039H347.078V265H287.117Z" fill="black"/><path d="M396.089 82.8946C397.245 76.2689 406.755 76.2689 407.911 82.8946L416.867 134.253C417.302 136.746 419.254 138.698 421.747 139.133L473.105 148.089C479.731 149.245 479.731 158.755 473.105 159.911L421.747 168.867C419.254 169.302 417.302 171.254 416.867 173.747L407.911 225.105C406.755 231.731 397.245 231.731 396.089 225.105L387.133 173.747C386.698 171.254 384.746 169.302 382.253 168.867L330.895 159.911C324.269 158.755 324.269 149.245 330.895 148.089L382.253 139.133C384.746 138.698 386.698 136.746 387.133 134.253L396.089 82.8946Z" fill="#D81B60"/><rect x="16.5" y="17.5" width="480" height="278" rx="40.5" stroke="black" stroke-width="21"/></g><defs><clipPath id="subclip_l"><rect width="521" height="313" fill="white"/></clipPath></defs></svg>`;
+// большой логотип подписки — тёмная тема (белый)
+const SUB_LOGO_DARK=`<svg viewBox="0 0 521 313" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#subclip_d)"><path d="M106.941 225.059V65H86.9219V225.059H106.941ZM67 265V45.0781H126.961V245.078H86.9219V265H67ZM147.078 265V45.0781H167V245.078H187.02V265H147.078ZM207.039 265V45.0781H226.961V245.078H246.98V45.0781H267V265H207.039ZM287.117 265V145.078H307.039V245.078H327.059V125.059H287.117V45.0781H347.078V85.0195H327.059V65H307.039V105.039H347.078V265H287.117Z" fill="white"/><path d="M396.089 82.8946C397.245 76.2689 406.755 76.2689 407.911 82.8946L416.867 134.253C417.302 136.746 419.254 138.698 421.747 139.133L473.105 148.089C479.731 149.245 479.731 158.755 473.105 159.911L421.747 168.867C419.254 169.302 417.302 171.254 416.867 173.747L407.911 225.105C406.755 231.731 397.245 231.731 396.089 225.105L387.133 173.747C386.698 171.254 384.746 169.302 382.253 168.867L330.895 159.911C324.269 158.755 324.269 149.245 330.895 148.089L382.253 139.133C384.746 138.698 386.698 136.746 387.133 134.253L396.089 82.8946Z" fill="#D81B60"/><rect x="16.5" y="17.5" width="480" height="278" rx="40.5" stroke="white" stroke-width="21"/></g><defs><clipPath id="subclip_d"><rect width="521" height="313" fill="white"/></clipPath></defs></svg>`;
+
+function isDarkTheme(){
+  let app=document.getElementById('app');
+  return app && app.getAttribute('data-theme')==='dark';
+}
+function themeLogoSvg(){
+  return isDarkTheme() ? SUB_LOGO_DARK : SUB_LOGO_LIGHT;
+}
+
+/* кэш статуса подписки: username(нижний регистр) -> subscription_until (ISO) | null */
+let subscriptionCache={};
+function isSubActive(username){
+  if(!username)return false;
+  let until=subscriptionCache[username.toLowerCase()];
+  if(!until)return false;
+  return new Date(until).getTime()>Date.now();
+}
+function cacheSub(username,until){
+  if(!username)return;
+  subscriptionCache[username.toLowerCase()]=until||null;
+}
+
 document.querySelectorAll('[data-icon]').forEach(el=>{if(ICONS[el.dataset.icon])el.innerHTML=ICONS[el.dataset.icon];});
 document.querySelectorAll('.logo').forEach(el=>el.innerHTML=LOGO_SVG);
 
@@ -629,6 +692,26 @@ function setDark(on){
   document.getElementById('app').setAttribute('data-theme',on?'dark':'light');
   document.getElementById('sDark').classList.toggle('on',on);
   document.getElementById('sLight').classList.toggle('on',!on);
+  document.querySelectorAll('.subBannerLogo').forEach(el=>el.innerHTML=themeLogoSvg());
+  let pcLogo=document.querySelector('#profileCardName .subLogoBig');
+  if(pcLogo)pcLogo.innerHTML=themeLogoSvg();
+}
+
+/* ---------- баннер подписки VChat Plus (Профиль/Настройки) ---------- */
+function initSubBanner(){
+  let dismissed=false;
+  try{ dismissed=localStorage.getItem('vchat_sub_banner_dismissed')==='1'; }catch(e){}
+  let mySub=vchatUser?isSubActive(vchatUser.username):false;
+  let show=!dismissed && !mySub;
+  document.querySelectorAll('.subBanner').forEach(el=>{
+    let logo=el.querySelector('.subBannerLogo');
+    if(logo)logo.innerHTML=themeLogoSvg();
+    el.style.display=show?'flex':'none';
+  });
+}
+function closeSubBanner(){
+  try{ localStorage.setItem('vchat_sub_banner_dismissed','1'); }catch(e){}
+  document.querySelectorAll('.subBanner').forEach(el=>el.style.display='none');
 }
 
 /* ---------- accent colors ---------- */
@@ -690,8 +773,11 @@ function updateUnreadBadge(){
 
 function verifiedBadgeHtml(username){
   if(!username)return '';
-  let u=username.toLowerCase();
-  return (u==='nikk'||u==='innskitty') ? `<span class="verifiedBadge">${ICONS.verified}</span>` : '';
+  return isSubActive(username) ? `<span class="verifiedBadge" title="VChat Plus">${SUB_BADGE_SVG}</span>` : '';
+}
+function subLogoBigHtml(username){
+  if(!isSubActive(username))return '';
+  return `<span class="subLogoBig">${themeLogoSvg()}</span>`;
 }
 function avatarHtmlFor(name){
   let meta=chatMeta[name];
@@ -1131,7 +1217,7 @@ function openProfileCard(){
   let av=document.getElementById('profileCardAv');
   av.style.background=meta?meta.color:'var(--card2)';
   av.textContent=meta?(meta.initials||''):'';
-  document.getElementById('profileCardName').innerHTML=escHtml((meta&&meta.dispname)?meta.dispname:curChat)+verifiedBadgeHtml(curChat);
+  document.getElementById('profileCardName').innerHTML=escHtml((meta&&meta.dispname)?meta.dispname:curChat)+subLogoBigHtml(curChat);
   document.getElementById('profileCardUserText').textContent='@'+curChat;
   document.getElementById('profileCardCopied').classList.remove('show');
   let bioBox=document.getElementById('profileCardBio');
@@ -1421,7 +1507,9 @@ async function vchatInit(){
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
   profileData.bio=profile.bio||'';
+  cacheSub(vchatUser.username, profile.subscription_until);
   renderProfileView();
+  initSubBanner();
   if(vchatUser.username && vchatUser.username.toLowerCase()==='nikk'){
     const adminBtn = document.getElementById('adminPanelBtn');
     if(adminBtn) adminBtn.style.display='flex';
@@ -1490,10 +1578,11 @@ async function vchatOpenFromUrl(){
   let username=Object.keys(chatMeta).find(n=>chatMeta[n].uid===uid);
   let dispname=p.get('openname')||'Пользователь';
   if(!username){
-    const {data:prof}=await sb.from('profiles').select('username,display_name').eq('id',uid).single();
+    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until').eq('id',uid).single();
     if(!prof)return;
     username=prof.username;
     dispname=prof.display_name||prof.username;
+    cacheSub(username, prof.subscription_until);
     if(!chatMeta[username]){
       chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
       chats[username]=[];
@@ -1516,7 +1605,7 @@ async function vchatLoadConversations(){
   });
   partnerIds.delete(vchatUser.id);
   if(!partnerIds.size)return;
-  const {data:profiles}=await sb.from('profiles').select('id,username,display_name').in('id',Array.from(partnerIds));
+  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until').in('id',Array.from(partnerIds));
   if(!profiles)return;
   let idToProfile={};
   profiles.forEach(p=>idToProfile[p.id]=p);
@@ -1525,6 +1614,7 @@ async function vchatLoadConversations(){
     let p=idToProfile[uid];
     if(!p)return;
     let username=p.username, dispname=p.display_name||p.username;
+    cacheSub(username, p.subscription_until);
     if(!chatMeta[username]){
       chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
     }else{
@@ -1571,9 +1661,10 @@ function onUserSearchInput(q){
   wrap.classList.add('loading');
   vchatSearchTimer=setTimeout(async ()=>{
     if(!vchatUser){return;}
-    const {data}=await sb.from('profiles').select('id,username,display_name').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
     wrap.classList.remove('loading');
     if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
+    data.forEach(u=>cacheSub(u.username,u.subscription_until));
     box.innerHTML=data.map(u=>{
       let dn=u.display_name||u.username;
       return `<div class="row" onclick="selectUser('${u.username}','${u.id}','${dn.replace(/'/g,"\\'")}')">
@@ -1693,9 +1784,10 @@ function vchatSubscribeMessages(){
       if(name){
         vchatPushIncoming(name,m);
       }else{
-        sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single().then(({data})=>{
+        sb.from('profiles').select('username,display_name,subscription_until').eq('id',m.sender_id).single().then(({data})=>{
           if(!data)return;
           let nm=data.username, dn=data.display_name||data.username;
+          cacheSub(nm, data.subscription_until);
           chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
           chats[nm]=[];
           if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
@@ -1756,9 +1848,10 @@ async function vchatPollNewMessages(){
     if(name){
       if(!chats[name]||!chats[name].some(x=>x.id===m.id))vchatPushIncoming(name,m);
     }else{
-      const {data:p}=await sb.from('profiles').select('username,display_name').eq('id',m.sender_id).single();
+      const {data:p}=await sb.from('profiles').select('username,display_name,subscription_until').eq('id',m.sender_id).single();
       if(!p)continue;
       let nm=p.username, dn=p.display_name||p.username;
+      cacheSub(nm, p.subscription_until);
       chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
       chats[nm]=[];
       if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
