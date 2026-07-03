@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Админ-панель — VChat</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    color: #111;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+  }
+  header h1 { font-size: 18px; font-weight: 700; }
+  .back-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #f2f2f2;
+    cursor: pointer;
+    border: none;
+  }
+  #search {
+    margin: 16px 20px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid #e5e5e5;
+    background: #f7f7f7;
+    width: calc(100% - 40px);
+    font-size: 15px;
+    outline: none;
+  }
+  .user-list { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .user-card {
+    border: 1px solid #eee;
+    border-radius: 16px;
+    padding: 14px;
+    background: #fff;
+  }
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #eee;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    color: #888;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 4px; }
+  .user-username { color: #999; font-size: 13px; }
+  .sub-badge-icon { width: 14px; height: 14px; flex-shrink: 0; }
+  .sub-status {
+    font-size: 12px;
+    color: #D81B60;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+  .sub-status.none { color: #999; font-weight: 400; }
+  .toggle-btn {
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: none;
+    background: #111;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .panel {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f0f0f0;
+  }
+  .panel.open { display: block; }
+  .slider-options {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .slider-opt {
+    flex: 1;
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: 12px;
+    background: #f2f2f2;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    color: #555;
+  }
+  .slider-opt.active {
+    background: #fde8ef;
+    border-color: #D81B60;
+    color: #D81B60;
+  }
+  .action-row { display: flex; gap: 8px; }
+  .grant-btn, .revoke-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .grant-btn { background: #D81B60; color: #fff; }
+  .revoke-btn { background: #f2f2f2; color: #999; }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+  .loading { text-align: center; color: #999; padding: 40px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="window.location.href='vchat-menu.html'">←</button>
+  <h1>Админ-панель</h1>
+</header>
+
+<input id="search" type="text" placeholder="Поиск по нику...">
+<div class="user-list" id="userList">
+  <div class="loading">Загрузка...</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL='https://vchat-proxy.scorpiodesign12.workers.dev';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const FUNCTIONS_URL = 'https://tosomuignedjiczygceh.supabase.co/functions/v1';
+
+  let allUsers = [];
+  let currentUserId = null;
+
+  const SUB_ICON_SVG = `<svg class="sub-badge-icon" viewBox="0 0 257 257" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M122.163 4.96878C123.319 -1.65686 132.83 -1.65684 133.985 4.9688L150.663 100.606C151.098 103.099 153.05 105.051 155.543 105.486L251.18 122.163C257.805 123.319 257.805 132.83 251.18 133.985L155.543 150.663C153.05 151.098 151.098 153.05 150.663 155.543L133.985 251.18C132.83 257.805 123.319 257.805 122.163 251.18L105.486 155.543C105.051 153.05 103.099 151.098 100.606 150.663L4.96878 133.985C-1.65686 132.83 -1.65684 123.319 4.9688 122.163L100.606 105.486C103.099 105.051 105.051 103.099 105.486 100.606L122.163 4.96878Z" fill="#D81B60"/></svg>`;
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  function isSubActive(subUntil){
+    if(!subUntil) return false;
+    return new Date(subUntil).getTime() > Date.now();
+  }
+
+  function formatSubStatus(subUntil){
+    if(!isSubActive(subUntil)) return { text: 'Нет подписки', active: false };
+    const d = new Date(subUntil);
+    if(d.getFullYear() >= 9999) return { text: 'Подписка навсегда', active: true };
+    return { text: 'До ' + d.toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}), active: true };
+  }
+
+  function renderUsers(list){
+    const container = document.getElementById('userList');
+    if(list.length === 0){
+      container.innerHTML = '<div class="loading">Никого не найдено</div>';
+      return;
+    }
+    container.innerHTML = list.map(u => {
+      const status = formatSubStatus(u.subscription_until);
+      const avatarContent = u.avatar_url ? `<img src="${u.avatar_url}">` : (u.username||'?')[0].toUpperCase();
+      return `
+      <div class="user-card" data-id="${u.id}">
+        <div class="user-row">
+          <div class="avatar">${avatarContent}</div>
+          <div class="user-info">
+            <div class="user-name">${u.display_name || u.username} ${status.active ? SUB_ICON_SVG : ''}</div>
+            <div class="user-username">@${u.username}</div>
+            <div class="sub-status ${status.active?'':'none'}">${status.text}</div>
+          </div>
+          <button class="toggle-btn" onclick="togglePanel('${u.id}')">Подписка</button>
+        </div>
+        <div class="panel" id="panel-${u.id}">
+          <div class="slider-options">
+            <div class="slider-opt" data-dur="15min" onclick="selectOpt('${u.id}','15min')">15 минут<br><span style="font-weight:400;font-size:11px">(тест)</span></div>
+            <div class="slider-opt" data-dur="3days" onclick="selectOpt('${u.id}','3days')">3 дня<br><span style="font-weight:400;font-size:11px">(пробный)</span></div>
+            <div class="slider-opt" data-dur="forever" onclick="selectOpt('${u.id}','forever')">Навсегда</div>
+          </div>
+          <div class="action-row">
+            <button class="grant-btn" onclick="grantSub('${u.id}')">Выдать подписку</button>
+            <button class="revoke-btn" onclick="revokeSub('${u.id}')">Забрать</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.togglePanel = function(id){
+    const panel = document.getElementById('panel-'+id);
+    panel.classList.toggle('open');
+  };
+
+  window.selectOpt = function(id, dur){
+    const panel = document.getElementById('panel-'+id);
+    panel.querySelectorAll('.slider-opt').forEach(el=>{
+      el.classList.toggle('active', el.dataset.dur === dur);
+    });
+    panel.dataset.selected = dur;
+  };
+
+  async function callAdminFunction(targetId, duration){
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ showToast('Не авторизован'); return null; }
+    try{
+      const resp = await fetch(`${FUNCTIONS_URL}/admin-grant-subscription`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token,
+        },
+        body: JSON.stringify({ target_user_id: targetId, duration })
+      });
+      const data = await resp.json();
+      if(!resp.ok){
+        showToast('Ошибка: ' + (data.error || 'неизвестная'));
+        return null;
+      }
+      return data;
+    }catch(e){
+      showToast('Ошибка сети');
+      console.error(e);
+      return null;
+    }
+  }
+
+  window.grantSub = async function(id){
+    const panel = document.getElementById('panel-'+id);
+    const dur = panel.dataset.selected;
+    if(!dur){ showToast('Выбери срок подписки'); return; }
+    const result = await callAdminFunction(id, dur);
+    if(result){
+      showToast('Подписка выдана!');
+      await loadUsers();
+    }
+  };
+
+  window.revokeSub = async function(id){
+    const result = await callAdminFunction(id, 'revoke');
+    if(result){
+      showToast('Подписка снята');
+      await loadUsers();
+    }
+  };
+
+  document.getElementById('search').addEventListener('input', (e)=>{
+    const q = e.target.value.toLowerCase().trim();
+    const filtered = allUsers.filter(u =>
+      (u.username||'').toLowerCase().includes(q) ||
+      (u.display_name||'').toLowerCase().includes(q)
+    );
+    renderUsers(filtered);
+  });
+
+  async function loadUsers(){
+    const { data, error } = await sb
+      .from('profiles')
+      .select('id, username, display_name, avatar_url, subscription_until')
+      .order('username', { ascending: true });
+    if(error){
+      document.getElementById('userList').innerHTML = '<div class="loading">Ошибка загрузки</div>';
+      console.error(error);
+      return;
+    }
+    allUsers = data || [];
+    renderUsers(allUsers);
+  }
+
+  async function init(){
+    const { data: { user } } = await sb.auth.getUser();
+    if(!user){ window.location.href = 'index.html'; return; }
+    const { data: profile } = await sb.from('profiles').select('username').eq('id', user.id).single();
+    if(!profile || profile.username !== 'nikk'){
+      window.location.href = 'vchat-menu.html';
+      return;
+    }
+    currentUserId = user.id;
+    await loadUsers();
+  }
+
+  init();
+</script>
+</body>
+</html>

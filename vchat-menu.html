@@ -540,6 +540,10 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
         <div class="label" style="margin-top:20px;">Аккаунт</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
+          <div class="pItem" id="adminPanelBtn" style="cursor:pointer;display:none;" onclick="window.location.href='admin.html'">
+            <div class="pIconWrap" style="background:#D81B60;">⚙️</div>
+            <div class="pItemBody"><div class="pItemLabel" style="font-weight:600;">Админ-панель</div></div>
+          </div>
           <div class="pItem" style="cursor:pointer;" onclick="logoutVchat()">
             <div class="pIconWrap" style="background:#ff3b30;" data-icon="logout"></div>
             <div class="pItemBody"><div class="pItemLabel" style="color:#ff3b30;font-weight:600;">Выйти из аккаунта</div></div>
@@ -1418,6 +1422,10 @@ async function vchatInit(){
   profileData.nick=vchatUser.username;
   profileData.bio=profile.bio||'';
   renderProfileView();
+  if(vchatUser.username && vchatUser.username.toLowerCase()==='nikk'){
+    const adminBtn = document.getElementById('adminPanelBtn');
+    if(adminBtn) adminBtn.style.display='flex';
+  }
   await vchatLoadConversations();
   vchatHeartbeat();
   setInterval(vchatHeartbeat,20000);
@@ -1425,6 +1433,47 @@ async function vchatInit(){
   vchatListenForCalls();
   vchatListenTyping();
   await vchatOpenFromUrl();
+  setupPushNotifications();
+}
+
+/* ---------- Push-уведомления (работает только внутри APK, в браузере ничего не делает) ---------- */
+async function setupPushNotifications(){
+  try{
+    if(!window.Capacitor || !window.Capacitor.isNativePlatform() || !window.Capacitor.Plugins || !window.Capacitor.Plugins.PushNotifications) return;
+    const { PushNotifications } = window.Capacitor.Plugins;
+
+    let perm = await PushNotifications.checkPermissions();
+    if(perm.receive !== 'granted'){
+      perm = await PushNotifications.requestPermissions();
+    }
+    if(perm.receive !== 'granted'){
+      console.warn('Push permission not granted');
+      return;
+    }
+
+    await PushNotifications.register();
+
+    PushNotifications.addListener('registration', async (token) => {
+      try{
+        await sb.from('profiles').update({ fcm_token: token.value }).eq('id', vchatUser.id);
+        console.log('FCM token saved');
+      }catch(e){ console.error('Error saving fcm token:', e); }
+    });
+
+    PushNotifications.addListener('registrationError', (err) => {
+      console.error('Push registration error:', err);
+    });
+
+    // Когда пришло уведомление, пока приложение открыто
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('Push received while app open:', notification);
+    });
+
+    // Когда пользователь нажал на уведомление
+    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      console.log('Push action performed:', action);
+    });
+  }catch(e){ console.error('setupPushNotifications error:', e); }
 }
 async function markChatRead(uid){
   if(!uid||!vchatUser)return;
