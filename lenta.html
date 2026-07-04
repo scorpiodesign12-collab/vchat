@@ -619,7 +619,7 @@
     me = { id: user.id, username: profile.username, display_name: profile.display_name||profile.username };
     let isDark=false;
     try{ isDark = localStorage.getItem('vchat_theme')==='dark'; }catch(e){}
-    if(isDark) document.getElementById('app').setAttribute('data-theme','dark');
+    if(isDark) document.documentElement.setAttribute('data-theme','dark');
     await loadFeed();
   }
 
