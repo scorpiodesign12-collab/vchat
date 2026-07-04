@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Лента — VChat</title>
 <style>
@@ -94,6 +95,16 @@
 
   .confettiPiece{position:fixed;top:-10px;width:8px;height:8px;background:#22c55e;z-index:999;pointer-events:none;border-radius:2px;}
 
+  .imgViewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:1000;align-items:center;justify-content:center;}
+  .imgViewer.open{display:flex;}
+  .imgViewer img{max-width:92vw;max-height:86vh;object-fit:contain;border-radius:4px;user-select:none;}
+  .imgViewerClose{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .imgViewerClose svg{width:18px;height:18px;}
+  .imgViewerNav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;}
+  .imgViewerNav.prev{left:14px;}
+  .imgViewerNav.next{right:14px;}
+  .imgViewerCounter{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;background:rgba(255,255,255,.12);padding:5px 12px;border-radius:12px;}
+
   input[type=file]{display:none;}
 </style>
 </head>
@@ -136,6 +147,16 @@
   </div>
 
   <div id="feedList"><div class="emptyState">Загрузка...</div></div>
+</div>
+
+<div class="imgViewer" id="imgViewer">
+  <button class="imgViewerClose" onclick="closeImgViewer()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button class="imgViewerNav prev" id="imgViewerPrev" onclick="imgViewerNav(-1)">&lt;</button>
+  <img id="imgViewerImg" src="">
+  <button class="imgViewerNav next" id="imgViewerNext" onclick="imgViewerNav(1)">&gt;</button>
+  <div class="imgViewerCounter" id="imgViewerCounter" style="display:none;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -330,15 +351,26 @@
     if(!posts || !posts.length){ document.getElementById('feedList').innerHTML='<div class="emptyState">Пока нет постов. Будь первым!</div>'; return; }
 
     const userIds = [...new Set(posts.map(p=>p.user_id))];
-    const { data: profiles } = await sb.from('profiles').select('id,username,display_name,avatar_url,subscription_until').in('id', userIds);
+    const postIds = posts.map(p=>p.id);
+
+    const [
+      { data: profiles },
+      { data: likes },
+      { data: views },
+      { data: comments },
+      { data: votes }
+    ] = await Promise.all([
+      sb.from('profiles').select('id,username,display_name,avatar_url,subscription_until').in('id', userIds),
+      sb.from('post_likes').select('post_id,user_id').in('post_id', postIds),
+      sb.from('post_views').select('post_id,user_id').in('post_id', postIds),
+      sb.from('post_comments').select('*').in('post_id', postIds).order('created_at',{ascending:true}),
+      sb.from('poll_votes').select('*').in('post_id', postIds)
+    ]);
     const profileMap = {};
     (profiles||[]).forEach(p=>profileMap[p.id]=p);
 
-    const postIds = posts.map(p=>p.id);
-    const { data: likes } = await sb.from('post_likes').select('post_id,user_id').in('post_id', postIds);
-    const { data: views } = await sb.from('post_views').select('post_id').in('post_id', postIds);
-    const { data: comments } = await sb.from('post_comments').select('*').in('post_id', postIds).order('created_at',{ascending:true});
-    const { data: votes } = await sb.from('poll_votes').select('*').in('post_id', postIds);
+    // помечаем уже просмотренные мной посты, чтобы не пытаться вставить просмотр повторно
+    (views||[]).forEach(v=>{ if(v.user_id===me.id) viewedPosts.add(v.post_id); });
 
     const likesByPost = {}; (likes||[]).forEach(l=>{ (likesByPost[l.post_id]=likesByPost[l.post_id]||[]).push(l.user_id); });
     const viewsByPost = {}; (views||[]).forEach(v=>{ viewsByPost[v.post_id]=(viewsByPost[v.post_id]||0)+1; });
@@ -359,11 +391,12 @@
   }
 
   async function registerViews(postIds){
-    for(const pid of postIds){
-      if(viewedPosts.has(pid)) continue;
-      viewedPosts.add(pid);
-      sb.from('post_views').insert({post_id:pid, user_id:me.id}).then(()=>{}).catch(()=>{});
-    }
+    const toInsert = postIds.filter(pid=>!viewedPosts.has(pid));
+    if(!toInsert.length) return;
+    toInsert.forEach(pid=>viewedPosts.add(pid));
+    sb.from('post_views')
+      .upsert(toInsert.map(pid=>({post_id:pid, user_id:me.id})), {onConflict:'post_id,user_id', ignoreDuplicates:true})
+      .then(()=>{});
   }
 
   function renderFeed(){
@@ -380,7 +413,7 @@
     let imagesHtml='';
     const imgs = [p.image_url_1, p.image_url_2].filter(Boolean);
     if(imgs.length){
-      imagesHtml = `<div class="postImages ${imgs.length===2?'two':''}">${imgs.map(u=>`<img src="${u}" onclick="window.open('${u}','_blank')">`).join('')}</div>`;
+      imagesHtml = `<div class="postImages ${imgs.length===2?'two':''}">${imgs.map((u,idx)=>`<img src="${u}" onclick='openImgViewer(${JSON.stringify(imgs)},${idx})'>`).join('')}</div>`;
     }
 
     let pollHtml='';
@@ -494,7 +527,7 @@
     if(liked){
       await sb.from('post_likes').delete().eq('post_id',postId).eq('user_id',me.id);
     }else{
-      await sb.from('post_likes').insert({post_id:postId, user_id:me.id});
+      await sb.from('post_likes').upsert({post_id:postId, user_id:me.id}, {onConflict:'post_id,user_id', ignoreDuplicates:true});
     }
     await loadFeed();
   };
@@ -506,7 +539,12 @@
   };
 
   window.votePoll = async function(postId, optionId, isQuiz, correctId){
-    const { error } = await sb.from('poll_votes').insert({post_id:postId, user_id:me.id, option_id:optionId});
+    const post = postsCache.find(p=>p.id===postId);
+    if(post && post.votes.some(v=>v.user_id===me.id)) return; // уже голосовал — не шлём повторно
+    const { error } = await sb.from('poll_votes').upsert(
+      {post_id:postId, user_id:me.id, option_id:optionId},
+      {onConflict:'post_id,user_id', ignoreDuplicates:true}
+    );
     if(error){ return; }
     if(isQuiz && optionId===correctId) fireConfetti();
     await loadFeed();
@@ -529,6 +567,42 @@
       setTimeout(()=>el.remove(), duration);
     }
   }
+
+  /* ---------- полноэкранный просмотр фото ---------- */
+  let viewerImages = [];
+  let viewerIndex = 0;
+
+  window.openImgViewer = function(images, index){
+    viewerImages = images;
+    viewerIndex = index;
+    renderImgViewer();
+    document.getElementById('imgViewer').classList.add('open');
+  };
+  window.closeImgViewer = function(){
+    document.getElementById('imgViewer').classList.remove('open');
+  };
+  window.imgViewerNav = function(delta){
+    viewerIndex = (viewerIndex + delta + viewerImages.length) % viewerImages.length;
+    renderImgViewer();
+  };
+  function renderImgViewer(){
+    document.getElementById('imgViewerImg').src = viewerImages[viewerIndex];
+    const multi = viewerImages.length > 1;
+    document.getElementById('imgViewerPrev').style.display = multi ? 'flex' : 'none';
+    document.getElementById('imgViewerNext').style.display = multi ? 'flex' : 'none';
+    const counter = document.getElementById('imgViewerCounter');
+    counter.style.display = multi ? 'block' : 'none';
+    counter.textContent = (viewerIndex+1)+' / '+viewerImages.length;
+  }
+  document.getElementById('imgViewer').addEventListener('click', function(e){
+    if(e.target===this) closeImgViewer();
+  });
+  document.addEventListener('keydown', function(e){
+    if(!document.getElementById('imgViewer').classList.contains('open')) return;
+    if(e.key==='Escape') closeImgViewer();
+    if(e.key==='ArrowLeft') imgViewerNav(-1);
+    if(e.key==='ArrowRight') imgViewerNav(1);
+  });
 
   async function init(){
     const { data: { user } } = await sb.auth.getUser();
