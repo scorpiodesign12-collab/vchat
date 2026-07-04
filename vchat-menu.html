@@ -731,6 +731,7 @@ function setDark(on){
   document.querySelectorAll('.subBannerLogo').forEach(el=>el.innerHTML=themeLogoSvg());
   let pcLogo=document.querySelector('#profileCardName .subLogoBig');
   if(pcLogo)pcLogo.innerHTML=themeLogoSvg();
+  try{ localStorage.setItem('vchat_theme', on?'dark':'light'); }catch(e){}
 }
 
 /* ---------- баннер подписки VChat Plus (Профиль/Настройки) ---------- */
@@ -753,16 +754,16 @@ function closeSubBanner(){
 /* ---------- вкладка "Лента" — пока в разработке, доступ по подписке ---------- */
 function initFeedTab(){
   let locked=document.getElementById('feedLocked');
-  let soon=document.getElementById('feedComingSoon');
   let icon=document.getElementById('feedLockIcon');
-  if(!locked||!soon)return;
-  let mySub=vchatUser?isSubActive(vchatUser.username):false;
+  if(!locked)return;
+  let isOwner = vchatUser && vchatUser.username && vchatUser.username.toLowerCase()==='nikk';
+  let mySub = vchatUser ? (isSubActive(vchatUser.username) || isOwner) : false;
   if(mySub){
-    locked.style.display='none';
-    soon.style.display='flex';
+    window.location.href='lenta.html';
   }else{
     if(icon)icon.innerHTML=FEED_LOCK_SVG;
-    soon.style.display='none';
+    let soon=document.getElementById('feedComingSoon');
+    if(soon)soon.style.display='none';
     locked.style.display='flex';
   }
 }
@@ -1528,7 +1529,9 @@ function selectUser(username){}
 buildChatRows();
 buildFriendRows();
 initProfile();
-setDark(false);
+let savedTheme='light';
+try{ savedTheme = localStorage.getItem('vchat_theme')||'light'; }catch(e){}
+setDark(savedTheme==='dark');
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

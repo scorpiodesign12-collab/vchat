@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Лента — VChat</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#fff; --fg:#111114; --card:#f1f1f4; --card2:#e8e8ec; --muted:#94949c; --line:#ececef;
+    --accent:#1c1c1e; --accent-fg:#fff; --btn:#1c1c1e; --btn-fg:#fff;
+  }
+  [data-theme="dark"]{ --bg:#0b0b0d; --fg:#f5f5f7; --card:#1c1c1f; --card2:#262629; --muted:#9a9aa2; --line:#222225; --btn:#f5f5f7; --btn-fg:#0b0b0d; }
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;}
+  #app{max-width:560px;margin:0 auto;min-height:100vh;padding-bottom:40px;}
+  header{position:sticky;top:0;background:var(--bg);z-index:20;display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);}
+  .back-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--card);color:var(--fg);font-size:19px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+  header h1{font-size:18px;font-weight:700;}
+
+  .composer{margin:14px 16px;background:var(--card);border-radius:18px;padding:14px;}
+  .composer textarea{width:100%;border:none;background:none;resize:none;outline:none;font-size:15px;color:var(--fg);font-family:inherit;min-height:44px;max-height:140px;}
+  .composer textarea::placeholder{color:var(--muted);}
+  .charCount{text-align:right;font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .imgPreviewRow{display:flex;gap:8px;margin-top:8px;}
+  .imgPreviewItem{position:relative;width:74px;height:74px;border-radius:12px;overflow:hidden;}
+  .imgPreviewItem img{width:100%;height:100%;object-fit:cover;}
+  .imgPreviewItem .rm{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;}
+  .composerRow{display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .composerIconBtn{width:38px;height:38px;border-radius:50%;border:none;background:var(--card2);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+  .composerIconBtn svg{width:19px;height:19px;}
+  .composerSpacer{flex:1;}
+  .publishBtn{width:40px;height:40px;border-radius:50%;border:none;background:var(--btn);color:var(--btn-fg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:.4;pointer-events:none;transition:.15s;}
+  .publishBtn.active{opacity:1;pointer-events:auto;}
+  .publishBtn svg{width:19px;height:19px;}
+
+  .pollBuilder{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px;}
+  .pollBuilder.open{display:block;}
+  .pollBuilder input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13.5px;margin-bottom:8px;outline:none;}
+  .pollOptRow{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .pollOptRow input[type=text]{margin-bottom:0;flex:1;}
+  .pollOptRow .rmOpt{width:26px;height:26px;border-radius:50%;border:none;background:var(--card2);color:var(--muted);cursor:pointer;flex-shrink:0;}
+  .addOptBtn{font-size:13px;color:var(--fg);background:none;border:1px dashed var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;width:100%;margin-bottom:8px;}
+  .quizToggleRow{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--fg);margin-bottom:4px;}
+  .quizCorrectHint{font-size:11.5px;color:var(--muted);margin-bottom:6px;}
+  .switch{width:40px;height:24px;border-radius:12px;background:var(--card2);position:relative;cursor:pointer;flex-shrink:0;}
+  .switch.on{background:#D81B60;}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s;}
+  .switch.on::after{left:18px;}
+  .quizMark{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .quizMark.correct{border-color:#22c55e;background:#22c55e;}
+
+  .post{margin:0 0 10px;padding:14px 16px;border-bottom:1px solid var(--line);}
+  .postHead{display:flex;align-items:center;gap:10px;}
+  .postAv{width:38px;height:38px;border-radius:50%;background:#555;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;overflow:hidden;}
+  .postAv img{width:100%;height:100%;object-fit:cover;}
+  .postName{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:3px;}
+  .postTime{font-size:12px;color:var(--muted);}
+  .postDelBtn{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;}
+  .postDelBtn svg{width:17px;height:17px;}
+  .postText{font-size:14.5px;line-height:1.45;margin-top:8px;white-space:pre-wrap;word-break:break-word;}
+  .postImages{display:grid;gap:6px;margin-top:10px;border-radius:14px;overflow:hidden;}
+  .postImages.two{grid-template-columns:1fr 1fr;}
+  .postImages img{width:100%;height:100%;object-fit:cover;max-height:280px;display:block;}
+
+  .pollBox{margin-top:10px;}
+  .pollQ{font-size:14px;font-weight:600;margin-bottom:8px;}
+  .pollOpt{position:relative;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;cursor:pointer;overflow:hidden;font-size:13.5px;}
+  .pollOpt .fill{position:absolute;top:0;left:0;bottom:0;background:var(--card2);z-index:0;transition:width .3s;}
+  .pollOpt .txt{position:relative;z-index:1;display:flex;justify-content:space-between;gap:8px;}
+  .pollOpt.correct{border-color:#22c55e;}
+  .pollOpt.correct .fill{background:rgba(34,197,94,.25);}
+  .pollOpt.wrong{border-color:#ef4444;}
+  .pollOpt.wrong .fill{background:rgba(239,68,68,.2);}
+  .pollOpt.voted{cursor:default;}
+
+  .postActions{display:flex;align-items:center;gap:18px;margin-top:10px;}
+  .actBtn{display:flex;align-items:center;gap:5px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;padding:4px 2px;}
+  .actBtn svg{width:19px;height:19px;color:var(--fg);}
+  .actBtn.liked svg{color:#D81B60;}
+  .actBtn .cnt{color:var(--muted);}
+
+  .commentsBox{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px;}
+  .commentsBox.open{display:block;}
+  .commentRow{margin-bottom:10px;font-size:13.5px;line-height:1.4;}
+  .commentAuthor{font-weight:600;}
+  .commentReplyTo{color:var(--muted);}
+  .commentReplyBtn{font-size:11.5px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:2px;padding:0;}
+  .commentInputRow{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .commentInputRow input{flex:1;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13.5px;outline:none;}
+  .commentInputRow button{background:none;border:none;color:var(--fg);cursor:pointer;font-weight:700;font-size:13px;padding:6px;}
+  .replyingHint{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+
+  .emptyState{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
+
+  .confettiPiece{position:fixed;top:-10px;width:8px;height:8px;background:#22c55e;z-index:999;pointer-events:none;border-radius:2px;}
+
+  input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="back-btn" onclick="window.location.href='vchat-menu.html'">&lt;</button>
+    <h1>Лента</h1>
+  </header>
+
+  <div class="composer">
+    <textarea id="postText" maxlength="150" placeholder="Что нового?" oninput="onComposerInput()"></textarea>
+    <div class="charCount"><span id="charCount">0</span>/150</div>
+    <div class="imgPreviewRow" id="imgPreviewRow"></div>
+
+    <div class="pollBuilder" id="pollBuilder">
+      <input type="text" id="pollQuestion" placeholder="Вопрос опроса" maxlength="120" oninput="onComposerInput()">
+      <div id="pollOptionsWrap"></div>
+      <button class="addOptBtn" onclick="addPollOption()">+ Добавить вариант</button>
+      <div class="quizToggleRow">
+        <span>Викторина (отметить правильный ответ)</span>
+        <div class="switch" id="quizSwitch" onclick="toggleQuiz()"></div>
+      </div>
+      <div class="quizCorrectHint" id="quizHint" style="display:none;">Нажми на кружок рядом с правильным вариантом</div>
+    </div>
+
+    <div class="composerRow">
+      <button class="composerIconBtn" onclick="document.getElementById('imgInput').click()" title="Фото">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </button>
+      <button class="composerIconBtn" onclick="togglePollBuilder()" title="Опрос">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </button>
+      <div class="composerSpacer"></div>
+      <button class="publishBtn" id="publishBtn" onclick="publishPost()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <input type="file" id="imgInput" accept="image/*" multiple onchange="handleImgSelect(this)">
+  </div>
+
+  <div id="feedList"><div class="emptyState">Загрузка...</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL='https://vchat-proxy.scorpiodesign12.workers.dev';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const STORAGE_URL_BASE = 'https://tosomuignedjiczygceh.supabase.co/storage/v1/object/public/post-images/';
+
+  let me = null;
+  let selectedImages = [];
+  let pollOptionCount = 0;
+  let isQuizMode = false;
+  let viewedPosts = new Set();
+
+  const VERIFIED_SVG = `<svg viewBox="0 0 24 24" fill="#2C7EFF" stroke="none"><path d="M12 2l2.4 2.2 3.2-.6 1 3.1 3.1 1-.6 3.2L23 12l-2.2 2.4.6 3.2-3.1 1-1 3.1-3.2-.6L12 23l-2.4-2.2-3.2.6-1-3.1-3.1-1 .6-3.2L1 12l2.2-2.4-.6-3.2 3.1-1 1-3.1 3.2.6L12 2z"/><path d="M8.5 12.5l2.3 2.3 4.7-4.7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const SUB_ICON_SVG = `<svg viewBox="0 0 257 257" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M122.163 4.96878C123.319 -1.65686 132.83 -1.65684 133.985 4.9688L150.663 100.606C151.098 103.099 153.05 105.051 155.543 105.486L251.18 122.163C257.805 123.319 257.805 132.83 251.18 133.985L155.543 150.663C153.05 151.098 151.098 153.05 150.663 155.543L133.985 251.18C132.83 257.805 123.319 257.805 122.163 251.18L105.486 155.543C105.051 153.05 103.099 151.098 100.606 150.663L4.96878 133.985C-1.65686 132.83 -1.65684 123.319 4.9688 122.163L100.606 105.486C103.099 105.051 105.051 103.099 105.486 100.606L122.163 4.96878Z" fill="#D81B60"/></svg>`;
+
+  function escHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function isVerified(username){ if(!username)return false; let u=username.toLowerCase(); return u==='nikk'||u==='innskitty'; }
+  function badgesHtml(username, subUntil){
+    let h='';
+    if(isVerified(username)) h+=`<span style="width:14px;height:14px;display:inline-flex;">${VERIFIED_SVG}</span>`;
+    if(subUntil && new Date(subUntil).getTime()>Date.now()) h+=`<span style="width:13px;height:13px;display:inline-flex;">${SUB_ICON_SVG}</span>`;
+    return h;
+  }
+  function timeAgo(iso){
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff/60000);
+    if(m<1) return 'сейчас';
+    if(m<60) return m+' мин';
+    const h = Math.floor(m/60);
+    if(h<24) return h+' ч';
+    const d = Math.floor(h/24);
+    if(d<7) return d+' дн';
+    return new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+  }
+
+  function onComposerInput(){
+    const text = document.getElementById('postText').value;
+    document.getElementById('charCount').textContent = text.length;
+    updatePublishState();
+  }
+
+  function updatePublishState(){
+    const text = document.getElementById('postText').value.trim();
+    const pollOpen = document.getElementById('pollBuilder').classList.contains('open');
+    let pollValid = true;
+    if(pollOpen){
+      const q = document.getElementById('pollQuestion').value.trim();
+      const opts = getPollOptionValues();
+      pollValid = q.length>0 && opts.filter(o=>o.text.trim()).length>=2;
+      if(isQuizMode) pollValid = pollValid && !!getCorrectOptionId();
+    }
+    const hasContent = text.length>0 || selectedImages.length>0 || pollOpen;
+    document.getElementById('publishBtn').classList.toggle('active', hasContent && pollValid);
+  }
+
+  function handleImgSelect(input){
+    const files = Array.from(input.files||[]);
+    for(const f of files){
+      if(selectedImages.length>=2){ alert('Можно прикрепить максимум 2 фото'); break; }
+      if(f.size > 1024*1024){ alert(`Файл "${f.name}" больше 1МБ`); continue; }
+      selectedImages.push(f);
+    }
+    input.value='';
+    renderImgPreviews();
+    updatePublishState();
+  }
+
+  function renderImgPreviews(){
+    const wrap = document.getElementById('imgPreviewRow');
+    wrap.innerHTML = selectedImages.map((f,i)=>`
+      <div class="imgPreviewItem">
+        <img src="${URL.createObjectURL(f)}">
+        <button class="rm" onclick="removeImg(${i})">✕</button>
+      </div>`).join('');
+  }
+  function removeImg(i){ selectedImages.splice(i,1); renderImgPreviews(); updatePublishState(); }
+
+  function togglePollBuilder(){
+    const pb = document.getElementById('pollBuilder');
+    const opening = !pb.classList.contains('open');
+    pb.classList.toggle('open');
+    if(opening && pollOptionCount===0){
+      addPollOption(); addPollOption();
+    }
+    updatePublishState();
+  }
+
+  function addPollOption(){
+    if(pollOptionCount>=6) return;
+    const id = 'opt'+(pollOptionCount++);
+    const wrap = document.getElementById('pollOptionsWrap');
+    const row = document.createElement('div');
+    row.className='pollOptRow';
+    row.dataset.id=id;
+    row.innerHTML = `
+      <div class="quizMark" id="mark-${id}" onclick="markCorrect('${id}')" style="display:none;"></div>
+      <input type="text" placeholder="Вариант" maxlength="60" oninput="updatePublishState()">
+      <button class="rmOpt" onclick="removePollOption('${id}')">✕</button>`;
+    wrap.appendChild(row);
+    if(isQuizMode) row.querySelector('.quizMark').style.display='flex';
+    updatePublishState();
+  }
+  function removePollOption(id){
+    const wrap = document.getElementById('pollOptionsWrap');
+    const row = wrap.querySelector(`[data-id="${id}"]`);
+    if(row) row.remove();
+    updatePublishState();
+  }
+  function getPollOptionValues(){
+    return Array.from(document.querySelectorAll('#pollOptionsWrap .pollOptRow')).map(r=>({
+      id: r.dataset.id,
+      text: r.querySelector('input').value
+    }));
+  }
+  function toggleQuiz(){
+    isQuizMode = !isQuizMode;
+    document.getElementById('quizSwitch').classList.toggle('on', isQuizMode);
+    document.getElementById('quizHint').style.display = isQuizMode ? 'block':'none';
+    document.querySelectorAll('.quizMark').forEach(m=>m.style.display = isQuizMode ? 'flex':'none');
+    updatePublishState();
+  }
+  function markCorrect(id){
+    document.querySelectorAll('.quizMark').forEach(m=>m.classList.remove('correct'));
+    document.getElementById('mark-'+id).classList.add('correct');
+    updatePublishState();
+  }
+  function getCorrectOptionId(){
+    const el = document.querySelector('.quizMark.correct');
+    return el ? el.id.replace('mark-','') : null;
+  }
+
+  async function uploadImage(file){
+    const path = `${me.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
+    const { error } = await sb.storage.from('post-images').upload(path, file, { contentType: file.type });
+    if(error){ console.error(error); return null; }
+    return STORAGE_URL_BASE + path;
+  }
+
+  async function publishPost(){
+    const btn = document.getElementById('publishBtn');
+    if(!btn.classList.contains('active')) return;
+    btn.classList.remove('active');
+
+    const text = document.getElementById('postText').value.trim();
+    const pollOpen = document.getElementById('pollBuilder').classList.contains('open');
+
+    let image_url_1=null, image_url_2=null;
+    if(selectedImages[0]) image_url_1 = await uploadImage(selectedImages[0]);
+    if(selectedImages[1]) image_url_2 = await uploadImage(selectedImages[1]);
+
+    let payload = {
+      user_id: me.id,
+      content: text || null,
+      image_url_1, image_url_2,
+      has_poll: false
+    };
+
+    if(pollOpen){
+      const q = document.getElementById('pollQuestion').value.trim();
+      const opts = getPollOptionValues().filter(o=>o.text.trim());
+      payload.has_poll = true;
+      payload.poll_question = q;
+      payload.poll_options = opts.map(o=>({id:o.id, text:o.text.trim()}));
+      payload.poll_is_quiz = isQuizMode;
+      payload.poll_correct_option = isQuizMode ? getCorrectOptionId() : null;
+    }
+
+    const { error } = await sb.from('posts').insert(payload);
+    if(error){ alert('Ошибка публикации: '+error.message); updatePublishState(); return; }
+
+    document.getElementById('postText').value='';
+    document.getElementById('charCount').textContent='0';
+    selectedImages=[]; renderImgPreviews();
+    document.getElementById('pollBuilder').classList.remove('open');
+    document.getElementById('pollOptionsWrap').innerHTML='';
+    pollOptionCount=0; isQuizMode=false;
+    document.getElementById('quizSwitch').classList.remove('on');
+    document.getElementById('quizHint').style.display='none';
+    updatePublishState();
+
+    await loadFeed();
+  }
+
+  let postsCache = [];
+
+  async function loadFeed(){
+    const { data: posts, error } = await sb.from('posts').select('*').order('created_at',{ascending:false}).limit(50);
+    if(error){ document.getElementById('feedList').innerHTML='<div class="emptyState">Ошибка загрузки</div>'; return; }
+    if(!posts || !posts.length){ document.getElementById('feedList').innerHTML='<div class="emptyState">Пока нет постов. Будь первым!</div>'; return; }
+
+    const userIds = [...new Set(posts.map(p=>p.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id,username,display_name,avatar_url,subscription_until').in('id', userIds);
+    const profileMap = {};
+    (profiles||[]).forEach(p=>profileMap[p.id]=p);
+
+    const postIds = posts.map(p=>p.id);
+    const { data: likes } = await sb.from('post_likes').select('post_id,user_id').in('post_id', postIds);
+    const { data: views } = await sb.from('post_views').select('post_id').in('post_id', postIds);
+    const { data: comments } = await sb.from('post_comments').select('*').in('post_id', postIds).order('created_at',{ascending:true});
+    const { data: votes } = await sb.from('poll_votes').select('*').in('post_id', postIds);
+
+    const likesByPost = {}; (likes||[]).forEach(l=>{ (likesByPost[l.post_id]=likesByPost[l.post_id]||[]).push(l.user_id); });
+    const viewsByPost = {}; (views||[]).forEach(v=>{ viewsByPost[v.post_id]=(viewsByPost[v.post_id]||0)+1; });
+    const commentsByPost = {}; (comments||[]).forEach(c=>{ (commentsByPost[c.post_id]=commentsByPost[c.post_id]||[]).push(c); });
+    const votesByPost = {}; (votes||[]).forEach(v=>{ (votesByPost[v.post_id]=votesByPost[v.post_id]||[]).push(v); });
+
+    postsCache = posts.map(p=>({
+      ...p,
+      author: profileMap[p.user_id] || {username:'unknown', display_name:'Пользователь'},
+      likeUserIds: likesByPost[p.id]||[],
+      viewCount: viewsByPost[p.id]||0,
+      comments: commentsByPost[p.id]||[],
+      votes: votesByPost[p.id]||[]
+    }));
+
+    renderFeed();
+    registerViews(postIds);
+  }
+
+  async function registerViews(postIds){
+    for(const pid of postIds){
+      if(viewedPosts.has(pid)) continue;
+      viewedPosts.add(pid);
+      sb.from('post_views').insert({post_id:pid, user_id:me.id}).then(()=>{}).catch(()=>{});
+    }
+  }
+
+  function renderFeed(){
+    const container = document.getElementById('feedList');
+    container.innerHTML = postsCache.map(p=>renderPost(p)).join('');
+  }
+
+  function renderPost(p){
+    const a = p.author;
+    const avatarContent = a.avatar_url ? `<img src="${a.avatar_url}">` : (a.display_name||a.username||'?')[0].toUpperCase();
+    const iLiked = p.likeUserIds.includes(me.id);
+    const myVote = p.votes.find(v=>v.user_id===me.id);
+
+    let imagesHtml='';
+    const imgs = [p.image_url_1, p.image_url_2].filter(Boolean);
+    if(imgs.length){
+      imagesHtml = `<div class="postImages ${imgs.length===2?'two':''}">${imgs.map(u=>`<img src="${u}" onclick="window.open('${u}','_blank')">`).join('')}</div>`;
+    }
+
+    let pollHtml='';
+    if(p.has_poll){
+      const opts = p.poll_options||[];
+      const totalVotes = p.votes.length;
+      const voted = !!myVote;
+      pollHtml = `<div class="pollBox"><div class="pollQ">${escHtml(p.poll_question)}</div>` +
+        opts.map(o=>{
+          const optVotes = p.votes.filter(v=>v.option_id===o.id).length;
+          const pct = totalVotes ? Math.round(optVotes/totalVotes*100) : 0;
+          let cls='pollOpt'+(voted?' voted':'');
+          if(voted && p.poll_is_quiz){
+            if(o.id===p.poll_correct_option) cls+=' correct';
+            else if(myVote && myVote.option_id===o.id) cls+=' wrong';
+          }
+          const showPct = voted;
+          return `<div class="${cls}" ${voted?'':`onclick="votePoll(${p.id},'${o.id}',${p.poll_is_quiz},'${p.poll_correct_option||''}')"`}>
+            ${showPct?`<div class="fill" style="width:${pct}%;"></div>`:''}
+            <div class="txt"><span>${escHtml(o.text)}</span>${showPct?`<span>${pct}%</span>`:''}</div>
+          </div>`;
+        }).join('') +
+        `<div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${totalVotes} голос${totalVotes===1?'':totalVotes>=2&&totalVotes<=4?'а':'ов'}</div></div>`;
+    }
+
+    const commentsHtml = p.comments.map(c=>`
+      <div class="commentRow">
+        <span class="commentAuthor">${escHtml(c.author_name||'')}</span>
+        ${c.reply_to_username?`<span class="commentReplyTo">@${escHtml(c.reply_to_username)}</span>`:''}
+        &nbsp;${escHtml(c.content)}
+        <div><button class="commentReplyBtn" onclick="startReply(${p.id},'${(c.author_username||'').replace(/'/g,"")}')">Ответить</button></div>
+      </div>`).join('');
+
+    return `
+    <div class="post" data-post-id="${p.id}">
+      <div class="postHead">
+        <div class="postAv">${avatarContent}</div>
+        <div>
+          <div class="postName">${escHtml(a.display_name||a.username)} ${badgesHtml(a.username, a.subscription_until)}</div>
+          <div class="postTime">${timeAgo(p.created_at)}</div>
+        </div>
+        ${p.user_id===me.id?`<button class="postDelBtn" onclick="deletePost(${p.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>`:''}
+      </div>
+      ${p.content?`<div class="postText">${escHtml(p.content)}</div>`:''}
+      ${imagesHtml}
+      ${pollHtml}
+      <div class="postActions">
+        <button class="actBtn ${iLiked?'liked':''}" onclick="toggleLike(${p.id})">
+          <svg viewBox="0 0 24 24" fill="${iLiked?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg>
+          <span class="cnt">${p.likeUserIds.length||''}</span>
+        </button>
+        <button class="actBtn" onclick="toggleComments(${p.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-1.2 4.3L21 21l-5.5-1.1a8.4 8.4 0 1 1 5.5-8.4z"/></svg>
+          <span class="cnt">${p.comments.length||''}</span>
+        </button>
+        <button class="actBtn" style="pointer-events:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="cnt">${p.viewCount||''}</span>
+        </button>
+      </div>
+      <div class="commentsBox" id="comments-${p.id}">
+        ${commentsHtml}
+        <div class="replyingHint" id="replyHint-${p.id}" style="display:none;"></div>
+        <div class="commentInputRow">
+          <input type="text" id="commentInput-${p.id}" placeholder="Написать комментарий..." maxlength="200">
+          <button onclick="sendComment(${p.id})">➤</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  window.toggleComments = function(postId){
+    const box = document.getElementById('comments-'+postId);
+    box.classList.toggle('open');
+  };
+
+  window.startReply = function(postId, username){
+    if(!username) return;
+    const hint = document.getElementById('replyHint-'+postId);
+    hint.style.display='block';
+    hint.innerHTML = `Ответ пользователю @${escHtml(username)} <button style="background:none;border:none;color:var(--muted);cursor:pointer;" onclick="cancelReply(${postId})">✕</button>`;
+    hint.dataset.replyTo = username;
+    document.getElementById('commentInput-'+postId).focus();
+  };
+  window.cancelReply = function(postId){
+    const hint = document.getElementById('replyHint-'+postId);
+    hint.style.display='none';
+    hint.dataset.replyTo='';
+  };
+
+  window.sendComment = async function(postId){
+    const input = document.getElementById('commentInput-'+postId);
+    const text = input.value.trim();
+    if(!text) return;
+    const hint = document.getElementById('replyHint-'+postId);
+    const replyTo = hint.dataset.replyTo || null;
+    const { error } = await sb.from('post_comments').insert({
+      post_id: postId, user_id: me.id, content: text, reply_to_username: replyTo,
+      author_name: me.display_name, author_username: me.username
+    });
+    if(error){ alert('Ошибка: '+error.message); return; }
+    input.value='';
+    cancelReply(postId);
+    await loadFeed();
+    document.getElementById('comments-'+postId).classList.add('open');
+  };
+
+  window.toggleLike = async function(postId){
+    const post = postsCache.find(p=>p.id===postId);
+    const liked = post.likeUserIds.includes(me.id);
+    if(liked){
+      await sb.from('post_likes').delete().eq('post_id',postId).eq('user_id',me.id);
+    }else{
+      await sb.from('post_likes').insert({post_id:postId, user_id:me.id});
+    }
+    await loadFeed();
+  };
+
+  window.deletePost = async function(postId){
+    if(!confirm('Удалить пост?')) return;
+    await sb.from('posts').delete().eq('id',postId).eq('user_id',me.id);
+    await loadFeed();
+  };
+
+  window.votePoll = async function(postId, optionId, isQuiz, correctId){
+    const { error } = await sb.from('poll_votes').insert({post_id:postId, user_id:me.id, option_id:optionId});
+    if(error){ return; }
+    if(isQuiz && optionId===correctId) fireConfetti();
+    await loadFeed();
+  };
+
+  function fireConfetti(){
+    const colors=['#22c55e','#4ade80','#86efac'];
+    for(let i=0;i<40;i++){
+      const el = document.createElement('div');
+      el.className='confettiPiece';
+      el.style.left = Math.random()*100+'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.transform = `rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(el);
+      const duration = 1200+Math.random()*800;
+      el.animate([
+        {transform:`translateY(0) rotate(0deg)`, opacity:1},
+        {transform:`translateY(100vh) rotate(${360+Math.random()*360}deg)`, opacity:0}
+      ], {duration, easing:'ease-in'});
+      setTimeout(()=>el.remove(), duration);
+    }
+  }
+
+  async function init(){
+    const { data: { user } } = await sb.auth.getUser();
+    if(!user){ window.location.href='index.html'; return; }
+    const { data: profile } = await sb.from('profiles').select('*').eq('id',user.id).single();
+    if(!profile){ window.location.href='index.html'; return; }
+
+    const isSubActive = profile.subscription_until && new Date(profile.subscription_until).getTime()>Date.now();
+    const isOwner = profile.username && profile.username.toLowerCase()==='nikk';
+    if(!isSubActive && !isOwner){
+      window.location.href='vchat-menu.html';
+      return;
+    }
+
+    me = { id: user.id, username: profile.username, display_name: profile.display_name||profile.username };
+    let isDark=false;
+    try{ isDark = localStorage.getItem('vchat_theme')==='dark'; }catch(e){}
+    if(isDark) document.getElementById('app').setAttribute('data-theme','dark');
+    await loadFeed();
+  }
+
+  init();
+</script>
+</body>
+</html>
