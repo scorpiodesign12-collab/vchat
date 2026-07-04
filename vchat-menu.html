@@ -756,8 +756,7 @@ function initFeedTab(){
   let locked=document.getElementById('feedLocked');
   let icon=document.getElementById('feedLockIcon');
   if(!locked)return;
-  let isOwner = vchatUser && vchatUser.username && vchatUser.username.toLowerCase()==='nikk';
-  let mySub = vchatUser ? (isSubActive(vchatUser.username) || isOwner) : false;
+  let mySub = vchatUser ? isSubActive(vchatUser.username) : false;
   if(mySub){
     window.location.href='lenta.html';
   }else{

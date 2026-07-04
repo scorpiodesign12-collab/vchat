@@ -611,8 +611,7 @@
     if(!profile){ window.location.href='index.html'; return; }
 
     const isSubActive = profile.subscription_until && new Date(profile.subscription_until).getTime()>Date.now();
-    const isOwner = profile.username && profile.username.toLowerCase()==='nikk';
-    if(!isSubActive && !isOwner){
+    if(!isSubActive){
       window.location.href='vchat-menu.html';
       return;
     }
