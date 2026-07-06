@@ -239,6 +239,62 @@ body{display:flex;}
 .profileCardCopied{font-size:11.5px;color:#2e9e5b;margin-top:9px;height:14px;opacity:0;transition:opacity .2s;}
 .profileCardCopied.show{opacity:1;}
 .profileCardBio{margin-top:14px;padding:12px 13px;background:var(--card);border-radius:14px;font-size:13.5px;line-height:1.5;color:var(--fg);white-space:pre-line;width:100%;text-align:left;}
+
+/* ---------- звонок (встроенный экран, не отдельная страница) ---------- */
+#callScreen{display:none;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;z-index:500;overflow:hidden;background:var(--bg);flex-direction:column;align-items:center;justify-content:space-between;padding:60px 28px 50px;text-align:center;}
+.topInfo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:30px;}
+.callStatus{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:.02em;}
+.callStatus.connected{color:#34c759;}
+.pingRow{display:none;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.pingDot{width:7px;height:7px;border-radius:50%;background:#34c759;flex-shrink:0;}
+.pingDot.bad{background:#ff9f0a;}
+.pingDot.worse{background:#ff3b30;}
+.minimizeBtn{position:absolute;top:18px;left:18px;width:38px;height:38px;border-radius:50%;border:none;background:var(--card);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:30;}
+.minimizeBtn svg{width:18px;height:18px;}
+.minimizeBtn:active{transform:scale(.92);}
+.miniWidget{display:none;position:fixed;right:16px;bottom:24px;left:auto;top:auto;z-index:600;align-items:center;gap:10px;background:var(--fg);color:var(--bg);border-radius:30px;padding:8px 10px 8px 16px;box-shadow:0 8px 24px rgba(0,0,0,.28);cursor:grab;touch-action:none;user-select:none;}
+.miniWidget:active{cursor:grabbing;}
+.miniInfo{display:flex;flex-direction:column;line-height:1.25;margin-right:2px;}
+.miniName{font-size:12.5px;font-weight:700;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.miniTimer{font-size:11.5px;opacity:.7;font-variant-numeric:tabular-nums;}
+.miniBtn{width:36px;height:36px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:rgba(255,255,255,.15);color:var(--bg);}
+[data-theme="dark"] .miniBtn{background:rgba(255,255,255,.12);}
+.miniBtn svg{width:16px;height:16px;}
+.miniBtn.on{background:var(--bg);color:var(--fg);}
+.miniBtn.end{background:#ff3b30;color:#fff;}
+.vcAvatarWrap{width:128px;height:128px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:700;color:#fff;margin:18px 0 6px;box-shadow:0 8px 30px rgba(0,0,0,.18);position:relative;}
+.vcAvatarWrap.ringing{animation:vcPulse 1.6s ease-in-out infinite;}
+.micBadge{position:absolute;right:2px;bottom:2px;width:34px;height:34px;border-radius:50%;background:#ff3b30;display:none;align-items:center;justify-content:center;border:3px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.micBadge.show{display:flex;}
+.micBadge svg{width:17px;height:17px;color:#fff;}
+@keyframes vcPulse{
+  0%{box-shadow:0 0 0 0 rgba(44,126,255,.35);}
+  70%{box-shadow:0 0 0 22px rgba(44,126,255,0);}
+  100%{box-shadow:0 0 0 0 rgba(44,126,255,0);}
+}
+.callName{font-size:24px;font-weight:700;margin-top:8px;}
+.callTimer{font-size:15px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums;}
+.controls{display:flex;align-items:center;justify-content:center;gap:28px;width:100%;max-width:380px;}
+.cbtn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;}
+.cbtn:active{transform:scale(.92);}
+.cbtn svg{width:26px;height:26px;}
+.cbtn.decline{background:#ff3b30;color:#fff;}
+.cbtn.accept{background:#34c759;color:#fff;}
+.cbtn.mute{background:var(--card);color:var(--fg);}
+.cbtn.mute.on{background:var(--fg);color:var(--bg);}
+.cbtn.speaker{background:var(--card);color:var(--fg);}
+.cbtn.speaker.on{background:var(--fg);color:var(--bg);}
+.incomingRow{display:flex;gap:50px;align-items:center;}
+.incomingLabel{font-size:12px;color:var(--muted);margin-top:8px;font-weight:600;}
+.btnCol{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.cbtn.decline{box-shadow:0 6px 18px rgba(255,59,48,.35);}
+.cbtn.accept{box-shadow:0 6px 18px rgba(52,199,89,.35);}
+.cbtn.mute,.cbtn.speaker{border:1px solid var(--line);}
+.outgoingLabel{font-size:11px;color:var(--muted);margin-top:8px;font-weight:600;}
+.micErrBanner{position:fixed;left:16px;right:16px;top:18px;background:#3a1414;color:#ffd7d2;border:1px solid #5c1f1f;border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.5;z-index:520;display:none;}
+.micErrBanner.show{display:block;}
+.micErrBanner b{display:block;margin-bottom:4px;font-size:13.5px;}
+.micErrBanner button{margin-top:10px;background:#ff3b30;color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;}
 @media(max-width:859px){
   .profileCard{top:auto;left:0;right:0;bottom:0;transform:translateY(100%);width:100%;max-width:none;border-radius:24px 24px 0 0;padding:22px 22px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(0,0,0,.28);}
   .profileCard.show{transform:translateY(0);}
@@ -654,6 +710,82 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   <div class="profileCardCopied" id="profileCardCopied">Скопировано</div>
   <div class="profileCardBio" id="profileCardBio" style="display:none;"></div>
 </div>
+
+<!-- ===== встроенный экран звонка ===== -->
+<div id="callScreen">
+  <button class="minimizeBtn" id="minimizeBtn" onclick="vcMinimizeCall()" title="Свернуть">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="topInfo">
+    <div class="pingRow" id="pingRow"><span class="pingDot" id="pingDot"></span><span id="pingValue">Пинг: — мс</span></div>
+    <div class="callStatus" id="callStatus">Вызов...</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;">
+    <div class="vcAvatarWrap" id="vcAvatarWrap"><span id="vcAvatarLetter">?</span>
+      <div class="micBadge" id="micBadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2M19 12v0"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+    </div>
+    <div class="callName" id="callName">—</div>
+    <div class="callTimer" id="callTimer" style="display:none;">00:00</div>
+  </div>
+
+  <div class="controls" id="controlsOutgoing" style="display:none;">
+    <div class="btnCol">
+      <button class="cbtn mute" id="muteBtn" onclick="vcToggleMute()" title="Микрофон">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      </button>
+      <span class="outgoingLabel" id="muteLabel">Микрофон</span>
+    </div>
+    <div class="btnCol">
+      <button class="cbtn decline" onclick="vcEndCall()" title="Завершить">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+      </button>
+      <span class="outgoingLabel">Завершить</span>
+    </div>
+    <div class="btnCol">
+      <button class="cbtn speaker" id="speakerBtn" onclick="vcToggleSpeaker()" title="Громкая связь">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+      <span class="outgoingLabel" id="speakerLabel">Динамик</span>
+    </div>
+  </div>
+
+  <div class="incomingRow" id="controlsIncoming" style="display:none;">
+    <div class="btnCol">
+      <button class="cbtn decline" onclick="vcDeclineCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+      </button>
+      <span class="incomingLabel">Отклонить</span>
+    </div>
+    <div class="btnCol">
+      <button class="cbtn accept" onclick="vcAcceptCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z"/></svg>
+      </button>
+      <span class="incomingLabel">Принять</span>
+    </div>
+  </div>
+
+  <div class="micErrBanner" id="micErrBanner">
+    <b>Нет доступа к микрофону</b>
+    <span id="micErrText">Разрешите доступ в настройках сайта: нажмите на значок замка (🔒) рядом с адресом сайта → Микрофон → Разрешить, потом обновите страницу и перезвоните.</span>
+    <br><button onclick="vcRetryMic()">Запросить доступ снова</button>
+  </div>
+</div>
+<audio id="remoteAudio" autoplay playsinline></audio>
+
+<div class="miniWidget" id="miniWidget">
+  <div class="miniInfo">
+    <span class="miniName" id="miniName">—</span>
+    <span class="miniTimer" id="miniTimer">00:00</span>
+  </div>
+  <button class="miniBtn" id="miniMuteBtn" onclick="event.stopPropagation(); vcToggleMute();" title="Микрофон">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+  </button>
+  <button class="miniBtn end" onclick="event.stopPropagation(); vcEndCall();" title="Завершить">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+  </button>
+</div>
+<!-- ===== /экран звонка ===== -->
 
 </div>
 <script>
@@ -1701,7 +1833,7 @@ function vchatListenForCalls(){
   sb.channel('call-'+vchatUser.id)
     .on('broadcast',{event:'incoming_call'},(msg)=>{
       const p=msg.payload;
-      window.location.href='vchat-calls.html?mode=incoming&uid='+encodeURIComponent(p.from)+'&name='+encodeURIComponent(p.fromName)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name)+'&callid='+encodeURIComponent(p.callId);
+      openCallScreen('incoming',p.from,p.fromName,vchatUser.id,vchatUser.display_name,p.callId);
     }).subscribe();
 }
 async function vchatHeartbeat(){
@@ -1940,8 +2072,520 @@ function vchatPushIncoming(name,m){
 
 /* ---------- звонок ---------- */
 async function vchatStartCall(username,uid,dispname){
-  window.location.href='vchat-calls.html?mode=outgoing&uid='+encodeURIComponent(uid)+'&name='+encodeURIComponent(dispname)+'&myid='+encodeURIComponent(vchatUser.id)+'&myname='+encodeURIComponent(vchatUser.display_name);
+  openCallScreen('outgoing',uid,dispname,vchatUser.id,vchatUser.display_name);
 }
+
+/* ================= встроенный экран звонка (WebRTC) ================= */
+const VC_RTC_CONFIG={
+  iceTransportPolicy:'all',
+  iceServers:[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun.relay.metered.ca:80'},
+  {urls:'turn:global.relay.metered.ca:80', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
+  {urls:'turn:global.relay.metered.ca:80?transport=tcp', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
+  {urls:'turn:global.relay.metered.ca:443', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'},
+  {urls:'turns:global.relay.metered.ca:443?transport=tcp', username:'7968711527e898873cea9644', credential:'yBFD3m0sWvNyATLa'}
+]};
+const VC_COLORS=['#FF6B6B','#4ECDC4','#556FB5','#FFB562','#9D7BFF','#2C7EFF','#34C759','#FF9F0A'];
+function vcColorFor(str){
+  let h=0; for(let i=0;i<str.length;i++) h=str.charCodeAt(i)+((h<<5)-h);
+  return VC_COLORS[Math.abs(h)%VC_COLORS.length];
+}
+function vcLog(...a){ try{ console.log('[vchat-call]',...a); }catch(e){} }
+
+let vcActive=false;
+let vcMode=null, vcOtherUid=null, vcOtherName='', vcMyId=null, vcMyName='', vcCallId=null;
+let vcCallTimerInterval=null, vcCallSeconds=0, vcEnded=false;
+let vcMuted=false, vcSpeakerOn=false;
+let vcPc=null, vcLocalStream=null, vcRemoteStream=null, vcDisconnectedTimer=null;
+let vcPendingIce=[];
+let vcLogged=false;
+let vcChannelReady=false, vcSendQueue=[];
+let vcSessionChannel=null, vcOutCh=null;
+let vcMediaConnected=false, vcConnectWatchdog=null, vcStatsInterval=null;
+let vcIsMinimized=false, vcMissedTimer=null;
+
+function vcUnlockAudioPlayback(){
+  const audioEl=document.getElementById('remoteAudio');
+  if(audioEl) audioEl.play().catch(()=>{});
+}
+document.addEventListener('click',vcUnlockAudioPlayback,{once:false});
+
+function vcShowMicError(name){
+  const banner=document.getElementById('micErrBanner');
+  const txt=document.getElementById('micErrText');
+  const titleEl=banner.querySelector('b');
+  if(name==='vpn'){
+    titleEl.textContent='Не получается соединиться';
+    txt.textContent='Связь не устанавливается дольше 8 секунд. Возможно перегружены сервера-посредники (TURN) или слабый интернет. Попробуйте перезвонить ещё раз, а если не поможет — проверьте интернет-соединение на обоих устройствах.';
+  }else if(name==='NotFoundError'){
+    titleEl.textContent='Нет доступа к микрофону';
+    txt.textContent='Микрофон не найден на этом устройстве. Проверьте, что он подключён и не занят другим приложением.';
+  }else{
+    titleEl.textContent='Нет доступа к микрофону';
+    txt.textContent='Микрофон заблокирован. Сначала проверьте настройки САЙТА (значок 🔒/настроек рядом с адресом → Микрофон → Разрешить). Если пункта "Микрофон" там нет вообще — доступ закрыт на уровне приложения: зайдите в настройки телефона → Приложения → Chrome (или ваш браузер) → Разрешения → Микрофон → Разрешить. После этого обновите страницу и позвоните заново.';
+  }
+  banner.classList.add('show');
+}
+function vcHideMicError(){
+  const b=document.getElementById('micErrBanner');
+  if(b) b.classList.remove('show');
+}
+async function vcRetryMic(){
+  vcLocalStream=null;
+  await vcGetMic();
+  if(vcLocalStream){
+    vcHideMicError();
+    showToast('Микрофон подключён');
+    if(vcPc){
+      vcLocalStream.getTracks().forEach(t=>vcPc.addTrack(t,vcLocalStream));
+      try{
+        const offer=await vcPc.createOffer();
+        await vcPc.setLocalDescription(offer);
+        vcSafeSend('webrtc-offer',{sdp:vcPc.localDescription});
+      }catch(e){ vcLog('renegotiate after mic retry failed', e.message); }
+    }
+  }
+}
+async function vcGetMic(){
+  if(vcLocalStream) return vcLocalStream;
+  try{
+    vcLocalStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    vcLog('mic OK, tracks:', vcLocalStream.getAudioTracks().map(t=>t.label||'(no label)'));
+    vcHideMicError();
+  }catch(e){
+    vcLog('mic ERROR', e.name, e.message);
+    showToast('Нет доступа к микрофону: '+e.name);
+    vcShowMicError(e.name);
+    vcLocalStream=null;
+  }
+  return vcLocalStream;
+}
+
+function vcCreatePeer(){
+  if(vcPc) return vcPc;
+  vcPc=new RTCPeerConnection(VC_RTC_CONFIG);
+  vcRemoteStream=new MediaStream();
+  document.getElementById('remoteAudio').srcObject=vcRemoteStream;
+  vcPc.ontrack=(e)=>{
+    vcLog('ontrack fired, kind:', e.track.kind, 'readyState:', e.track.readyState);
+    e.streams[0].getTracks().forEach(t=>vcRemoteStream.addTrack(t));
+    const audioEl=document.getElementById('remoteAudio');
+    audioEl.srcObject=vcRemoteStream;
+    audioEl.play().then(()=>vcLog('audio.play() resolved')).catch((err)=>{ vcLog('audio.play() blocked:',err.name); showToast('Нажмите экран, чтобы включить звук'); });
+  };
+  vcPc.oniceconnectionstatechange=()=>{
+    if(!vcPc)return;
+    vcLog('iceConnectionState ->', vcPc.iceConnectionState);
+    if(vcPc.iceConnectionState==='failed'){
+      showToast('Проблема со связью, пробуем переподключиться...');
+      try{ vcPc.restartIce && vcPc.restartIce(); }catch(e){}
+    }
+    if(vcPc.iceConnectionState==='connected'||vcPc.iceConnectionState==='completed'){
+      vcMediaConnected=true;
+      clearTimeout(vcConnectWatchdog);
+      if(vcDisconnectedTimer){ clearTimeout(vcDisconnectedTimer); vcDisconnectedTimer=null; }
+      vcHideMicError();
+      vcShowRealConnectedStatus();
+      showToast('Соединение установлено');
+    }
+    if(vcPc.iceConnectionState==='disconnected'){
+      vcMediaConnected=false;
+      if(vcDisconnectedTimer) clearTimeout(vcDisconnectedTimer);
+      vcDisconnectedTimer=setTimeout(()=>{
+        if(vcPc && (vcPc.iceConnectionState==='disconnected'||vcPc.iceConnectionState==='failed')){
+          vcLog('still disconnected after 3s, forcing ice restart');
+          showToast('Сеть изменилась, переподключаемся...');
+          try{ vcPc.restartIce && vcPc.restartIce(); }catch(e){}
+        }
+      },3000);
+    }
+  };
+  vcPc.onconnectionstatechange=()=>{ if(vcPc) vcLog('connectionState ->', vcPc.connectionState); };
+  vcPc.onicegatheringstatechange=()=>{ if(vcPc) vcLog('iceGatheringState ->', vcPc.iceGatheringState); };
+  vcPc.onicecandidate=(e)=>{
+    if(e.candidate){
+      vcLog('local candidate type:', e.candidate.type, e.candidate.protocol);
+      vcSafeSend('webrtc-ice',{candidate:e.candidate});
+    }else{
+      vcLog('ICE gathering complete');
+    }
+  };
+  if(vcLocalStream){
+    vcLocalStream.getTracks().forEach(t=>vcPc.addTrack(t,vcLocalStream));
+    vcLog('local track(s) added to peer connection');
+  }else{
+    vcLog('WARNING: creating peer without local stream — no microphone track will be sent!');
+  }
+  if(vcMode==='outgoing'){
+    vcPc.onnegotiationneeded=async()=>{
+      if(!vcPc) return;
+      try{
+        const offer=await vcPc.createOffer({iceRestart:true});
+        await vcPc.setLocalDescription(offer);
+        vcSafeSend('webrtc-offer',{sdp:vcPc.localDescription});
+        vcLog('renegotiation offer sent (ice restart)');
+      }catch(e){ vcLog('renegotiation failed', e.message); }
+    };
+  }
+  return vcPc;
+}
+
+async function vcStartAsCaller(){
+  vcLog('startAsCaller: requesting mic + creating offer');
+  await vcGetMic();
+  vcCreatePeer();
+  const offer=await vcPc.createOffer();
+  await vcPc.setLocalDescription(offer);
+  vcLog('offer created and sent');
+  vcSafeSend('webrtc-offer',{sdp:vcPc.localDescription});
+  vcSafeSend('mic-state',{muted:vcMuted});
+}
+async function vcHandleOffer(sdp){
+  vcLog('handleOffer: got offer, requesting mic + creating answer');
+  await vcGetMic();
+  vcCreatePeer();
+  await vcPc.setRemoteDescription(new RTCSessionDescription(sdp));
+  for(const c of vcPendingIce){ try{ await vcPc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){} }
+  vcPendingIce=[];
+  const answer=await vcPc.createAnswer();
+  await vcPc.setLocalDescription(answer);
+  vcLog('answer created and sent');
+  vcSafeSend('webrtc-answer',{sdp:vcPc.localDescription});
+  vcSafeSend('mic-state',{muted:vcMuted});
+}
+async function vcHandleAnswer(sdp){
+  if(!vcPc)return;
+  vcLog('handleAnswer: got answer');
+  await vcPc.setRemoteDescription(new RTCSessionDescription(sdp));
+  for(const c of vcPendingIce){ try{ await vcPc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){} }
+  vcPendingIce=[];
+}
+async function vcHandleIce(candidate){
+  let ctype='?'; try{ ctype=(candidate.candidate||'').match(/typ (\w+)/); ctype=ctype?ctype[1]:'?'; }catch(e){}
+  if(vcPc && vcPc.remoteDescription && vcPc.remoteDescription.type){
+    try{ await vcPc.addIceCandidate(new RTCIceCandidate(candidate)); vcLog('remote candidate added, type:', ctype); }catch(e){ vcLog('remote candidate ERROR', e.message); }
+  }else{
+    vcPendingIce.push(candidate);
+    vcLog('remote candidate queued (no remote description yet), type:', ctype);
+  }
+}
+function vcStopMedia(){
+  clearInterval(vcStatsInterval);
+  if(vcLocalStream){ vcLocalStream.getTracks().forEach(t=>t.stop()); vcLocalStream=null; }
+  if(vcPc){ vcPc.close(); vcPc=null; }
+}
+function vcFmtTime(s){
+  const m=Math.floor(s/60).toString().padStart(2,'0');
+  const sec=(s%60).toString().padStart(2,'0');
+  return m+':'+sec;
+}
+function vcStartTimer(){
+  document.getElementById('callTimer').style.display='block';
+  vcCallTimerInterval=setInterval(()=>{
+    vcCallSeconds++;
+    const t=vcFmtTime(vcCallSeconds);
+    document.getElementById('callTimer').textContent=t;
+    const mt=document.getElementById('miniTimer');
+    if(mt) mt.textContent=t;
+  },1000);
+}
+function vcSetConnected(){
+  document.getElementById('vcAvatarWrap').classList.remove('ringing');
+  const st=document.getElementById('callStatus');
+  st.textContent='Подключение...';
+  st.classList.remove('connected');
+  vcStartTimer();
+  clearTimeout(vcConnectWatchdog);
+  vcConnectWatchdog=setTimeout(()=>{
+    if(!vcMediaConnected && !vcEnded){
+      vcLog('connect watchdog: no media connection after 8s');
+      vcShowMicError('vpn');
+    }
+  },8000);
+  clearInterval(vcStatsInterval);
+  vcStatsInterval=setInterval(vcDiagStats,3000);
+}
+async function vcDiagStats(){
+  if(!vcPc || vcEnded) { clearInterval(vcStatsInterval); return; }
+  try{
+    const stats=await vcPc.getStats();
+    let pair=null, candidates={};
+    stats.forEach(r=>{
+      if(r.type==='candidate-pair' && r.state==='succeeded') pair=r;
+      if(r.type==='local-candidate'||r.type==='remote-candidate') candidates[r.id]=r;
+    });
+    if(pair){
+      if(typeof pair.currentRoundTripTime==='number'){
+        vcUpdatePingDisplay(pair.currentRoundTripTime*1000);
+      }
+    }
+  }catch(e){ vcLog('getStats error', e.message); }
+}
+function vcShowRealConnectedStatus(){
+  const st=document.getElementById('callStatus');
+  st.textContent='Соединено';
+  st.classList.add('connected');
+  document.getElementById('pingRow').style.display='flex';
+}
+function vcUpdatePingDisplay(ms){
+  const valEl=document.getElementById('pingValue');
+  const dot=document.getElementById('pingDot');
+  if(!valEl) return;
+  if(ms==null || isNaN(ms)){ valEl.textContent='Пинг: — мс'; return; }
+  const rounded=Math.round(ms);
+  valEl.textContent='Пинг: '+rounded+' мс';
+  dot.classList.remove('bad','worse');
+  if(rounded>300) dot.classList.add('worse');
+  else if(rounded>120) dot.classList.add('bad');
+}
+function vcSafeSend(event,payload){
+  if(vcChannelReady && vcSessionChannel){
+    vcSessionChannel.send({type:'broadcast',event:event,payload:payload||{}});
+  }else{
+    vcSendQueue.push({event:event,payload:payload||{}});
+  }
+}
+function vcSetupSessionChannel(){
+  vcSessionChannel = sb.channel('callsession-'+vcCallId, { config:{ broadcast:{ self:false, ack:true } } });
+  vcSessionChannel
+    .on('broadcast',{event:'accepted'},()=>{ if(vcMode==='outgoing'){ vcSetConnected(); vcStartAsCaller(); } })
+    .on('broadcast',{event:'declined'},()=>{ if(!vcEnded){ document.getElementById('callStatus').textContent='Отклонено'; vcLogCall('declined'); vcCloseSoon(); } })
+    .on('broadcast',{event:'hangup'},()=>{ if(!vcEnded){ document.getElementById('callStatus').textContent='Звонок завершён'; vcLogCall('ended'); vcCloseSoon(); } })
+    .on('broadcast',{event:'webrtc-offer'},(msg)=>{ vcHandleOffer(msg.payload.sdp); })
+    .on('broadcast',{event:'webrtc-answer'},(msg)=>{ vcHandleAnswer(msg.payload.sdp); })
+    .on('broadcast',{event:'webrtc-ice'},(msg)=>{ vcHandleIce(msg.payload.candidate); })
+    .on('broadcast',{event:'mic-state'},(msg)=>{ vcUpdateMicBadge(!!msg.payload.muted); })
+    .subscribe((status)=>{
+      vcLog('sessionChannel status:', status);
+      if(status==='SUBSCRIBED'){
+        vcChannelReady=true;
+        const q=vcSendQueue; vcSendQueue=[];
+        q.forEach(m=>vcSessionChannel.send({type:'broadcast',event:m.event,payload:m.payload}));
+      }
+    });
+}
+function vcUpdateMicBadge(otherMuted){
+  const b=document.getElementById('micBadge');
+  if(b) b.classList.toggle('show',otherMuted);
+}
+function vcCloseNow(){
+  document.getElementById('callScreen').style.display='none';
+  document.getElementById('miniWidget').style.display='none';
+  vcActive=false;
+  vcIsMinimized=false;
+  if(vcOutCh){ try{ vcOutCh.unsubscribe(); }catch(e){} vcOutCh=null; }
+  if(vcSessionChannel){ try{ vcSessionChannel.unsubscribe(); }catch(e){} vcSessionChannel=null; }
+  clearTimeout(vcMissedTimer);
+}
+function vcCloseSoon(){
+  vcEnded=true;
+  clearInterval(vcCallTimerInterval);
+  vcStopMedia();
+  setTimeout(vcCloseNow,1000);
+}
+async function vcLogCall(status){
+  if(vcLogged) return;
+  vcLogged=true;
+  if(vcMode!=='outgoing') return; // только инициатор звонка пишет запись в чат, чтобы не дублировать
+  try{
+    const {data}=await sb.from('messages').insert({
+      sender_id:vcMyId, receiver_id:vcOtherUid, type:'call',
+      content:JSON.stringify({duration:vcCallSeconds,status:status})
+    }).select().single();
+    // сразу подмешиваем запись в открытый чат, чтобы не ждать перезахода
+    if(data){
+      let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===vcOtherUid);
+      if(name){
+        const local=dbRowToLocal(data);
+        chats[name]=chats[name]||[];
+        chats[name].push(local);
+        chatMeta[name].last=previewForRow(data);
+        chatOrder=[name,...chatOrder.filter(n=>n!==name)];
+        renderChatRows();
+        if(curChat===name){ renderChat(); }
+      }
+    }
+  }catch(e){}
+}
+function vcChatReturnName(){
+  return Object.keys(chatMeta).find(n=>chatMeta[n].uid===vcOtherUid);
+}
+function openCallScreen(mode,otherUid,otherName,myId,myName,callId){
+  if(vcActive){
+    // уже есть активный звонок — новый входящий автоматически отклоняем, чтобы не ломать состояние
+    if(mode==='incoming' && callId){
+      try{
+        const tmpCh=sb.channel('callsession-'+callId,{config:{broadcast:{self:false}}});
+        tmpCh.subscribe((status)=>{
+          if(status==='SUBSCRIBED'){
+            tmpCh.send({type:'broadcast',event:'declined',payload:{}});
+            setTimeout(()=>{ try{tmpCh.unsubscribe();}catch(e){} },1000);
+          }
+        });
+      }catch(e){}
+    }
+    return;
+  }
+  vcActive=true;
+  vcMode=mode; vcOtherUid=otherUid; vcOtherName=otherName||'Пользователь'; vcMyId=myId; vcMyName=myName||'Я';
+  vcCallId=callId || (myId+'-'+Date.now());
+  vcEnded=false; vcLogged=false; vcCallSeconds=0; vcMuted=false; vcSpeakerOn=false;
+  vcPendingIce=[]; vcChannelReady=false; vcSendQueue=[]; vcIsMinimized=false;
+
+  document.getElementById('callName').textContent=vcOtherName;
+  const avatarWrap=document.getElementById('vcAvatarWrap');
+  document.getElementById('vcAvatarLetter').textContent=vcOtherName[0]?vcOtherName[0].toUpperCase():'?';
+  avatarWrap.style.background=vcColorFor(vcOtherName);
+  avatarWrap.classList.add('ringing');
+  document.getElementById('callTimer').style.display='none';
+  document.getElementById('callTimer').textContent='00:00';
+  document.getElementById('pingRow').style.display='none';
+  document.getElementById('callStatus').classList.remove('connected');
+  vcHideMicError();
+  document.getElementById('micBadge').classList.remove('show');
+  document.getElementById('muteBtn').classList.remove('on');
+  document.getElementById('miniMuteBtn').classList.remove('on');
+  document.getElementById('speakerBtn').classList.remove('on');
+  const lbl1=document.getElementById('muteLabel'); if(lbl1)lbl1.textContent='Микрофон';
+  const lbl2=document.getElementById('speakerLabel'); if(lbl2)lbl2.textContent='Динамик';
+
+  document.getElementById('controlsOutgoing').style.display='none';
+  document.getElementById('controlsIncoming').style.display='none';
+
+  vcSetupSessionChannel();
+
+  if(mode==='outgoing'){
+    document.getElementById('controlsOutgoing').style.display='flex';
+    document.getElementById('callStatus').textContent='Вызов...';
+    vcOutCh=sb.channel('call-'+otherUid);
+    vcOutCh.subscribe((status)=>{
+      if(status==='SUBSCRIBED'){
+        vcOutCh.send({type:'broadcast',event:'incoming_call',payload:{from:myId,fromName:myName,callId:vcCallId}});
+      }
+    });
+    vcMissedTimer=setTimeout(()=>{
+      if(!vcEnded && document.getElementById('callStatus').textContent==='Вызов...'){
+        document.getElementById('callStatus').textContent='Нет ответа';
+        showToast(vcOtherName+' не отвечает');
+        vcEnded=true;
+        vcLogCall('missed');
+        vcStopMedia();
+        setTimeout(vcCloseNow,1500);
+      }
+    },35000);
+  }else if(mode==='incoming'){
+    document.getElementById('controlsIncoming').style.display='flex';
+    document.getElementById('callStatus').textContent='Входящий звонок';
+  }
+
+  document.getElementById('miniWidget').style.display='none';
+  document.getElementById('callScreen').style.display='flex';
+}
+function vcAcceptCall(){
+  vcLog('acceptCall clicked');
+  document.getElementById('controlsIncoming').style.display='none';
+  document.getElementById('controlsOutgoing').style.display='flex';
+  vcSafeSend('accepted',{});
+  vcSetConnected();
+  vcGetMic().then(()=>vcCreatePeer());
+}
+function vcDeclineCall(){
+  vcSafeSend('declined',{});
+  document.getElementById('callStatus').textContent='Вы отклонили звонок';
+  vcEnded=true;
+  vcStopMedia();
+  setTimeout(vcCloseNow,700);
+}
+function vcEndCall(){
+  vcSafeSend('hangup',{});
+  vcLogCall('ended');
+  vcEnded=true;
+  clearInterval(vcCallTimerInterval);
+  vcStopMedia();
+  vcCloseNow();
+}
+function vcToggleMute(){
+  vcMuted=!vcMuted;
+  document.getElementById('muteBtn').classList.toggle('on',vcMuted);
+  document.getElementById('miniMuteBtn').classList.toggle('on',vcMuted);
+  let lbl=document.getElementById('muteLabel'); if(lbl)lbl.textContent=vcMuted?'Без звука':'Микрофон';
+  if(vcLocalStream){ vcLocalStream.getAudioTracks().forEach(t=>t.enabled=!vcMuted); }
+  vcSafeSend('mic-state',{muted:vcMuted});
+}
+function vcToggleSpeaker(){
+  vcSpeakerOn=!vcSpeakerOn;
+  document.getElementById('speakerBtn').classList.toggle('on',vcSpeakerOn);
+  let lbl=document.getElementById('speakerLabel'); if(lbl)lbl.textContent=vcSpeakerOn?'Динамик вкл':'Динамик';
+  const audioEl=document.getElementById('remoteAudio');
+  if(audioEl.setSinkId){
+    audioEl.setSinkId(vcSpeakerOn?'default':'').catch(()=>{});
+  }
+}
+function vcMinimizeCall(){
+  if(vcIsMinimized) return;
+  vcIsMinimized=true;
+  document.getElementById('callScreen').style.display='none';
+  document.getElementById('miniName').textContent=vcOtherName;
+  document.getElementById('miniTimer').textContent=document.getElementById('callTimer').textContent;
+  document.getElementById('miniMuteBtn').classList.toggle('on',vcMuted);
+  const w=document.getElementById('miniWidget');
+  w.style.display='flex';
+  w.style.left='auto'; w.style.top='auto'; w.style.right='16px'; w.style.bottom='24px';
+}
+function vcRestoreCall(){
+  if(!vcIsMinimized) return;
+  vcIsMinimized=false;
+  document.getElementById('miniWidget').style.display='none';
+  document.getElementById('callScreen').style.display='flex';
+}
+(function(){
+  const widget=document.getElementById('miniWidget');
+  let dragging=false, moved=false, startX=0, startY=0, startLeft=0, startTop=0;
+  function pt(e){ return e.touches && e.touches.length ? e.touches[0] : e; }
+  function down(e){
+    if(e.target.closest('.miniBtn')) return;
+    const p=pt(e);
+    const rect=widget.getBoundingClientRect();
+    dragging=true; moved=false;
+    startX=p.clientX; startY=p.clientY; startLeft=rect.left; startTop=rect.top;
+    widget.style.right='auto'; widget.style.bottom='auto';
+    widget.style.left=rect.left+'px'; widget.style.top=rect.top+'px';
+  }
+  function move(e){
+    if(!dragging) return;
+    const p=pt(e);
+    const dx=p.clientX-startX, dy=p.clientY-startY;
+    if(Math.abs(dx)>6||Math.abs(dy)>6) moved=true;
+    let nl=startLeft+dx, nt=startTop+dy;
+    nl=Math.max(6,Math.min(window.innerWidth-widget.offsetWidth-6,nl));
+    nt=Math.max(6,Math.min(window.innerHeight-widget.offsetHeight-6,nt));
+    widget.style.left=nl+'px'; widget.style.top=nt+'px';
+    if(e.cancelable) e.preventDefault();
+  }
+  function up(){
+    if(!dragging) return;
+    dragging=false;
+    if(!moved) vcRestoreCall();
+  }
+  widget.addEventListener('mousedown',down);
+  widget.addEventListener('touchstart',down,{passive:true});
+  window.addEventListener('mousemove',move);
+  window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',up);
+  window.addEventListener('touchend',up);
+})();
+window.addEventListener('beforeunload',()=>{
+  if(vcActive && !vcEnded){
+    try{ vcSessionChannel && vcSessionChannel.send({type:'broadcast',event:'hangup',payload:{}}); }catch(e){}
+  }
+});
+if(navigator.permissions && navigator.permissions.query){
+  navigator.permissions.query({name:'microphone'}).then(p=>{
+    if(p.state==='denied') vcLog('mic permission denied at load');
+  }).catch(()=>{});
+}
+/* ================= /экран звонка ================= */
 
 vchatInit();
 </script>
