@@ -900,7 +900,7 @@ async function onRingtoneFileSelected(e){
   const statusEl=document.getElementById('ringtoneStatus');
   statusEl.style.display='block'; statusEl.textContent='Загрузка...';
   try{
-    const path='ringtones/'+vchatUser.id+'.mp3';
+    const path=vchatUser.id+'/ringtone.mp3';
     const {error:upErr}=await sb.storage.from('chat-files').upload(path,file,{upsert:true,contentType:'audio/mpeg'});
     if(upErr){ statusEl.style.display='none'; showToast('Не удалось загрузить файл'); return; }
     const {data:pub}=sb.storage.from('chat-files').getPublicUrl(path);
