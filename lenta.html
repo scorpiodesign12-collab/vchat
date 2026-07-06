@@ -605,6 +605,10 @@
   });
 
   async function init(){
+    let isDark=false;
+    try{ isDark = localStorage.getItem('vchat_theme')==='dark'; }catch(e){}
+    if(isDark) document.documentElement.setAttribute('data-theme','dark');
+
     const { data: { user } } = await sb.auth.getUser();
     if(!user){ window.location.href='index.html'; return; }
     const { data: profile } = await sb.from('profiles').select('*').eq('id',user.id).single();
@@ -617,9 +621,6 @@
     }
 
     me = { id: user.id, username: profile.username, display_name: profile.display_name||profile.username };
-    let isDark=false;
-    try{ isDark = localStorage.getItem('vchat_theme')==='dark'; }catch(e){}
-    if(isDark) document.documentElement.setAttribute('data-theme','dark');
     await loadFeed();
   }
 
