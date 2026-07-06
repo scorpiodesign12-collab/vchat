@@ -562,8 +562,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="header"><span>Новости</span></div>
       <div class="pScroll" id="newsScroll">
         <div class="newsCatRow">
-          <button class="tbtn on" id="newsCatSport" onclick="setNewsCategory('sport')">🏆 Спорт</button>
-          <button class="tbtn" id="newsCatKind" onclick="setNewsCategory('kind')">💛 Добрые</button>
+          <button class="tbtn on" id="newsCatSport" onclick="setNewsCategory('sport')">Спорт</button>
+          <button class="tbtn" id="newsCatKind" onclick="setNewsCategory('kind')">Добрые</button>
         </div>
         <div class="newsList" id="newsList"></div>
         <div class="uEmpty" id="newsEmpty" style="display:none;">Пока нет новостей</div>
@@ -1011,6 +1011,11 @@ function newsExcerpt(text,len){
   text=(text||'').trim();
   return text.length>len?text.slice(0,len).trim()+'…':text;
 }
+function cleanNewsText(t){
+  if(!t)return '';
+  if(/only available in paid plans/i.test(t))return '';
+  return t;
+}
 function newsDateStr(iso){
   if(!iso)return '';
   let d=new Date(iso);
@@ -1029,7 +1034,7 @@ function renderNewsList(){
       ${p.image_url?`<img class="newsCardImg" src="${p.image_url}" loading="lazy" onerror="this.remove()">`:''}
       <div class="newsCardBody">
         <div class="newsCardTitle">${escHtml(p.title||'')}</div>
-        <div class="newsCardExcerpt">${escHtml(newsExcerpt(p.description||p.content||'',160))}</div>
+        <div class="newsCardExcerpt">${escHtml(newsExcerpt(cleanNewsText(p.description)||cleanNewsText(p.content)||'',160))}</div>
         <div class="newsCardMeta"><span>${escHtml(p.source_name||'Источник')} · ${newsDateStr(p.published_at)}</span><span class="newsCardMore">Читать далее</span></div>
       </div>
     </div>`).join('');
@@ -1042,7 +1047,8 @@ function openNewsPost(id){
   if(p.image_url){ img.src=p.image_url; img.style.display='block'; } else { img.style.display='none'; }
   document.getElementById('newsOvTitle').textContent=p.title||'';
   document.getElementById('newsOvMeta').textContent=(p.source_name||'Источник')+(p.published_at?' · '+newsDateStr(p.published_at):'');
-  document.getElementById('newsOvText').textContent=p.content||p.description||'';
+  let fullText=cleanNewsText(p.content)||cleanNewsText(p.description)||'';
+  document.getElementById('newsOvText').textContent=fullText||'Полный текст недоступен — откройте новость в источнике.';
   let src=document.getElementById('newsOvSource');
   if(p.source_url){ src.href=p.source_url; src.style.display='inline-block'; } else { src.style.display='none'; }
   document.getElementById('newsOverlay').classList.add('show');
