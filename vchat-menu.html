@@ -1331,8 +1331,9 @@ function openChat(name){
   pane.classList.add('open','chatActive');
   renderChat();
   updatePinnedBar();
+  try{ history.pushState({vchatChatOpen:true}, ''); }catch(e){}
 }
-function backToChats(){
+function backToChats(fromPopState){
   document.getElementById('chatDetailPane').classList.remove('open','chatActive');
   closeCwSearch();
   sendTypingStop();
@@ -1340,7 +1341,16 @@ function backToChats(){
   curChat='';
   let callBtn=document.getElementById('cwCallBtn');
   if(callBtn)callBtn.style.display='none';
+  if(!fromPopState){
+    try{ if(history.state&&history.state.vchatChatOpen) history.back(); }catch(e){}
+  }
 }
+window.addEventListener('popstate', function(e){
+  let pane=document.getElementById('chatDetailPane');
+  if(pane&&pane.classList.contains('open')){
+    backToChats(true);
+  }
+});
 
 /* ---------- render chat ---------- */
 function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
