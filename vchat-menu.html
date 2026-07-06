@@ -181,6 +181,9 @@ body{display:flex;}
 
 /* message wrapper / swipe / time */
 .msgWrap{position:relative;max-width:100%;display:flex;flex-direction:column;}
+.daySep{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12.5px;font-weight:600;}
+.daySep::before,.daySep::after{content:'';flex:1;height:1px;background:var(--line);}
+.daySep span{white-space:nowrap;}
 .msgWrap.in{align-items:flex-start;}
 .msgWrap.out{align-items:flex-end;}
 .msgWrap.pinned .msg{box-shadow:0 0 0 1.5px var(--accent) inset;}
@@ -1267,12 +1270,45 @@ function scrollChatToBottom(){
     });
   }
 })();
+function formatDaySeparator(iso){
+  let d=iso?new Date(iso):new Date();
+  let now=new Date();
+  let dKey=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+  let today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let yest=new Date(today); yest.setDate(yest.getDate()-1);
+  let dOnly=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  if(dOnly.getTime()===today.getTime())return 'Сегодня';
+  if(dOnly.getTime()===yest.getTime())return 'Вчера';
+  const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  let s=d.getDate()+' '+MONTHS[d.getMonth()];
+  if(d.getFullYear()!==now.getFullYear())s+=' '+d.getFullYear();
+  return s;
+}
+function dayKeyOf(iso){
+  let d=iso?new Date(iso):new Date();
+  return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+}
+function withDaySeparators(list){
+  let out=[]; let lastKey=null;
+  list.forEach(m=>{
+    let key=dayKeyOf(m.createdAt);
+    if(key!==lastKey){
+      out.push({type:'daysep',label:formatDaySeparator(m.createdAt)});
+      lastKey=key;
+    }
+    out.push(m);
+  });
+  return out;
+}
 function renderChat(highlight, forceBottom){
   let w=document.getElementById('cwMsgs');
   if(!chats[curChat]){w.innerHTML='';chatUnseenCount=0;updateScrollDownBtn();return;}
   let wasAtBottom = forceBottom || isChatAtBottom(w);
   let prevScrollTop = w.scrollTop;
-  w.innerHTML=chats[curChat].map(m=>{
+  w.innerHTML=withDaySeparators(chats[curChat]).map(m=>{
+    if(m.type==='daysep'){
+      return `<div class="daySep"><span>${escHtml(m.label)}</span></div>`;
+    }
     let pinnedCls=(pinnedMap[curChat]&&pinnedMap[curChat].id===m.id)?' pinned':'';
     if(m.type==='file'){
       return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
@@ -1623,12 +1659,12 @@ function localSendMsg(){
     let f=pendingFile;
     fileLabel=f.name;
     let url=f.file?URL.createObjectURL(f.file):null;
-    chats[curChat].push({id:msgIdSeq++,from:'out',type:'file',name:f.name,size:f.sizeStr,time:nowTime(),replyTo:replyId,url:url});
+    chats[curChat].push({id:msgIdSeq++,from:'out',type:'file',name:f.name,size:f.sizeStr,time:nowTime(),createdAt:new Date().toISOString(),replyTo:replyId,url:url});
     cancelAttach();
     replyId=null;
   }
   if(text){
-    chats[curChat].push({id:msgIdSeq++,from:'out',text:text,type:'text',time:nowTime(),replyTo:replyId});
+    chats[curChat].push({id:msgIdSeq++,from:'out',text:text,type:'text',time:nowTime(),createdAt:new Date().toISOString(),replyTo:replyId});
     inp.value='';inp.style.height='auto';
   }
   cancelReply();
@@ -1780,14 +1816,14 @@ function dbRowToLocal(m){
   let time=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
   let from=m.sender_id===vchatUser.id?'out':'in';
   if(m.type==='file'){
-    return {id:m.id,from:from,type:'file',name:m.file_name||'Файл',size:m.file_size||'',url:m.file_url||null,time:time,replyTo:m.reply_to||null};
+    return {id:m.id,from:from,type:'file',name:m.file_name||'Файл',size:m.file_size||'',url:m.file_url||null,time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
   }
   if(m.type==='call'){
     let info={duration:0,status:'ended'};
     try{ info=Object.assign(info,JSON.parse(m.content||'{}')); }catch(e){}
-    return {id:m.id,from:from,type:'call',duration:info.duration||0,status:info.status||'ended',time:time};
+    return {id:m.id,from:from,type:'call',duration:info.duration||0,status:info.status||'ended',time:time,createdAt:m.created_at};
   }
-  return {id:m.id,from:from,type:'text',text:m.content||'',time:time,replyTo:m.reply_to||null};
+  return {id:m.id,from:from,type:'text',text:m.content||'',time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
 }
 
 async function vchatInit(){
