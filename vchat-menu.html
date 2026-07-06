@@ -1167,6 +1167,8 @@ function openChat(name){
   curChat=name;
   lastSeenMsgCount=0; chatUnseenCount=0;
   if(chatMeta[name]){chatMeta[name].unread=0;updateUnreadBadge();renderChatRows();}
+  let meta0=chatMeta[name];
+  if(meta0&&meta0.uid){ markChatRead(meta0.uid); }
   document.getElementById('cwName').innerHTML=escHtml(name)+verifiedBadgeHtml(name);
   let meta=chatMeta[name];
   let av=document.getElementById('cwAv');
