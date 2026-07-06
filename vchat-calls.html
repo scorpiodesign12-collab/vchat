@@ -28,6 +28,24 @@ body{display:flex;}
 .topInfo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:30px;}
 .callStatus{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:.02em;}
 .callStatus.connected{color:#34c759;}
+.pingRow{display:none;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.pingDot{width:7px;height:7px;border-radius:50%;background:#34c759;flex-shrink:0;}
+.pingDot.bad{background:#ff9f0a;}
+.pingDot.worse{background:#ff3b30;}
+.minimizeBtn{position:absolute;top:18px;left:18px;width:38px;height:38px;border-radius:50%;border:none;background:var(--card);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:30;}
+.minimizeBtn svg{width:18px;height:18px;}
+.minimizeBtn:active{transform:scale(.92);}
+
+.miniWidget{display:none;position:fixed;right:16px;bottom:24px;left:auto;top:auto;z-index:200;align-items:center;gap:10px;background:var(--fg);color:var(--bg);border-radius:30px;padding:8px 10px 8px 16px;box-shadow:0 8px 24px rgba(0,0,0,.28);cursor:grab;touch-action:none;user-select:none;}
+.miniWidget:active{cursor:grabbing;}
+.miniInfo{display:flex;flex-direction:column;line-height:1.25;margin-right:2px;}
+.miniName{font-size:12.5px;font-weight:700;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.miniTimer{font-size:11.5px;opacity:.7;font-variant-numeric:tabular-nums;}
+.miniBtn{width:36px;height:36px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:rgba(255,255,255,.15);color:var(--bg);}
+[data-theme="dark"] .miniBtn{background:rgba(255,255,255,.12);}
+.miniBtn svg{width:16px;height:16px;}
+.miniBtn.on{background:var(--bg);color:var(--fg);}
+.miniBtn.end{background:#ff3b30;color:#fff;}
 .avatarWrap{width:128px;height:128px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:700;color:#fff;margin:18px 0 6px;box-shadow:0 8px 30px rgba(0,0,0,.18);position:relative;}
 .avatarWrap.ringing{animation:pulse 1.6s ease-in-out infinite;}
 .micBadge{position:absolute;right:2px;bottom:2px;width:34px;height:34px;border-radius:50%;background:#ff3b30;display:none;align-items:center;justify-content:center;border:3px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.2);}
@@ -67,7 +85,11 @@ body{display:flex;}
 </head>
 <body>
 <div id="app" data-theme="light">
+  <button class="minimizeBtn" id="minimizeBtn" onclick="minimizeCall()" title="Свернуть">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
   <div class="topInfo">
+    <div class="pingRow" id="pingRow"><span class="pingDot" id="pingDot"></span><span id="pingValue">Пинг: — мс</span></div>
     <div class="callStatus" id="callStatus">Вызов...</div>
   </div>
 
@@ -122,6 +144,19 @@ body{display:flex;}
   <br><button onclick="retryMic()">Запросить доступ снова</button>
 </div>
 <audio id="remoteAudio" autoplay playsinline></audio>
+
+<div class="miniWidget" id="miniWidget">
+  <div class="miniInfo">
+    <span class="miniName" id="miniName">—</span>
+    <span class="miniTimer" id="miniTimer">00:00</span>
+  </div>
+  <button class="miniBtn" id="miniMuteBtn" onclick="event.stopPropagation(); toggleMute();" title="Микрофон">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+  </button>
+  <button class="miniBtn end" onclick="event.stopPropagation(); endCall();" title="Завершить">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+  </button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -373,7 +408,10 @@ function startTimer(){
   document.getElementById('callTimer').style.display='block';
   callTimerInterval=setInterval(()=>{
     callSeconds++;
-    document.getElementById('callTimer').textContent=fmtTime(callSeconds);
+    const t=fmtTime(callSeconds);
+    document.getElementById('callTimer').textContent=t;
+    const mt=document.getElementById('miniTimer');
+    if(mt) mt.textContent=t;
   },1000);
 }
 let mediaConnected=false, connectWatchdog=null, statsInterval=null;
@@ -405,6 +443,9 @@ async function diagStats(){
     if(pair){
       const loc=candidates[pair.localCandidateId], rem=candidates[pair.remoteCandidateId];
       log('ACTIVE PAIR -> local:', loc&&loc.candidateType, loc&&loc.protocol, '| remote:', rem&&rem.candidateType, rem&&rem.protocol, '| bytesSent:', pair.bytesSent, 'bytesReceived:', pair.bytesReceived);
+      if(typeof pair.currentRoundTripTime==='number'){
+        updatePingDisplay(pair.currentRoundTripTime*1000);
+      }
     }else{
       log('no succeeded candidate-pair yet, iceConnectionState:', pc.iceConnectionState);
     }
@@ -414,6 +455,18 @@ function showRealConnectedStatus(){
   const st=document.getElementById('callStatus');
   st.textContent='Соединено';
   st.classList.add('connected');
+  document.getElementById('pingRow').style.display='flex';
+}
+function updatePingDisplay(ms){
+  const valEl=document.getElementById('pingValue');
+  const dot=document.getElementById('pingDot');
+  if(!valEl) return;
+  if(ms==null || isNaN(ms)){ valEl.textContent='Пинг: — мс'; return; }
+  const rounded=Math.round(ms);
+  valEl.textContent='Пинг: '+rounded+' мс';
+  dot.classList.remove('bad','worse');
+  if(rounded>300) dot.classList.add('worse');
+  else if(rounded>120) dot.classList.add('bad');
 }
 
 // Канал для конкретной сессии звонка — оба участника слушают и шлют события сюда
@@ -535,6 +588,7 @@ function endCall(){
 function toggleMute(){
   muted=!muted;
   document.getElementById('muteBtn').classList.toggle('on',muted);
+  document.getElementById('miniMuteBtn').classList.toggle('on',muted);
   let lbl=document.getElementById('muteLabel'); if(lbl)lbl.textContent=muted?'Без звука':'Микрофон';
   if(localStream){ localStream.getAudioTracks().forEach(t=>t.enabled=!muted); }
   safeSend('mic-state',{muted:muted});
@@ -548,6 +602,64 @@ function toggleSpeaker(){
     audioEl.setSinkId(speakerOn?'default':'').catch(()=>{});
   }
 }
+
+let isMinimized=false;
+function minimizeCall(){
+  if(isMinimized) return;
+  isMinimized=true;
+  document.getElementById('app').style.display='none';
+  document.getElementById('miniName').textContent=otherName;
+  document.getElementById('miniTimer').textContent=document.getElementById('callTimer').textContent;
+  document.getElementById('miniMuteBtn').classList.toggle('on',muted);
+  const w=document.getElementById('miniWidget');
+  w.style.display='flex';
+  // сброс на позицию по умолчанию (правый нижний угол) при каждом сворачивании
+  w.style.left='auto'; w.style.top='auto'; w.style.right='16px'; w.style.bottom='24px';
+}
+function restoreCall(){
+  if(!isMinimized) return;
+  isMinimized=false;
+  document.getElementById('miniWidget').style.display='none';
+  document.getElementById('app').style.display='flex';
+}
+
+// перетаскивание плавающего виджета (свайпом/мышкой) по экрану, тап без движения — разворачивает звонок
+(function(){
+  const widget=document.getElementById('miniWidget');
+  let dragging=false, moved=false, startX=0, startY=0, startLeft=0, startTop=0;
+  function pt(e){ return e.touches && e.touches.length ? e.touches[0] : e; }
+  function down(e){
+    if(e.target.closest('.miniBtn')) return;
+    const p=pt(e);
+    const rect=widget.getBoundingClientRect();
+    dragging=true; moved=false;
+    startX=p.clientX; startY=p.clientY; startLeft=rect.left; startTop=rect.top;
+    widget.style.right='auto'; widget.style.bottom='auto';
+    widget.style.left=rect.left+'px'; widget.style.top=rect.top+'px';
+  }
+  function move(e){
+    if(!dragging) return;
+    const p=pt(e);
+    const dx=p.clientX-startX, dy=p.clientY-startY;
+    if(Math.abs(dx)>6||Math.abs(dy)>6) moved=true;
+    let nl=startLeft+dx, nt=startTop+dy;
+    nl=Math.max(6,Math.min(window.innerWidth-widget.offsetWidth-6,nl));
+    nt=Math.max(6,Math.min(window.innerHeight-widget.offsetHeight-6,nt));
+    widget.style.left=nl+'px'; widget.style.top=nt+'px';
+    if(e.cancelable) e.preventDefault();
+  }
+  function up(){
+    if(!dragging) return;
+    dragging=false;
+    if(!moved) restoreCall();
+  }
+  widget.addEventListener('mousedown',down);
+  widget.addEventListener('touchstart',down,{passive:true});
+  window.addEventListener('mousemove',move);
+  window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',up);
+  window.addEventListener('touchend',up);
+})();
 
 window.addEventListener('beforeunload',()=>{
   if(!ended){
