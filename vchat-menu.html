@@ -901,9 +901,9 @@ async function onRingtoneFileSelected(e){
   statusEl.style.display='block'; statusEl.textContent='Загрузка...';
   try{
     const path=vchatUser.id+'/ringtone.mp3';
-    const {error:upErr}=await sb.storage.from('chat-files').upload(path,file,{upsert:true,contentType:'audio/mpeg'});
+    const {error:upErr}=await sbStorage.storage.from('chat-files').upload(path,file,{upsert:true,contentType:'audio/mpeg'});
     if(upErr){ statusEl.style.display='none'; showToast('Не удалось загрузить файл'); return; }
-    const {data:pub}=sb.storage.from('chat-files').getPublicUrl(path);
+    const {data:pub}=sbStorage.storage.from('chat-files').getPublicUrl(path);
     const url=pub.publicUrl+'?v='+Date.now();
     const {error:dbErr}=await sb.from('profiles').update({ringtone_url:url}).eq('id',vchatUser.id);
     if(dbErr){ statusEl.style.display='none'; showToast('Файл загружен, но не сохранился в профиле'); return; }
@@ -1742,6 +1742,9 @@ setDark(savedTheme==='dark');
 const SUPABASE_URL='https://vchat-proxy.scorpiodesign12.workers.dev';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Отдельный клиент напрямую в Supabase (без прокси-воркера) — только для загрузки файлов в Storage,
+// т.к. прокси иногда некорректно пробрасывает бинарные данные и Storage отвечает 400.
+const sbStorage = window.supabase.createClient('https://tosomuignedjiczygceh.supabase.co', SUPABASE_KEY);
 
 let vchatUser=null;
 
@@ -2005,9 +2008,9 @@ async function sendMsg(){
     showToast('Загрузка файла...');
     try{
       let path=vchatUser.id+'/'+Date.now()+'_'+f.file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
-      let {error:upErr}=await sb.storage.from('chat-files').upload(path,f.file);
+      let {error:upErr}=await sbStorage.storage.from('chat-files').upload(path,f.file);
       if(upErr){ console.error(upErr); showToast('Не удалось загрузить файл'); inp.disabled=false; return; }
-      let {data:pub}=sb.storage.from('chat-files').getPublicUrl(path);
+      let {data:pub}=sbStorage.storage.from('chat-files').getPublicUrl(path);
       let fileUrl=pub.publicUrl;
       let {data:row,error}=await sb.from('messages').insert({
         sender_id:vchatUser.id, receiver_id:meta.uid, content:null,
