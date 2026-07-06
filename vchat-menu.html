@@ -1895,9 +1895,12 @@ async function setupPushNotifications(){
 async function markChatRead(uid){
   if(!uid||!vchatUser)return;
   try{
-    await sb.from('messages').update({read:true})
-      .eq('sender_id',uid).eq('receiver_id',vchatUser.id).eq('read',false);
-  }catch(e){}
+    const {data,error}=await sb.from('messages').update({read:true})
+      .eq('sender_id',uid).eq('receiver_id',vchatUser.id).eq('read',false)
+      .select();
+    if(error){ console.error('VCHAT markChatRead error:',error); }
+    else{ console.log('VCHAT markChatRead updated rows:',data?data.length:0, data); }
+  }catch(e){ console.error('VCHAT markChatRead exception:',e); }
 }
 async function vchatOpenFromUrl(){
   const p=new URLSearchParams(window.location.search);
