@@ -651,6 +651,22 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         <div class="hint" style="margin-bottom:10px;">Акцентный цвет</div>
         <div class="colors" id="accentColors"></div>
 
+        <div class="label" style="margin-top:20px;">Рингтон звонка</div>
+        <div class="pGroup" id="ringtoneLockedBox" style="background:var(--card);border-radius:16px;padding:14px 16px;display:none;">
+          <div class="hint" style="margin:0;">🎵 Свой рингтон на входящие звонки доступен с <b>VChat Plus</b>. Пока подписки нет — при входящем звонке будет тишина, как сейчас.</div>
+        </div>
+        <div class="pGroup" id="ringtoneBox" style="background:var(--card);border-radius:16px;padding:14px 16px;display:none;">
+          <div class="hint" style="margin:0 0 12px;">MP3-файл, который будет играть при входящем звонке, пока активна подписка Plus. Если подписка закончится — снова будет тишина.</div>
+          <div id="ringtoneCurrent" style="display:none;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:18px;">🎵</span>
+            <span id="ringtoneFileName" style="font-size:13.5px;flex:1;word-break:break-word;color:var(--fg);">Свой рингтон загружен</span>
+            <button style="padding:8px 12px;border-radius:10px;border:none;background:var(--card2);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;" onclick="removeRingtone()">Удалить</button>
+          </div>
+          <input type="file" id="ringtoneInput" accept="audio/mpeg,.mp3" style="display:none;" onchange="onRingtoneFileSelected(event)">
+          <button class="tbtn" style="width:100%;" onclick="document.getElementById('ringtoneInput').click()">Выбрать MP3-файл</button>
+          <div class="hint" id="ringtoneStatus" style="margin-top:10px;display:none;"></div>
+        </div>
+
         <div class="label" style="margin-top:20px;">Устройство</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
           <div class="pItem">
@@ -772,6 +788,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   </div>
 </div>
 <audio id="remoteAudio" autoplay playsinline></audio>
+<audio id="ringtoneAudio" loop playsinline></audio>
 
 <div class="miniWidget" id="miniWidget">
   <div class="miniInfo">
@@ -850,6 +867,61 @@ function isSubActive(username){
 function cacheSub(username,until){
   if(!username)return;
   subscriptionCache[username.toLowerCase()]=until||null;
+}
+
+/* ---------- свой рингтон на входящие звонки (только VChat Plus) ---------- */
+function initRingtoneSettings(){
+  const locked=document.getElementById('ringtoneLockedBox');
+  const box=document.getElementById('ringtoneBox');
+  if(!locked||!box)return;
+  const mySub=vchatUser?isSubActive(vchatUser.username):false;
+  if(mySub){
+    locked.style.display='none';
+    box.style.display='block';
+    renderRingtoneBox();
+  }else{
+    locked.style.display='block';
+    box.style.display='none';
+  }
+}
+function renderRingtoneBox(){
+  const cur=document.getElementById('ringtoneCurrent');
+  if(!cur)return;
+  cur.style.display = (vchatUser && vchatUser.ringtone_url) ? 'flex' : 'none';
+}
+async function onRingtoneFileSelected(e){
+  const file=e.target.files && e.target.files[0];
+  e.target.value='';
+  if(!file || !vchatUser) return;
+  if(!isSubActive(vchatUser.username)){ showToast('Нужна подписка VChat Plus'); return; }
+  const looksLikeMp3 = file.type==='audio/mpeg' || /\.mp3$/i.test(file.name);
+  if(!looksLikeMp3){ showToast('Нужен файл формата MP3'); return; }
+  if(file.size > 8*1024*1024){ showToast('Файл слишком большой (макс. 8 МБ)'); return; }
+  const statusEl=document.getElementById('ringtoneStatus');
+  statusEl.style.display='block'; statusEl.textContent='Загрузка...';
+  try{
+    const path='ringtones/'+vchatUser.id+'.mp3';
+    const {error:upErr}=await sb.storage.from('chat-files').upload(path,file,{upsert:true,contentType:'audio/mpeg'});
+    if(upErr){ statusEl.style.display='none'; showToast('Не удалось загрузить файл'); return; }
+    const {data:pub}=sb.storage.from('chat-files').getPublicUrl(path);
+    const url=pub.publicUrl+'?v='+Date.now();
+    const {error:dbErr}=await sb.from('profiles').update({ringtone_url:url}).eq('id',vchatUser.id);
+    if(dbErr){ statusEl.style.display='none'; showToast('Файл загружен, но не сохранился в профиле'); return; }
+    vchatUser.ringtone_url=url;
+    statusEl.style.display='none';
+    renderRingtoneBox();
+    showToast('Рингтон сохранён');
+  }catch(err){
+    statusEl.style.display='none';
+    showToast('Ошибка сети');
+  }
+}
+async function removeRingtone(){
+  if(!vchatUser)return;
+  try{ await sb.from('profiles').update({ringtone_url:null}).eq('id',vchatUser.id); }catch(e){}
+  vchatUser.ringtone_url=null;
+  renderRingtoneBox();
+  showToast('Рингтон удалён');
 }
 
 document.querySelectorAll('[data-icon]').forEach(el=>{if(ICONS[el.dataset.icon])el.innerHTML=ICONS[el.dataset.icon];});
@@ -1698,13 +1770,14 @@ async function vchatInit(){
   if(!user){ window.location.href='index.html'; return; }
   let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
   if(!profile){ window.location.href='index.html'; return; }
-  vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username};
+  vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username, ringtone_url:profile.ringtone_url||null};
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
   profileData.bio=profile.bio||'';
   cacheSub(vchatUser.username, profile.subscription_until);
   renderProfileView();
   initSubBanner();
+  initRingtoneSettings();
   if(vchatUser.username && vchatUser.username.toLowerCase()==='nikk'){
     const adminBtn = document.getElementById('adminPanelBtn');
     if(adminBtn) adminBtn.style.display='flex';
@@ -2350,8 +2423,8 @@ function vcSetupSessionChannel(){
   vcSessionChannel = sb.channel('callsession-'+vcCallId, { config:{ broadcast:{ self:false, ack:true } } });
   vcSessionChannel
     .on('broadcast',{event:'accepted'},()=>{ if(vcMode==='outgoing'){ vcSetConnected(); vcStartAsCaller(); } })
-    .on('broadcast',{event:'declined'},()=>{ if(!vcEnded){ document.getElementById('callStatus').textContent='Отклонено'; vcLogCall('declined'); vcCloseSoon(); } })
-    .on('broadcast',{event:'hangup'},()=>{ if(!vcEnded){ document.getElementById('callStatus').textContent='Звонок завершён'; vcLogCall('ended'); vcCloseSoon(); } })
+    .on('broadcast',{event:'declined'},()=>{ if(!vcEnded){ vcStopRingtone(); document.getElementById('callStatus').textContent='Отклонено'; vcLogCall('declined'); vcCloseSoon(); } })
+    .on('broadcast',{event:'hangup'},()=>{ if(!vcEnded){ vcStopRingtone(); document.getElementById('callStatus').textContent='Звонок завершён'; vcLogCall('ended'); vcCloseSoon(); } })
     .on('broadcast',{event:'webrtc-offer'},(msg)=>{ vcHandleOffer(msg.payload.sdp); })
     .on('broadcast',{event:'webrtc-answer'},(msg)=>{ vcHandleAnswer(msg.payload.sdp); })
     .on('broadcast',{event:'webrtc-ice'},(msg)=>{ vcHandleIce(msg.payload.candidate); })
@@ -2365,11 +2438,28 @@ function vcSetupSessionChannel(){
       }
     });
 }
+function vcPlayRingtoneIfAllowed(){
+  try{
+    const allowed = vchatUser && isSubActive(vchatUser.username) && vchatUser.ringtone_url;
+    if(!allowed) return;
+    const el=document.getElementById('ringtoneAudio');
+    if(!el) return;
+    el.src=vchatUser.ringtone_url;
+    el.currentTime=0;
+    el.play().catch(()=>{ /* автовоспроизведение заблокировано — не критично, звонок всё равно виден на экране */ });
+  }catch(e){}
+}
+function vcStopRingtone(){
+  const el=document.getElementById('ringtoneAudio');
+  if(!el) return;
+  try{ el.pause(); el.currentTime=0; }catch(e){}
+}
 function vcUpdateMicBadge(otherMuted){
   const b=document.getElementById('micBadge');
   if(b) b.classList.toggle('show',otherMuted);
 }
 function vcCloseNow(){
+  vcStopRingtone();
   document.getElementById('callScreen').style.display='none';
   document.getElementById('miniWidget').style.display='none';
   vcActive=false;
@@ -2477,6 +2567,7 @@ function openCallScreen(mode,otherUid,otherName,myId,myName,callId){
   }else if(mode==='incoming'){
     document.getElementById('controlsIncoming').style.display='flex';
     document.getElementById('callStatus').textContent='Входящий звонок';
+    vcPlayRingtoneIfAllowed();
   }
 
   document.getElementById('miniWidget').style.display='none';
@@ -2484,6 +2575,7 @@ function openCallScreen(mode,otherUid,otherName,myId,myName,callId){
 }
 function vcAcceptCall(){
   vcLog('acceptCall clicked');
+  vcStopRingtone();
   document.getElementById('controlsIncoming').style.display='none';
   document.getElementById('controlsOutgoing').style.display='flex';
   vcSafeSend('accepted',{});
@@ -2491,6 +2583,7 @@ function vcAcceptCall(){
   vcGetMic().then(()=>vcCreatePeer());
 }
 function vcDeclineCall(){
+  vcStopRingtone();
   vcSafeSend('declined',{});
   document.getElementById('callStatus').textContent='Вы отклонили звонок';
   vcEnded=true;
