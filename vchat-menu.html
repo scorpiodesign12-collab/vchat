@@ -96,6 +96,31 @@ body{display:flex;}
 #tabProfile{position:relative;}
 .pScroll{flex:1;overflow-y:auto;min-height:0;scrollbar-width:none;padding-bottom:20px;}
 .pScroll::-webkit-scrollbar{display:none;}
+
+/* ---------- новости ---------- */
+.newsCatRow{display:flex;gap:10px;margin:12px 0 14px;flex-shrink:0;}
+.newsList{display:flex;flex-direction:column;gap:12px;padding-bottom:16px;}
+.newsCard{background:var(--card);border-radius:16px;overflow:hidden;cursor:pointer;transition:.12s;}
+.newsCard:hover{background:var(--card2);}
+.newsCardImg{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2);}
+.newsCardBody{padding:12px 14px 14px;}
+.newsCardTitle{font-size:15px;font-weight:700;color:var(--fg);line-height:1.35;margin-bottom:5px;}
+.newsCardExcerpt{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.newsCardMeta{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:11.5px;color:var(--muted);gap:8px;}
+.newsCardMeta span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.newsCardMore{color:var(--accent2);font-weight:600;flex-shrink:0;}
+.newsOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;align-items:flex-end;justify-content:center;}
+.newsOverlay.show{display:flex;}
+.newsOverlayCard{background:var(--bg);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;position:relative;scrollbar-width:none;}
+.newsOverlayCard::-webkit-scrollbar{display:none;}
+.newsCloseBtn{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;}
+.newsCloseBtn svg{width:16px;height:16px;}
+.newsOverlayImg{width:100%;height:220px;object-fit:cover;display:block;}
+.newsOverlayBody{padding:16px 18px 26px;}
+.newsOverlayTitle{font-size:19px;font-weight:700;color:var(--fg);line-height:1.35;margin-bottom:8px;}
+.newsOverlayMeta{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.newsOverlayText{font-size:14.5px;color:var(--fg);line-height:1.65;white-space:pre-wrap;}
+.newsOverlaySource{display:inline-block;margin-top:16px;font-size:13.5px;font-weight:600;color:var(--accent2);text-decoration:none;}
 #tabChats{flex-direction:row;}
 /* chat list */
 .chatListPane{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;}
@@ -430,7 +455,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 <div id="mainapp">
   <div class="rail">
     <button class="iconbtn on" onclick="showTab('Chats')" id="rChats"><span class="icon" data-icon="chats"></span><span class="railDot" id="rChatsDot"></span></button>
-    <button class="iconbtn" onclick="showTab('Friends')" id="rFriends" data-icon="friends"></button>
+    <button class="iconbtn" onclick="showTab('Friends');initNewsTab();" id="rFriends" data-icon="friends"></button>
     <button class="iconbtn" onclick="showTab('Feed');initFeedTab();" id="rFeed" data-icon="feed"></button>
     <div class="spacer"></div>
     <button class="iconbtn" onclick="showTab('Profile')" id="rProfile" data-icon="profile"></button>
@@ -535,9 +560,27 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
     <div class="tab" id="tabFriends">
       <div class="header"><span>Новости</span></div>
-      <div class="comingSoon">
-        <div class="comingSoonIcon" data-icon="clock"></div>
-        <div class="comingSoonText">Раздел в разработке.<br>Скоро здесь появятся новости!</div>
+      <div class="pScroll" id="newsScroll">
+        <div class="newsCatRow">
+          <button class="tbtn on" id="newsCatSport" onclick="setNewsCategory('sport')">🏆 Спорт</button>
+          <button class="tbtn" id="newsCatKind" onclick="setNewsCategory('kind')">💛 Добрые</button>
+        </div>
+        <div class="newsList" id="newsList"></div>
+        <div class="uEmpty" id="newsEmpty" style="display:none;">Пока нет новостей</div>
+      </div>
+      <div class="newsOverlay" id="newsOverlay">
+        <div class="newsOverlayCard">
+          <button class="newsCloseBtn" onclick="closeNewsPost()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <img class="newsOverlayImg" id="newsOvImg" style="display:none;">
+          <div class="newsOverlayBody">
+            <div class="newsOverlayTitle" id="newsOvTitle"></div>
+            <div class="newsOverlayMeta" id="newsOvMeta"></div>
+            <div class="newsOverlayText" id="newsOvText"></div>
+            <a class="newsOverlaySource" id="newsOvSource" target="_blank" rel="noopener">Читать в источнике →</a>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -708,7 +751,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
   <div class="nav">
     <button class="navbtn on" onclick="showTab('Chats')" id="nChats"><span class="icon" data-icon="chats"></span>Чаты<span class="navDot" id="nChatsDot"></span></button>
-    <button class="navbtn" onclick="showTab('Friends')" id="nFriends"><span class="icon" data-icon="friends"></span>Новости</button>
+    <button class="navbtn" onclick="showTab('Friends');initNewsTab();" id="nFriends"><span class="icon" data-icon="friends"></span>Новости</button>
     <button class="navbtn" onclick="showTab('Feed');initFeedTab();" id="nFeed"><span class="icon" data-icon="feed"></span>Лента</button>
     <button class="navbtn" onclick="showTab('Profile')" id="nProfile"><span class="icon" data-icon="profile"></span>Профиль</button>
     <button class="navbtn" onclick="showTab('Settings')" id="nSettings"><span class="icon" data-icon="settings"></span>Настройки</button>
@@ -930,6 +973,82 @@ async function removeRingtone(){
   vchatUser.ringtone_url=null;
   renderRingtoneBox();
   showToast('Рингтон удалён');
+}
+
+/* ---------- вкладка "Новости" (Спорт / Добрые), питается из таблицы news_posts ---------- */
+let newsCategory='sport';
+let newsCache={sport:null,kind:null};
+let newsRefreshTimer=null;
+function setNewsCategory(cat){
+  newsCategory=cat;
+  document.getElementById('newsCatSport').classList.toggle('on',cat==='sport');
+  document.getElementById('newsCatKind').classList.toggle('on',cat==='kind');
+  renderNewsList();
+  loadNews(cat);
+}
+function initNewsTab(){
+  if(!newsRefreshTimer){
+    newsRefreshTimer=setInterval(()=>loadNews(newsCategory,true),5*60*1000);
+  }
+  renderNewsList();
+  loadNews(newsCategory);
+}
+async function loadNews(cat,silent){
+  try{
+    let {data,error}=await sb.from('news_posts').select('*').eq('category',cat).order('published_at',{ascending:false}).limit(40);
+    if(error){ console.error(error); if(newsCategory===cat&&newsCache[cat]===null)showNewsError(); return; }
+    newsCache[cat]=data||[];
+    if(newsCategory===cat)renderNewsList();
+  }catch(e){ console.error(e); if(newsCategory===cat&&newsCache[cat]===null)showNewsError(); }
+}
+function showNewsError(){
+  document.getElementById('newsList').innerHTML='';
+  let empty=document.getElementById('newsEmpty');
+  empty.textContent='Не удалось загрузить новости. Попробуйте позже.';
+  empty.style.display='block';
+}
+function newsExcerpt(text,len){
+  text=(text||'').trim();
+  return text.length>len?text.slice(0,len).trim()+'…':text;
+}
+function newsDateStr(iso){
+  if(!iso)return '';
+  let d=new Date(iso);
+  if(isNaN(d.getTime()))return '';
+  return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+', '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+function renderNewsList(){
+  let list=document.getElementById('newsList');
+  let empty=document.getElementById('newsEmpty');
+  let items=newsCache[newsCategory];
+  if(items===null){ list.innerHTML=''; empty.style.display='none'; return; }
+  if(!items.length){ list.innerHTML=''; empty.textContent='Пока нет новостей в этой категории'; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML=items.map(p=>`
+    <div class="newsCard" onclick="openNewsPost(${p.id})">
+      ${p.image_url?`<img class="newsCardImg" src="${p.image_url}" loading="lazy" onerror="this.remove()">`:''}
+      <div class="newsCardBody">
+        <div class="newsCardTitle">${escHtml(p.title||'')}</div>
+        <div class="newsCardExcerpt">${escHtml(newsExcerpt(p.description||p.content||'',160))}</div>
+        <div class="newsCardMeta"><span>${escHtml(p.source_name||'Источник')} · ${newsDateStr(p.published_at)}</span><span class="newsCardMore">Читать далее</span></div>
+      </div>
+    </div>`).join('');
+}
+function openNewsPost(id){
+  let items=newsCache[newsCategory]||[];
+  let p=items.find(x=>x.id===id);
+  if(!p)return;
+  let img=document.getElementById('newsOvImg');
+  if(p.image_url){ img.src=p.image_url; img.style.display='block'; } else { img.style.display='none'; }
+  document.getElementById('newsOvTitle').textContent=p.title||'';
+  document.getElementById('newsOvMeta').textContent=(p.source_name||'Источник')+(p.published_at?' · '+newsDateStr(p.published_at):'');
+  document.getElementById('newsOvText').textContent=p.content||p.description||'';
+  let src=document.getElementById('newsOvSource');
+  if(p.source_url){ src.href=p.source_url; src.style.display='inline-block'; } else { src.style.display='none'; }
+  document.getElementById('newsOverlay').classList.add('show');
+}
+function closeNewsPost(){
+  document.getElementById('newsOverlay').classList.remove('show');
 }
 
 document.querySelectorAll('[data-icon]').forEach(el=>{if(ICONS[el.dataset.icon])el.innerHTML=ICONS[el.dataset.icon];});
