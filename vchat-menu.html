@@ -69,6 +69,12 @@ body{display:flex;}
 #tabChats .header span{flex:1;}
 .content{flex:1;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;}
 .row{display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:12px;transition:.12s;}
+.chatRowWrap{position:relative;overflow:hidden;}
+.chatRowWrap .rowInner{background:var(--bg);position:relative;z-index:2;touch-action:pan-y;will-change:transform;}
+.rowPinBtn{position:absolute;top:0;right:0;bottom:0;width:64px;background:#2C7EFF;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1;}
+.rowPinBtn svg{width:20px;height:20px;}
+.rowPinIcon{color:#2C7EFF;flex-shrink:0;display:flex;margin-right:2px;}
+.rowPinIcon svg{width:14px;height:14px;}
 .rowBadge{flex-shrink:0;background:#2C7EFF;color:#fff;font-size:12px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 6px;}
 .typingText{color:#2C7EFF;font-weight:600;}
 .typingDotsRow{display:inline-flex;gap:3px;align-items:center;vertical-align:middle;margin-left:2px;}
@@ -1003,6 +1009,7 @@ search:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 reply:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`,
 pin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
 pinned:`<svg viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
+pinRow:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`,
 unpin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/>`,
 check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
 checkdbl:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 7 9 18 4 13"/><polyline points="22 7 13 18 11 16"/></svg>`,
@@ -1288,6 +1295,77 @@ let chatMeta={
 };
 let chatOrder=[]; // names of user chats (excluding Избранное), most recent first
 
+/* ---------- закрепление чатов свайпом (мобильные/планшет) ---------- */
+let pinnedChats=new Set();
+let openSwipeChatName=null;
+function loadPinnedChats(){
+  try{
+    let raw=localStorage.getItem('vchatPinned_'+(vchatUser?vchatUser.id:'anon'));
+    pinnedChats=new Set(raw?JSON.parse(raw):[]);
+  }catch(e){ pinnedChats=new Set(); }
+}
+function savePinnedChats(){
+  try{ localStorage.setItem('vchatPinned_'+(vchatUser?vchatUser.id:'anon'), JSON.stringify(Array.from(pinnedChats))); }catch(e){}
+}
+function togglePinChat(name){
+  if(name==='Избранное')return;
+  if(pinnedChats.has(name)){ pinnedChats.delete(name); showToast('Чат откреплён'); }
+  else{ pinnedChats.add(name); showToast('Чат закреплён'); }
+  savePinnedChats();
+  renderChatRows();
+}
+function closeChatRowSwipe(){
+  if(!openSwipeChatName)return;
+  let wrap=document.querySelector(`.chatRowWrap[data-chat="${CSS.escape(openSwipeChatName)}"] .rowInner`);
+  if(wrap){
+    wrap.style.transition='transform .18s';
+    wrap.style.transform='translateX(0)';
+    setTimeout(()=>{wrap.style.transition='';},200);
+  }
+  openSwipeChatName=null;
+}
+function attachChatRowSwipe(){
+  document.querySelectorAll('.chatRowWrap').forEach(wrapEl=>{
+    const name=wrapEl.dataset.chat;
+    if(name==='Избранное')return; // избранное всегда сверху, не свайпается
+    const inner=wrapEl.querySelector('.rowInner');
+    const pinBtn=wrapEl.querySelector('.rowPinBtn');
+    if(!inner||!pinBtn)return;
+    let startX=0,curX=0,dragging=false,baseX=0;
+    inner.addEventListener('touchstart',e=>{
+      startX=e.touches[0].clientX;
+      dragging=true;
+      baseX=(openSwipeChatName===name)?-64:0;
+    },{passive:true});
+    inner.addEventListener('touchmove',e=>{
+      if(!dragging)return;
+      let dx=e.touches[0].clientX-startX;
+      let x=Math.min(0,Math.max(-64,baseX+dx));
+      curX=x;
+      inner.style.transform=`translateX(${x}px)`;
+    },{passive:true});
+    inner.addEventListener('touchend',()=>{
+      dragging=false;
+      inner.style.transition='transform .18s';
+      if(curX<-32){
+        if(openSwipeChatName&&openSwipeChatName!==name)closeChatRowSwipe();
+        inner.style.transform='translateX(-64px)';
+        openSwipeChatName=name;
+      }else{
+        inner.style.transform='translateX(0)';
+        if(openSwipeChatName===name)openSwipeChatName=null;
+      }
+      setTimeout(()=>{inner.style.transition='';},200);
+      curX=(openSwipeChatName===name)?-64:0;
+    });
+    pinBtn.onclick=(e)=>{
+      e.stopPropagation();
+      togglePinChat(name);
+      closeChatRowSwipe();
+    };
+  });
+}
+
 function nowTime(){
   let d=new Date();
   return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
@@ -1465,11 +1543,20 @@ function chatRowHtml(name){
   }else{
     preview=escHtml(meta.last||'');
   }
-  return `<div class="row" data-chat="${escHtml(name)}">
+  let pinIcon=(name!=='Избранное'&&pinnedChats.has(name))?`<span class="rowPinIcon">${ICONS.pinRow}</span>`:'';
+  let rowInner=`<div class="row rowInner" data-chat="${escHtml(name)}">
       ${avatarHtmlFor(name)}
       <div class="rowtext"><b>${escHtml(name)}${verifiedBadgeHtml(name)}</b><div class="rowPreview">${preview}</div></div>
-      ${badge}
+      ${pinIcon}${badge}
       ${ch}
+    </div>`;
+  if(name==='Избранное'){
+    // избранное всегда сверху и не свайпается/не закрепляется отдельно
+    return `<div class="chatRowWrap" data-chat="${escHtml(name)}">${rowInner}</div>`;
+  }
+  return `<div class="chatRowWrap" data-chat="${escHtml(name)}">
+      <button class="rowPinBtn" data-chat="${escHtml(name)}" title="Закрепить чат">${ICONS.pinRow}</button>
+      ${rowInner}
     </div>`;
 }
 function renderChatRows(){
@@ -1483,10 +1570,20 @@ function renderChatRows(){
       showSaved=set.has('Избранное');
     }
   }
+  // закреплённые чаты — сразу после Избранного, остальные — как раньше (по последней активности)
+  let pinned=names.filter(n=>pinnedChats.has(n));
+  let rest=names.filter(n=>!pinnedChats.has(n));
+  names=[...pinned,...rest];
   let html=(showSaved?chatRowHtml('Избранное'):'')+names.map(n=>chatRowHtml(n)).join('');
   let box=document.getElementById('chatRows');
   box.innerHTML=html;
-  box.querySelectorAll('.row').forEach(r=>{r.onclick=()=>openChat(r.dataset.chat);});
+  box.querySelectorAll('.row').forEach(r=>{
+    r.onclick=()=>{
+      if(openSwipeChatName===r.dataset.chat){ closeChatRowSwipe(); return; }
+      openChat(r.dataset.chat);
+    };
+  });
+  attachChatRowSwipe();
   updateUnreadBadge();
 }
 function buildChatRows(){renderChatRows();}
@@ -2429,6 +2526,7 @@ async function vchatInit(){
   let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
   if(!profile){ window.location.href='index.html'; return; }
   vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username, ringtone_url:profile.ringtone_url||null};
+  loadPinnedChats();
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
   profileData.bio=profile.bio||'';
