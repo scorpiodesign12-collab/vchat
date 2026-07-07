@@ -1698,6 +1698,9 @@ function openChat(name){
   let av=document.getElementById('cwAv');
   if(meta&&meta.kind==='saved'){
     av.style.background=meta.color;av.style.color='#fff';av.innerHTML=meta.icon;
+  }else if(meta&&meta.avatarUrl&&isSubActive(name)){
+    av.style.background=meta.color;av.style.color='#fff';
+    av.innerHTML='<img src="'+escHtml(meta.avatarUrl)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
   }else if(meta){
     av.style.background=meta.color;av.style.color='#fff';av.innerHTML='';av.textContent=meta.initials;
   }
