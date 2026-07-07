@@ -69,7 +69,7 @@ body{display:flex;}
 #tabChats .header span{flex:1;}
 .content{flex:1;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;}
 .row{display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:12px;transition:.12s;}
-.chatRowWrap{position:relative;overflow:hidden;}
+.chatRowWrap{position:relative;overflow:hidden;border-radius:12px;}
 .chatRowWrap .rowInner{background:var(--bg);position:relative;z-index:2;touch-action:pan-y;will-change:transform;}
 .rowPinBtn{position:absolute;top:0;right:0;bottom:0;width:64px;background:#2C7EFF;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1;}
 .rowPinBtn svg{width:20px;height:20px;}
@@ -1009,7 +1009,7 @@ search:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 reply:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`,
 pin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
 pinned:`<svg viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
-pinRow:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`,
+pinRow:`<svg viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
 unpin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/>`,
 check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
 checkdbl:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 7 9 18 4 13"/><polyline points="22 7 13 18 11 16"/></svg>`,
@@ -1324,7 +1324,25 @@ function closeChatRowSwipe(){
   }
   openSwipeChatName=null;
 }
+function openChatRowSwipe(name){
+  let wrap=document.querySelector(`.chatRowWrap[data-chat="${CSS.escape(name)}"] .rowInner`);
+  if(!wrap)return;
+  if(openSwipeChatName&&openSwipeChatName!==name)closeChatRowSwipe();
+  wrap.style.transition='transform .18s';
+  wrap.style.transform='translateX(-64px)';
+  openSwipeChatName=name;
+  setTimeout(()=>{wrap.style.transition='';},200);
+}
+let chatRowSwipeGlobalBound=false;
 function attachChatRowSwipe(){
+  if(!chatRowSwipeGlobalBound){
+    chatRowSwipeGlobalBound=true;
+    document.addEventListener('click',(e)=>{
+      if(!openSwipeChatName)return;
+      if(e.target.closest('.chatRowWrap[data-chat="'+CSS.escape(openSwipeChatName)+'"]'))return;
+      closeChatRowSwipe();
+    });
+  }
   document.querySelectorAll('.chatRowWrap').forEach(wrapEl=>{
     const name=wrapEl.dataset.chat;
     if(name==='Избранное')return; // избранное всегда сверху, не свайпается
@@ -1357,6 +1375,12 @@ function attachChatRowSwipe(){
       }
       setTimeout(()=>{inner.style.transition='';},200);
       curX=(openSwipeChatName===name)?-64:0;
+    });
+    // ПКМ на компьютере — та же анимация, что и свайп пальцем
+    inner.addEventListener('contextmenu',e=>{
+      e.preventDefault();
+      if(openSwipeChatName===name){ closeChatRowSwipe(); }
+      else{ openChatRowSwipe(name); }
     });
     pinBtn.onclick=(e)=>{
       e.stopPropagation();
