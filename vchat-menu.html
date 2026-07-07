@@ -405,7 +405,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .folderTabsWrap{display:none;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
 .folderTabsWrap::-webkit-scrollbar{display:none;}
 .folderTabs{display:flex;gap:8px;white-space:nowrap;}
-.folderPill{display:inline-flex;align-items:center;padding:7px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;color:#fff;user-select:none;opacity:.55;transition:opacity .15s;}
+.folderPill{display:inline-flex;align-items:center;padding:7px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;color:#fff;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;opacity:.55;transition:opacity .15s;}
 .folderPill.on{opacity:1;}
 .folderPill.all{background:var(--card);color:var(--fg);}
 .folderModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;opacity:0;pointer-events:none;transition:opacity .2s;}
@@ -1349,10 +1349,23 @@ function renderFolderTabs(){
 }
 function attachFolderLongPress(){
   document.querySelectorAll('.folderPill[data-folder-id]').forEach(el=>{
-    let timer=null;
-    el.addEventListener('touchstart',()=>{ timer=setTimeout(()=>confirmDeleteFolder(parseInt(el.dataset.folderId)),550); },{passive:true});
-    el.addEventListener('touchend',()=>clearTimeout(timer));
-    el.addEventListener('touchmove',()=>clearTimeout(timer));
+    let timer=null,startX=0,startY=0,fired=false;
+    el.addEventListener('touchstart',(e)=>{
+      fired=false;
+      const t=e.touches[0];
+      startX=t.clientX;startY=t.clientY;
+      timer=setTimeout(()=>{
+        fired=true;
+        if(navigator.vibrate)navigator.vibrate(15);
+        confirmDeleteFolder(parseInt(el.dataset.folderId));
+      },500);
+    },{passive:true});
+    el.addEventListener('touchend',()=>{clearTimeout(timer);},{passive:true});
+    el.addEventListener('touchmove',(e)=>{
+      const t=e.touches[0];
+      if(Math.abs(t.clientX-startX)>10||Math.abs(t.clientY-startY)>10){clearTimeout(timer);}
+    },{passive:true});
+    el.addEventListener('click',(e)=>{ if(fired){e.stopPropagation();e.preventDefault();fired=false;} },true);
   });
 }
 function setActiveFolder(id){
@@ -2054,40 +2067,65 @@ function openProfileCard(){
   if(!curChat||curChat==='Избранное')return;
   let meta=chatMeta[curChat];
   let av=document.getElementById('profileCardAv');
+  let bioBox=document.getElementById('profileCardBio');
+  let bannerImg=document.getElementById('profileCardBanner');
+  let openedChat=curChat;
+  let uid=meta?meta.uid:null;
+
+  // базовое состояние карточки (без показа) — заполняем уже известными данными,
+  // чтобы после подгрузки с сервера не было "прыжка" интерфейса
   av.style.background=meta?meta.color:'var(--card2)';
   av.innerHTML='';
   av.textContent=meta?(meta.initials||''):'';
+  if(meta&&meta.avatarUrl){
+    av.style.background='transparent';
+    av.innerHTML='<img src="'+escHtml(meta.avatarUrl)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+  }
   document.getElementById('profileCardName').innerHTML=escHtml((meta&&meta.dispname)?meta.dispname:curChat)+subLogoBigHtml(curChat);
   document.getElementById('profileCardUserText').textContent='@'+curChat;
   document.getElementById('profileCardCopied').classList.remove('show');
-  let bioBox=document.getElementById('profileCardBio');
   bioBox.style.display='none';
   bioBox.textContent='';
-  let bannerImg=document.getElementById('profileCardBanner');
   bannerImg.style.display='none';
   bannerImg.src='';
-  document.getElementById('profileOverlay').classList.add('show');
-  document.getElementById('profileCard').classList.add('show');
-  let uid=meta?meta.uid:null;
-  let openedChat=curChat;
-  if(uid){
-    sb.from('profiles').select('bio,avatar_url,banner_url,subscription_until').eq('id',uid).maybeSingle().then(({data})=>{
-      if(!data||curChat!==openedChat)return;
-      if(data.bio){
-        bioBox.textContent=data.bio;
-        bioBox.style.display='block';
-      }
-      const subActive=data.subscription_until&&new Date(data.subscription_until).getTime()>Date.now();
-      if(subActive&&data.avatar_url){
-        av.style.background='transparent';
-        av.innerHTML='<img src="'+escHtml(data.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-      }
-      if(subActive&&data.banner_url){
-        bannerImg.src=data.banner_url;
-        bannerImg.style.display='block';
-      }
-    }).catch(()=>{});
+
+  let shown=false;
+  function reveal(){
+    if(shown)return;
+    shown=true;
+    document.getElementById('profileOverlay').classList.add('show');
+    document.getElementById('profileCard').classList.add('show');
   }
+
+  if(!uid){
+    reveal();
+    return;
+  }
+
+  // ждём данные с сервера (аватар/баннер/био/подписку) и только потом показываем
+  // карточку целиком — чтобы не было мигания базовой аватаркой без баннера
+  const fetchPromise=sb.from('profiles').select('bio,avatar_url,banner_url,subscription_until').eq('id',uid).maybeSingle().then(({data})=>{
+    if(!data||curChat!==openedChat)return;
+    if(data.bio){
+      bioBox.textContent=data.bio;
+      bioBox.style.display='block';
+    }
+    const subActive=data.subscription_until&&new Date(data.subscription_until).getTime()>Date.now();
+    if(subActive&&data.avatar_url){
+      av.style.background='transparent';
+      av.innerHTML='<img src="'+escHtml(data.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    }
+    if(subActive&&data.banner_url){
+      bannerImg.src=data.banner_url;
+      bannerImg.style.display='block';
+    }
+  }).catch(()=>{});
+
+  // подстраховка: если сеть медленная, всё равно открываем карточку не позже 450мс,
+  // чтобы интерфейс не казался "зависшим"
+  const timeoutPromise=new Promise(res=>setTimeout(res,450));
+  Promise.race([fetchPromise,timeoutPromise]).then(reveal);
+  fetchPromise.then(reveal);
 }
 function closeProfileCard(){
   document.getElementById('profileOverlay').classList.remove('show');
