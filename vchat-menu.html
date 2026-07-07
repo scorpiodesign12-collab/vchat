@@ -98,7 +98,8 @@ body{display:flex;}
 .pScroll::-webkit-scrollbar{display:none;}
 
 /* ---------- новости ---------- */
-.newsCatRow{display:flex;gap:10px;margin:12px 0 14px;flex-shrink:0;}
+.newsCatRow{display:flex;gap:8px;margin:12px 0 14px;flex-shrink:0;}
+.newsCatRow .tbtn{padding:11px 6px;font-size:13px;}
 .newsList{display:flex;flex-direction:column;gap:12px;padding-bottom:16px;}
 .newsCard{background:var(--card);border-radius:16px;overflow:hidden;cursor:pointer;transition:.12s;}
 .newsCard:hover{background:var(--card2);}
@@ -633,7 +634,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="pScroll" id="newsScroll">
         <div class="newsCatRow">
           <button class="tbtn on" id="newsCatSport" onclick="setNewsCategory('sport')">Спорт</button>
-          <button class="tbtn" id="newsCatKind" onclick="setNewsCategory('kind')">Добрые</button>
+          <button class="tbtn" id="newsCatOther" onclick="setNewsCategory('other')">Прочее</button>
+          <button class="tbtn" id="newsCatRecipes" onclick="setNewsCategory('recipes')">Рецепты</button>
         </div>
         <div class="newsList" id="newsList"></div>
         <div class="uEmpty" id="newsEmpty" style="display:none;">Пока нет новостей</div>
@@ -1106,14 +1108,15 @@ async function removeRingtone(){
   showToast('Рингтон удалён');
 }
 
-/* ---------- вкладка "Новости" (Спорт / Добрые), питается из таблицы news_posts ---------- */
+/* ---------- вкладка "Новости" (Спорт / Прочее / Рецепты), питается из таблицы news_posts ---------- */
 let newsCategory='sport';
-let newsCache={sport:null,kind:null};
+let newsCache={sport:null,other:null,recipes:null};
 let newsRefreshTimer=null;
 function setNewsCategory(cat){
   newsCategory=cat;
   document.getElementById('newsCatSport').classList.toggle('on',cat==='sport');
-  document.getElementById('newsCatKind').classList.toggle('on',cat==='kind');
+  document.getElementById('newsCatOther').classList.toggle('on',cat==='other');
+  document.getElementById('newsCatRecipes').classList.toggle('on',cat==='recipes');
   renderNewsList();
   loadNews(cat);
 }
@@ -1144,7 +1147,13 @@ function newsExcerpt(text,len){
 }
 function cleanNewsText(t){
   if(!t)return '';
-  if(/only available in paid plans/i.test(t))return '';
+  // NewsData на бесплатном тарифе добавляет в конец content пометку вида
+  // "...ONLY AVAILABLE IN PAID PLANS" — раньше мы стирали весь текст целиком
+  // из-за этой фразы, хотя реальный текст ДО неё был нормальный и его
+  // можно было показать. Теперь просто обрезаем саму пометку.
+  const marker=/only available in (the )?paid plans/i;
+  const idx=t.search(marker);
+  if(idx!==-1) t=t.slice(0,idx).trim();
   return t;
 }
 function newsDateStr(iso){
