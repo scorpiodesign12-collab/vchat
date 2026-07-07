@@ -370,13 +370,31 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 /* ---------- profile screen ---------- */
 .pCard{background:var(--card);border-radius:20px;padding:24px 18px 18px;display:flex;flex-direction:column;align-items:center;margin-top:14px;position:relative;}
-.pBannerWrap{display:none;width:100%;height:120px;border-radius:20px;overflow:hidden;margin-top:14px;background:var(--card2);}
+.pCard.hasBanner{border-radius:0 0 20px 20px;margin-top:0;padding-top:0;}
+.pCard.hasBanner .pAvWrap{margin-top:-48px;}
+.pBannerWrap{display:none;width:100%;height:150px;border-radius:20px 20px 0 0;overflow:hidden;margin-top:14px;background:var(--card2);position:relative;}
 .pBannerWrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.pBannerFade{position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.42));pointer-events:none;}
 .profileCardBanner{display:none;width:calc(100% + 44px);margin:-28px -22px 14px -22px;height:90px;object-fit:cover;border-radius:22px 22px 0 0;}
 .pMediaRow{display:flex;align-items:center;gap:12px;}
 .pMediaThumb{width:52px;height:36px;border-radius:8px;background:var(--card2);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);}
 .pMediaThumb img{width:100%;height:100%;object-fit:cover;}
 .pMediaThumb.round{width:36px;border-radius:50%;}
+.peCloseX{position:absolute;right:14px;top:10px;width:32px;height:32px;border-radius:50%;background:var(--card2);border:none;display:flex;align-items:center;justify-content:center;color:var(--fg);cursor:pointer;}
+.peCloseX svg{width:15px;height:15px;}
+.peHeaderPreview{position:relative;padding-bottom:8px;}
+.peBannerPreview{width:100%;height:140px;border-radius:20px;overflow:hidden;background:var(--card2);position:relative;}
+.peBannerPreview img{width:100%;height:100%;object-fit:cover;display:block;}
+.peBannerFade{position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.4));pointer-events:none;}
+.peAvatarPreview{position:absolute;left:18px;bottom:-34px;width:88px;height:88px;}
+.peAvBig{width:88px;height:88px;border-radius:50%;background:#2fb0c8;border:4px solid var(--bg);box-shadow:0 2px 12px rgba(0,0,0,.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;}
+.peAvBig img{width:100%;height:100%;object-fit:cover;}
+.peCamBtn{position:absolute;width:34px;height:34px;border-radius:50%;background:rgba(20,20,22,.72);backdrop-filter:blur(2px);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
+.peCamBtn svg{width:15px;height:15px;}
+.peCamBanner{right:12px;bottom:12px;}
+.peCamAvatar{right:-2px;bottom:-2px;width:28px;height:28px;}
+.peCamAvatar svg{width:12px;height:12px;}
+.peMediaCaption{padding:0 4px;color:var(--muted);font-size:12.5px;margin-top:6px;}
 .pMediaBtn{margin-left:auto;background:var(--card2);border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--fg);cursor:pointer;}
 .pLockedRow{opacity:.55;}
 .folderAddBtn{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:var(--card);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -413,7 +431,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .folderChatPick .fcCheck svg{display:none;width:13px;height:13px;color:#fff;}
 .folderHint{font-size:12px;color:var(--muted);margin-top:6px;padding-left:4px;}
 .pAvWrap{position:relative;width:96px;height:96px;flex-shrink:0;}
-.pAvBig{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;background:#2fb0c8;overflow:hidden;}
+.pAvBig{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;background:#2fb0c8;overflow:hidden;border:4px solid var(--card);box-shadow:0 2px 12px rgba(0,0,0,.18);}
 .pAvBig img{width:100%;height:100%;object-fit:cover;}
 .pAvEditBadge{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:#2C7EFF;color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid var(--card);cursor:pointer;flex-shrink:0;}
 .pAvEditBadge svg{width:14px;height:14px;}
@@ -651,7 +669,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="header"><span>Профиль</span></div>
       <div class="pScroll">
       <div style="padding:0 6px;">
-        <div class="pBannerWrap" id="pBannerWrap"><img id="pBannerImg" alt=""></div>
+        <div class="pBannerWrap" id="pBannerWrap"><img id="pBannerImg" alt=""><div class="pBannerFade"></div></div>
         <div class="pCard">
           <div class="pAvWrap">
             <div class="pAvBig" id="pAvBig" style="font-size:44px;font-weight:700;color:#fff;"></div>
@@ -855,30 +873,34 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 <!-- ===== редактирование фото/баннера профиля (VChat Plus) ===== -->
 <div class="pEditPane" id="pMediaEditPane">
-  <div class="pEditTopbar">
-    <button class="peBtn peCancel" onclick="closeProfileMediaEdit()">Закрыть</button>
+  <div class="pEditTopbar" style="position:relative;justify-content:center;">
     <div class="peTitle">Оформление профиля</div>
-    <span style="width:60px;"></span>
+    <button class="peCloseX" onclick="closeProfileMediaEdit()" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
   <div class="pEditBody">
-    <div class="pSecLabel" style="padding-left:4px;">Баннер профиля</div>
-    <div class="pGroup" style="background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:18px;">
-      <div class="pMediaRow">
-        <div class="pMediaThumb" id="pBannerThumb"><span data-icon="camera" style="width:18px;height:18px;"></span></div>
-        <div class="pItemLabel">Фото до 400 КБ или гифка до 500 КБ</div>
-        <button class="pMediaBtn" onclick="document.getElementById('pBannerFileInput').click()">Изменить</button>
+    <div class="peHeaderPreview">
+      <div class="peBannerPreview" id="peBannerPreview">
+        <img id="peBannerImg" alt="" style="display:none;">
+        <div class="peBannerFade"></div>
+        <button class="peCamBtn peCamBanner" onclick="document.getElementById('pBannerFileInput').click()" title="Изменить баннер">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+      </div>
+      <div class="peAvatarPreview">
+        <div class="peAvBig" id="peAvBig"></div>
+        <button class="peCamBtn peCamAvatar" onclick="document.getElementById('pAvatarFileInput').click()" title="Изменить фото">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
       </div>
       <input type="file" id="pBannerFileInput" accept="image/*" style="display:none;" onchange="pmPickBanner(this)">
-    </div>
-    <div class="pSecLabel" style="padding-left:4px;">Фото профиля</div>
-    <div class="pGroup" style="background:var(--card);border-radius:16px;padding:12px 14px;">
-      <div class="pMediaRow">
-        <div class="pMediaThumb round" id="pAvatarThumb"><span data-icon="camera" style="width:16px;height:16px;"></span></div>
-        <div class="pItemLabel">Квадратное фото, до 1000×1000</div>
-        <button class="pMediaBtn" onclick="document.getElementById('pAvatarFileInput').click()">Изменить</button>
-      </div>
       <input type="file" id="pAvatarFileInput" accept="image/*" style="display:none;" onchange="pmPickAvatar(this)">
     </div>
+    <div class="pSecLabel" style="padding-left:4px;margin-top:34px;">Баннер профиля</div>
+    <div class="peMediaCaption">Фото до 400 КБ или гифка до 500 КБ. Нажми на баннер выше, чтобы заменить.</div>
+    <div class="pSecLabel" style="padding-left:4px;margin-top:18px;">Фото профиля</div>
+    <div class="peMediaCaption">Квадратное фото, до 1000×1000. Нажми на аватар выше, чтобы заменить.</div>
   </div>
 </div>
 
@@ -961,6 +983,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 </div>
 <script>
+var vchatUser=null; // объявлено заранее, чтобы initProfile()/renderProfileView() ниже не падали с ReferenceError
 const ICONS={
 back:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
 moon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>`,
@@ -1488,18 +1511,22 @@ function renderProfileView(){
     if(peAvEl){peAvEl.innerHTML='';peAvEl.textContent=letter;peAvEl.style.background=profileData.avatarColor;}
   }
   let bannerWrap=document.getElementById('pBannerWrap');
+  let pCardEl=document.querySelector('.pCard');
   if(bannerWrap){
     if(profileData.bannerUrl){
       document.getElementById('pBannerImg').src=profileData.bannerUrl;
       bannerWrap.style.display='block';
+      if(pCardEl) pCardEl.classList.add('hasBanner');
     }else{
       bannerWrap.style.display='none';
+      if(pCardEl) pCardEl.classList.remove('hasBanner');
     }
   }
-  let bThumb=document.getElementById('pBannerThumb');
-  if(bThumb) bThumb.innerHTML=profileData.bannerUrl?('<img src="'+escHtml(profileData.bannerUrl)+'" alt="">'):(ICONS.camera||'');
-  let aThumb=document.getElementById('pAvatarThumb');
-  if(aThumb) aThumb.innerHTML=profileData.avatarUrl?('<img src="'+escHtml(profileData.avatarUrl)+'" alt="">'):(ICONS.camera||'');
+  let peBannerImg=document.getElementById('peBannerImg');
+  if(peBannerImg){
+    if(profileData.bannerUrl){ peBannerImg.src=profileData.bannerUrl; peBannerImg.style.display='block'; }
+    else{ peBannerImg.style.display='none'; }
+  }
   let mediaRow=document.getElementById('pMediaEditRow');
   if(mediaRow){
     const sub=vchatUser&&isSubActive(vchatUser.username);
@@ -2299,7 +2326,7 @@ function getPublicUrlDirect(path){
   return `${STORAGE_DIRECT_URL}/storage/v1/object/public/chat-files/${path}`;
 }
 
-let vchatUser=null;
+vchatUser=null; // (уже объявлена как var выше, здесь просто сброс)
 
 function previewForRow(m){
   if(m.type==='file') return '📎 '+(m.file_name||'Файл');
