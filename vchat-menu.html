@@ -383,11 +383,12 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .peCloseX{position:absolute;right:14px;top:10px;width:32px;height:32px;border-radius:50%;background:var(--card2);border:none;display:flex;align-items:center;justify-content:center;color:var(--fg);cursor:pointer;}
 .peCloseX svg{width:15px;height:15px;}
 .peHeaderPreview{position:relative;padding-bottom:8px;}
-.peBannerPreview{width:100%;height:140px;border-radius:20px;overflow:hidden;background:var(--card2);position:relative;}
+#pMediaEditPane .pEditBody{max-width:420px;width:100%;margin:0 auto;}
+.peBannerPreview{width:100%;height:112px;border-radius:20px;overflow:hidden;background:var(--card2);position:relative;}
 .peBannerPreview img{width:100%;height:100%;object-fit:cover;display:block;}
 .peBannerFade{position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.4));pointer-events:none;}
-.peAvatarPreview{position:absolute;left:18px;bottom:-34px;width:88px;height:88px;}
-.peAvBig{width:88px;height:88px;border-radius:50%;background:#2fb0c8;border:4px solid var(--bg);box-shadow:0 2px 12px rgba(0,0,0,.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;}
+.peAvatarPreview{position:absolute;left:18px;bottom:-30px;width:80px;height:80px;}
+.peAvBig{width:80px;height:80px;border-radius:50%;background:#2fb0c8;border:4px solid var(--bg);box-shadow:0 2px 12px rgba(0,0,0,.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;}
 .peAvBig img{width:100%;height:100%;object-fit:cover;}
 .peCamBtn{position:absolute;width:34px;height:34px;border-radius:50%;background:rgba(20,20,22,.72);backdrop-filter:blur(2px);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
 .peCamBtn svg{width:15px;height:15px;}
@@ -395,6 +396,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .peCamAvatar{right:-2px;bottom:-2px;width:28px;height:28px;}
 .peCamAvatar svg{width:12px;height:12px;}
 .peMediaCaption{padding:0 4px;color:var(--muted);font-size:12.5px;margin-top:6px;}
+.peRemoveBtn{display:block;margin:8px 4px 0;background:none;border:none;color:#ff453a;font-size:13px;font-weight:600;cursor:pointer;padding:2px;}
 .pMediaBtn{margin-left:auto;background:var(--card2);border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--fg);cursor:pointer;}
 .pLockedRow{opacity:.55;}
 .folderAddBtn{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:var(--card);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -898,9 +900,11 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <input type="file" id="pAvatarFileInput" accept="image/*" style="display:none;" onchange="pmPickAvatar(this)">
     </div>
     <div class="pSecLabel" style="padding-left:4px;margin-top:34px;">Баннер профиля</div>
-    <div class="peMediaCaption">Фото до 400 КБ или гифка до 500 КБ. Нажми на баннер выше, чтобы заменить.</div>
+    <div class="peMediaCaption">Фото до 400 КБ. Нажми на баннер выше, чтобы заменить.</div>
+    <button class="peRemoveBtn" id="peRemoveBannerBtn" onclick="pmRemoveBanner()" style="display:none;">Удалить баннер</button>
     <div class="pSecLabel" style="padding-left:4px;margin-top:18px;">Фото профиля</div>
     <div class="peMediaCaption">Квадратное фото, до 1000×1000. Нажми на аватар выше, чтобы заменить.</div>
+    <button class="peRemoveBtn" id="peRemoveAvatarBtn" onclick="pmRemoveAvatar()" style="display:none;">Удалить фото профиля</button>
   </div>
 </div>
 
@@ -1312,6 +1316,9 @@ function avatarHtmlFor(name){
   let meta=chatMeta[name];
   if(!meta)return '';
   if(meta.kind==='saved')return `<div class="av" style="background:${meta.color};color:#fff;">${meta.icon}</div>`;
+  if(meta.avatarUrl && isSubActive(name)){
+    return `<div class="av" style="background:${meta.color};color:#fff;"><img src="${escHtml(meta.avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`;
+  }
   return `<div class="av" style="background:${meta.color};color:#fff;">${meta.initials}</div>`;
 }
 /* ---------- папки чатов ---------- */
@@ -1527,6 +1534,10 @@ function renderProfileView(){
     if(profileData.bannerUrl){ peBannerImg.src=profileData.bannerUrl; peBannerImg.style.display='block'; }
     else{ peBannerImg.style.display='none'; }
   }
+  let removeBannerBtn=document.getElementById('peRemoveBannerBtn');
+  if(removeBannerBtn) removeBannerBtn.style.display=profileData.bannerUrl?'block':'none';
+  let removeAvatarBtn=document.getElementById('peRemoveAvatarBtn');
+  if(removeAvatarBtn) removeAvatarBtn.style.display=profileData.avatarUrl?'block':'none';
   let mediaRow=document.getElementById('pMediaEditRow');
   if(mediaRow){
     const sub=vchatUser&&isSubActive(vchatUser.username);
@@ -1620,13 +1631,11 @@ async function pmPickBanner(input){
   input.value='';
   if(!file) return;
   if(!vchatUser||!isSubActive(vchatUser.username)){ showToast('Нужна подписка VChat Plus'); return; }
-  if(!file.type.startsWith('image/')){ showToast('Нужен файл изображения'); return; }
-  const isGif=file.type==='image/gif';
-  const limit=isGif?PM_BANNER_GIF_MAX_BYTES:PM_BANNER_IMG_MAX_BYTES;
-  if(file.size>limit){ showToast('Файл слишком большой: максимум '+(isGif?'500 КБ для гифки':'400 КБ для фото')); return; }
+  if(!file.type.startsWith('image/')||file.type==='image/gif'){ showToast('Нужен файл фото (JPG/PNG/WEBP), гифки не поддерживаются'); return; }
+  if(file.size>PM_BANNER_IMG_MAX_BYTES){ showToast('Файл слишком большой: максимум 400 КБ'); return; }
   showToast('Загрузка баннера...');
   try{
-    const ext=isGif?'gif':(file.type.split('/')[1]||'jpg');
+    const ext=file.type.split('/')[1]||'jpg';
     const path=vchatUser.id+'/banner_'+Date.now()+'.'+ext;
     const {error:upErr}=await sb.storage.from('profile-media').upload(path,file,{upsert:true,contentType:file.type});
     if(upErr){ showToast('Ошибка загрузки: '+upErr.message); return; }
@@ -1655,6 +1664,25 @@ async function pmPickAvatar(input){
     profileData.avatarUrl=pub.publicUrl;
     renderProfileView();
     showToast('Фото профиля обновлено');
+  }catch(e){ showToast('Ошибка: '+e.message); }
+}
+
+async function pmRemoveBanner(){
+  if(!vchatUser||!profileData.bannerUrl) return;
+  try{
+    await sb.from('profiles').update({banner_url:null}).eq('id',vchatUser.id);
+    profileData.bannerUrl=null;
+    renderProfileView();
+    showToast('Баннер удалён');
+  }catch(e){ showToast('Ошибка: '+e.message); }
+}
+async function pmRemoveAvatar(){
+  if(!vchatUser||!profileData.avatarUrl) return;
+  try{
+    await sb.from('profiles').update({avatar_url:null}).eq('id',vchatUser.id);
+    profileData.avatarUrl=null;
+    renderProfileView();
+    showToast('Фото профиля удалено');
   }catch(e){ showToast('Ошибка: '+e.message); }
 }
 
@@ -2435,13 +2463,13 @@ async function vchatOpenFromUrl(){
   let username=Object.keys(chatMeta).find(n=>chatMeta[n].uid===uid);
   let dispname=p.get('openname')||'Пользователь';
   if(!username){
-    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until').eq('id',uid).single();
+    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',uid).single();
     if(!prof)return;
     username=prof.username;
     dispname=prof.display_name||prof.username;
     cacheSub(username, prof.subscription_until);
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname,avatarUrl:prof.avatar_url||null};
       chats[username]=[];
     }
     if(!chatOrder.includes(username))chatOrder=[username,...chatOrder];
@@ -2462,7 +2490,7 @@ async function vchatLoadConversations(){
   });
   partnerIds.delete(vchatUser.id);
   if(!partnerIds.size)return;
-  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until').in('id',Array.from(partnerIds));
+  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url').in('id',Array.from(partnerIds));
   if(!profiles)return;
   let idToProfile={};
   profiles.forEach(p=>idToProfile[p.id]=p);
@@ -2473,9 +2501,10 @@ async function vchatLoadConversations(){
     let username=p.username, dispname=p.display_name||p.username;
     cacheSub(username, p.subscription_until);
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname,avatarUrl:p.avatar_url||null};
     }else{
       chatMeta[username].uid=uid;
+      chatMeta[username].avatarUrl=p.avatar_url||null;
     }
     let myMsgs=data.filter(m=>m.sender_id===uid||m.receiver_id===uid);
     chats[username]=myMsgs.map(m=>dbRowToLocal(m));
@@ -2518,29 +2547,35 @@ function onUserSearchInput(q){
   wrap.classList.add('loading');
   vchatSearchTimer=setTimeout(async ()=>{
     if(!vchatUser){return;}
-    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
     wrap.classList.remove('loading');
     if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
     data.forEach(u=>cacheSub(u.username,u.subscription_until));
     box.innerHTML=data.map(u=>{
       let dn=u.display_name||u.username;
-      return `<div class="row" onclick="selectUser('${u.username}','${u.id}','${dn.replace(/'/g,"\\'")}')">
-        <div class="av" style="background:#555;color:#fff;">${dn[0].toUpperCase()}</div>
+      const subActive=isSubActive(u.username);
+      const showImg=subActive&&u.avatar_url;
+      const avInner=showImg?('<img src="'+escHtml(u.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'):dn[0].toUpperCase();
+      const avStyle=showImg?'':'background:#555;color:#fff;';
+      return `<div class="row" onclick="selectUser('${u.username}','${u.id}','${dn.replace(/'/g,"\\'")}','${encodeURIComponent(u.avatar_url||'')}')">
+        <div class="av" style="${avStyle}">${avInner}</div>
         <div class="rowtext"><b>${escHtml(dn)}${verifiedBadgeHtml(u.username)}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
       </div>`;
     }).join('');
   },350);
 }
 
-async function selectUser(username,uid,dispname){
+async function selectUser(username,uid,dispname,avatarUrlEnc){
+  const avatarUrl=avatarUrlEnc?decodeURIComponent(avatarUrlEnc):null;
   document.getElementById('userSearchInput').value='';
   document.getElementById('uResults').innerHTML='';
   document.getElementById('chatRows').style.display='';
   if(!chatMeta[username]){
-    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0,dispname:dispname};
+    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0,dispname:dispname,avatarUrl:avatarUrl};
     chats[username]=[];
   }
   chatMeta[username].uid=uid;
+  chatMeta[username].avatarUrl=avatarUrl;
   if(!chatOrder.includes(username))chatOrder=[username,...chatOrder];
   renderChatRows();
   await vchatOpenRealChat(username,uid,dispname);
@@ -2640,11 +2675,11 @@ function vchatSubscribeMessages(){
       if(name){
         vchatPushIncoming(name,m);
       }else{
-        sb.from('profiles').select('username,display_name,subscription_until').eq('id',m.sender_id).single().then(({data})=>{
+        sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',m.sender_id).single().then(({data})=>{
           if(!data)return;
           let nm=data.username, dn=data.display_name||data.username;
           cacheSub(nm, data.subscription_until);
-          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
+          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn,avatarUrl:data.avatar_url||null};
           chats[nm]=[];
           if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
           vchatPushIncoming(nm,m);
@@ -2704,11 +2739,11 @@ async function vchatPollNewMessages(){
     if(name){
       if(!chats[name]||!chats[name].some(x=>x.id===m.id))vchatPushIncoming(name,m);
     }else{
-      const {data:p}=await sb.from('profiles').select('username,display_name,subscription_until').eq('id',m.sender_id).single();
+      const {data:p}=await sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',m.sender_id).single();
       if(!p)continue;
       let nm=p.username, dn=p.display_name||p.username;
       cacheSub(nm, p.subscription_until);
-      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
+      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn,avatarUrl:p.avatar_url||null};
       chats[nm]=[];
       if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
       vchatPushIncoming(nm,m);
