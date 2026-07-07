@@ -69,12 +69,6 @@ body{display:flex;}
 #tabChats .header span{flex:1;}
 .content{flex:1;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;}
 .row{display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:12px;transition:.12s;}
-.chatRowWrap{position:relative;overflow:hidden;border-radius:12px;}
-.chatRowWrap .rowInner{background:var(--bg);position:relative;z-index:2;touch-action:pan-y;will-change:transform;}
-.rowPinBtn{position:absolute;top:0;right:0;bottom:0;width:64px;background:#2C7EFF;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1;border-top-right-radius:12px;border-bottom-right-radius:12px;}
-.rowPinBtn svg{width:20px;height:20px;}
-.rowPinIcon{color:#2C7EFF;flex-shrink:0;display:flex;margin-right:2px;}
-.rowPinIcon svg{width:14px;height:14px;}
 .rowBadge{flex-shrink:0;background:#2C7EFF;color:#fff;font-size:12px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 6px;}
 .typingText{color:#2C7EFF;font-weight:600;}
 .typingDotsRow{display:inline-flex;gap:3px;align-items:center;vertical-align:middle;margin-left:2px;}
@@ -310,7 +304,7 @@ body{display:flex;}
   70%{box-shadow:0 0 0 22px rgba(44,126,255,0);}
   100%{box-shadow:0 0 0 0 rgba(44,126,255,0);}
 }
-.callName{font-size:24px;font-weight:700;margin-top:8px;}
+.callName{font-size:24px;font-weight:700;margin-top:8px;color:var(--fg);}
 .callTimer{font-size:15px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums;}
 .controls{display:flex;align-items:center;justify-content:center;gap:28px;width:100%;max-width:380px;}
 .cbtn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;}
@@ -376,70 +370,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 /* ---------- profile screen ---------- */
 .pCard{background:var(--card);border-radius:20px;padding:24px 18px 18px;display:flex;flex-direction:column;align-items:center;margin-top:14px;position:relative;}
-.pCard.hasBanner{border-radius:0 0 20px 20px;margin-top:0;padding-top:0;}
-.pCard.hasBanner .pAvWrap{margin-top:-48px;}
-.pBannerWrap{display:none;width:100%;height:150px;border-radius:20px 20px 0 0;overflow:hidden;margin-top:14px;background:var(--card2);position:relative;}
-.pBannerWrap img{width:100%;height:100%;object-fit:cover;display:block;}
-.pBannerFade{position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.42));pointer-events:none;}
-.profileCardBanner{display:none;width:calc(100% + 44px);margin:-28px -22px 14px -22px;height:90px;object-fit:cover;border-radius:22px 22px 0 0;}
-.pMediaRow{display:flex;align-items:center;gap:12px;}
-.pMediaThumb{width:52px;height:36px;border-radius:8px;background:var(--card2);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);}
-.pMediaThumb img{width:100%;height:100%;object-fit:cover;}
-.pMediaThumb.round{width:36px;border-radius:50%;}
-.peCloseX{position:absolute;right:14px;top:10px;width:32px;height:32px;border-radius:50%;background:var(--card2);border:none;display:flex;align-items:center;justify-content:center;color:var(--fg);cursor:pointer;}
-.peCloseX svg{width:15px;height:15px;}
-.peHeaderPreview{position:relative;padding-bottom:8px;}
-#pMediaEditPane .pEditBody{max-width:420px;width:100%;margin:0 auto;}
-.peBannerPreview{width:100%;height:112px;border-radius:20px;overflow:hidden;background:var(--card2);position:relative;}
-.peBannerPreview img{width:100%;height:100%;object-fit:cover;display:block;}
-.peBannerFade{position:absolute;left:0;right:0;bottom:0;height:65%;background:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.4));pointer-events:none;}
-.peAvatarPreview{position:absolute;left:18px;bottom:-30px;width:80px;height:80px;}
-.peAvBig{width:80px;height:80px;border-radius:50%;background:#2fb0c8;border:4px solid var(--bg);box-shadow:0 2px 12px rgba(0,0,0,.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;}
-.peAvBig img{width:100%;height:100%;object-fit:cover;}
-.peCamBtn{position:absolute;width:34px;height:34px;border-radius:50%;background:rgba(20,20,22,.72);backdrop-filter:blur(2px);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
-.peCamBtn svg{width:15px;height:15px;}
-.peCamBanner{right:12px;bottom:12px;}
-.peCamAvatar{right:-2px;bottom:-2px;width:28px;height:28px;}
-.peCamAvatar svg{width:12px;height:12px;}
-.peMediaCaption{padding:0 4px;color:var(--muted);font-size:12.5px;margin-top:6px;}
-.peRemoveBtn{display:block;margin:8px 4px 0;background:none;border:none;color:#ff453a;font-size:13px;font-weight:600;cursor:pointer;padding:2px;}
-.pMediaBtn{margin-left:auto;background:var(--card2);border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--fg);cursor:pointer;}
-.pLockedRow{opacity:.55;}
-.folderAddBtn{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:var(--card);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.folderAddBtn svg{width:18px;height:18px;}
-.folderAddBtn:active{transform:translateY(-50%) scale(.9);}
-.folderTabsWrap{display:none;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
-.folderTabsWrap::-webkit-scrollbar{display:none;}
-.folderTabs{display:flex;gap:8px;white-space:nowrap;}
-.folderPill{display:inline-flex;align-items:center;padding:7px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;color:#fff;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;opacity:.55;transition:opacity .15s;}
-.folderPill.on{opacity:1;}
-.folderPill.all{background:var(--card);color:var(--fg);}
-.folderModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;opacity:0;pointer-events:none;transition:opacity .2s;}
-.folderModalOverlay.show{opacity:1;pointer-events:auto;}
-.folderModal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.92);width:320px;max-width:88vw;max-height:80vh;background:var(--bg);border-radius:20px;z-index:401;opacity:0;pointer-events:none;transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.28);}
-.folderModal.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
-.folderModalHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);flex-shrink:0;}
-.folderModalHead .peBtn{background:none;border:none;font-size:15px;cursor:pointer;color:var(--fg);}
-.folderModalHead .peSave{color:#2C7EFF;font-weight:600;}
-.folderModalHead .peTitle{font-size:15px;font-weight:700;color:var(--fg);}
-.folderModalBody{padding:14px 16px 20px;overflow-y:auto;}
-.folderNameInput{width:100%;background:var(--card);border:none;border-radius:12px;padding:12px 14px;font-size:15px;color:var(--fg);box-sizing:border-box;}
-.folderNameInput::placeholder{color:var(--muted);}
-.folderColorRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
-.folderColorDot{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid transparent;flex-shrink:0;box-sizing:border-box;}
-.folderColorDot.on{border-color:var(--fg);}
-.folderChatList{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto;margin-top:8px;}
-.folderChatPick{display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:12px;cursor:pointer;}
-.folderChatPick:active{background:var(--card);}
-.folderChatPick .fcAv{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
-.folderChatPick .fcName{flex:1;font-size:14.5px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.folderChatPick .fcCheck{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box;}
-.folderChatPick.picked .fcCheck{background:#2C7EFF;border-color:#2C7EFF;}
-.folderChatPick.picked .fcCheck svg{display:block;}
-.folderChatPick .fcCheck svg{display:none;width:13px;height:13px;color:#fff;}
-.folderHint{font-size:12px;color:var(--muted);margin-top:6px;padding-left:4px;}
 .pAvWrap{position:relative;width:96px;height:96px;flex-shrink:0;}
-.pAvBig{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;background:#2fb0c8;overflow:hidden;border:4px solid var(--card);box-shadow:0 2px 12px rgba(0,0,0,.18);}
+.pAvBig{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;background:#2fb0c8;overflow:hidden;}
 .pAvBig img{width:100%;height:100%;object-fit:cover;}
 .pAvEditBadge{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:#2C7EFF;color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid var(--card);cursor:pointer;flex-shrink:0;}
 .pAvEditBadge svg{width:14px;height:14px;}
@@ -534,12 +466,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div class="tab on" id="tabChats">
       <!-- Chat list -->
       <div class="chatListPane">
-        <div class="header" style="position:relative;">
-          <span>Чаты</span>
-          <button class="folderAddBtn" onclick="openFolderCreate()" title="Создать папку">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-        </div>
+        <div class="header"><span>Чаты</span></div>
         <div class="searchWrap">
           <div class="searchBox" id="userSearchBox">
             <svg class="uSearchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -549,9 +476,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-        </div>
-        <div class="folderTabsWrap" id="folderTabsWrap">
-          <div class="folderTabs" id="folderTabs"></div>
         </div>
         <div class="uResults" id="uResults"></div>
         <div id="chatRows"></div>
@@ -639,7 +563,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="pScroll" id="newsScroll">
         <div class="newsCatRow">
           <button class="tbtn on" id="newsCatSport" onclick="setNewsCategory('sport')">Спорт</button>
-          <button class="tbtn" id="newsCatOther" onclick="setNewsCategory('other')">Прочее</button>
+          <button class="tbtn" id="newsCatKind" onclick="setNewsCategory('kind')">Добрые</button>
         </div>
         <div class="newsList" id="newsList"></div>
         <div class="uEmpty" id="newsEmpty" style="display:none;">Пока нет новостей</div>
@@ -677,7 +601,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="header"><span>Профиль</span></div>
       <div class="pScroll">
       <div style="padding:0 6px;">
-        <div class="pBannerWrap" id="pBannerWrap"><img id="pBannerImg" alt=""><div class="pBannerFade"></div></div>
         <div class="pCard">
           <div class="pAvWrap">
             <div class="pAvBig" id="pAvBig" style="font-size:44px;font-weight:700;color:#fff;"></div>
@@ -721,10 +644,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <div class="pItem" style="cursor:pointer;align-items:flex-start;" onclick="openProfileEdit()">
               <div class="pIconWrap" style="background:#34c759;" data-icon="pencil"></div>
               <div class="pItemBody"><div class="pItemLabel">О себе</div><div class="pItemValue" id="pBioVal" style="white-space:pre-line;color:var(--fg);">Добавить описание</div></div>
-            </div>
-            <div class="pItem" id="pMediaEditRow" style="cursor:pointer;" onclick="openProfileMediaEdit()">
-              <div class="pIconWrap" style="background:#D81B60;" data-icon="camera"></div>
-              <div class="pItemBody"><div class="pItemLabel">Оформление профиля</div><div class="pItemValue" style="color:var(--muted);">Баннер и фото — VChat Plus</div></div>
             </div>
           </div>
         </div>
@@ -821,7 +740,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
 
         <div style="margin-top:28px;text-align:center;">
-          <div style="font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.02em;">Версия 0.1.2</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.02em;">Версия 0.1.1 beta</div>
           <div style="font-size:11.5px;color:var(--muted);margin-top:6px;opacity:.6;">Nikita Vinarchuk by Vchat</div>
         </div>
 
@@ -850,7 +769,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 <div class="profileOverlay" id="profileOverlay" onclick="closeProfileCard()"></div>
 <div class="profileCard" id="profileCard">
   <button class="profileCardClose" onclick="closeProfileCard()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <img class="profileCardBanner" id="profileCardBanner" alt="">
   <div class="profileCardAv" id="profileCardAv"></div>
   <div class="profileCardName" id="profileCardName"></div>
   <div class="profileCardUser" id="profileCardUser" onclick="copyProfileUsername()" title="Скопировать юзернейм">
@@ -859,59 +777,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   </div>
   <div class="profileCardCopied" id="profileCardCopied">Скопировано</div>
   <div class="profileCardBio" id="profileCardBio" style="display:none;"></div>
-</div>
-
-<!-- ===== создание папки чатов ===== -->
-<div class="folderModalOverlay" id="folderModalOverlay" onclick="closeFolderCreate()"></div>
-<div class="folderModal" id="folderModal">
-  <div class="folderModalHead">
-    <button class="peBtn peCancel" onclick="closeFolderCreate()">Отмена</button>
-    <div class="peTitle">Новая папка</div>
-    <button class="peBtn peSave" onclick="saveFolderCreate()">Создать</button>
-  </div>
-  <div class="folderModalBody">
-    <input id="folderNameInput" class="folderNameInput" placeholder="Название папки" maxlength="16" oninput="folderNameSanitize(this)">
-    <div class="folderHint">до 16 символов, только строчные буквы</div>
-    <div class="pSecLabel" style="padding-left:4px;margin-top:16px;">Цвет папки</div>
-    <div class="folderColorRow" id="folderColorRow"></div>
-    <div class="pSecLabel" style="padding-left:4px;margin-top:16px;">Чаты (до 10)</div>
-    <div class="folderChatList" id="folderChatList"></div>
-  </div>
-</div>
-
-<!-- ===== редактирование фото/баннера профиля (VChat Plus) ===== -->
-<div class="pEditPane" id="pMediaEditPane">
-  <div class="pEditTopbar" style="position:relative;justify-content:center;">
-    <div class="peTitle">Оформление профиля</div>
-    <button class="peCloseX" onclick="closeProfileMediaEdit()" aria-label="Закрыть">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div class="pEditBody">
-    <div class="peHeaderPreview">
-      <div class="peBannerPreview" id="peBannerPreview">
-        <img id="peBannerImg" alt="" style="display:none;">
-        <div class="peBannerFade"></div>
-        <button class="peCamBtn peCamBanner" onclick="document.getElementById('pBannerFileInput').click()" title="Изменить баннер">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </button>
-      </div>
-      <div class="peAvatarPreview">
-        <div class="peAvBig" id="peAvBig"></div>
-        <button class="peCamBtn peCamAvatar" onclick="document.getElementById('pAvatarFileInput').click()" title="Изменить фото">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </button>
-      </div>
-      <input type="file" id="pBannerFileInput" accept="image/*" style="display:none;" onchange="pmPickBanner(this)">
-      <input type="file" id="pAvatarFileInput" accept="image/*" style="display:none;" onchange="pmPickAvatar(this)">
-    </div>
-    <div class="pSecLabel" style="padding-left:4px;margin-top:34px;">Баннер профиля</div>
-    <div class="peMediaCaption">Фото до 400 КБ. Нажми на баннер выше, чтобы заменить.</div>
-    <button class="peRemoveBtn" id="peRemoveBannerBtn" onclick="pmRemoveBanner()" style="display:none;">Удалить баннер</button>
-    <div class="pSecLabel" style="padding-left:4px;margin-top:18px;">Фото профиля</div>
-    <div class="peMediaCaption">Квадратное фото, до 1000×1000. Нажми на аватар выше, чтобы заменить.</div>
-    <button class="peRemoveBtn" id="peRemoveAvatarBtn" onclick="pmRemoveAvatar()" style="display:none;">Удалить фото профиля</button>
-  </div>
 </div>
 
 <!-- ===== встроенный экран звонка ===== -->
@@ -944,12 +809,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 3.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
       </button>
       <span class="outgoingLabel">Завершить</span>
-    </div>
-    <div class="btnCol">
-      <button class="cbtn speaker" id="speakerBtn" onclick="vcToggleSpeaker()" title="Громкая связь">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-      </button>
-      <span class="outgoingLabel" id="speakerLabel">Динамик</span>
     </div>
   </div>
 
@@ -993,7 +852,6 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 </div>
 <script>
-var vchatUser=null; // объявлено заранее, чтобы initProfile()/renderProfileView() ниже не падали с ReferenceError
 const ICONS={
 back:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
 moon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>`,
@@ -1009,7 +867,6 @@ search:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 reply:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`,
 pin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
 pinned:`<svg viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
-pinRow:`<svg viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg>`,
 unpin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.4-1.4c-.5-.5-.8-1.2-.8-1.9V9a5.8 5.8 0 0 0-11.6 0v4.7c0 .7-.3 1.4-.8 1.9z"/></svg><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/>`,
 check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
 checkdbl:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 7 9 18 4 13"/><polyline points="22 7 13 18 11 16"/></svg>`,
@@ -1018,7 +875,6 @@ pencil:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 at:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-5.5 8.3"/></svg>`,
 status:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
 device:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>`,
-camera:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
 clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`,
 call:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z"/></svg>`,
 callMissed:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 7 17 13 11 7"/><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z" fill="currentColor" stroke="none"/></svg>`,
@@ -1113,14 +969,14 @@ async function removeRingtone(){
   showToast('Рингтон удалён');
 }
 
-/* ---------- вкладка "Новости" (Спорт / Прочее), питается из таблицы news_posts ---------- */
+/* ---------- вкладка "Новости" (Спорт / Добрые), питается из таблицы news_posts ---------- */
 let newsCategory='sport';
-let newsCache={sport:null,other:null};
+let newsCache={sport:null,kind:null};
 let newsRefreshTimer=null;
 function setNewsCategory(cat){
   newsCategory=cat;
   document.getElementById('newsCatSport').classList.toggle('on',cat==='sport');
-  document.getElementById('newsCatOther').classList.toggle('on',cat==='other');
+  document.getElementById('newsCatKind').classList.toggle('on',cat==='kind');
   renderNewsList();
   loadNews(cat);
 }
@@ -1151,13 +1007,7 @@ function newsExcerpt(text,len){
 }
 function cleanNewsText(t){
   if(!t)return '';
-  // NewsData на бесплатном тарифе добавляет в конец content пометку вида
-  // "...ONLY AVAILABLE IN PAID PLANS" — раньше мы стирали весь текст целиком
-  // из-за этой фразы, хотя реальный текст ДО неё был нормальный и его
-  // можно было показать. Теперь просто обрезаем саму пометку.
-  const marker=/only available in (the )?paid plans/i;
-  const idx=t.search(marker);
-  if(idx!==-1) t=t.slice(0,idx).trim();
+  if(/only available in paid plans/i.test(t))return '';
   return t;
 }
 function newsDateStr(iso){
@@ -1295,101 +1145,6 @@ let chatMeta={
 };
 let chatOrder=[]; // names of user chats (excluding Избранное), most recent first
 
-/* ---------- закрепление чатов свайпом (мобильные/планшет) ---------- */
-let pinnedChats=new Set();
-let openSwipeChatName=null;
-function loadPinnedChats(){
-  try{
-    let raw=localStorage.getItem('vchatPinned_'+(vchatUser?vchatUser.id:'anon'));
-    pinnedChats=new Set(raw?JSON.parse(raw):[]);
-  }catch(e){ pinnedChats=new Set(); }
-}
-function savePinnedChats(){
-  try{ localStorage.setItem('vchatPinned_'+(vchatUser?vchatUser.id:'anon'), JSON.stringify(Array.from(pinnedChats))); }catch(e){}
-}
-function togglePinChat(name){
-  if(name==='Избранное')return;
-  if(pinnedChats.has(name)){ pinnedChats.delete(name); showToast('Чат откреплён'); }
-  else{ pinnedChats.add(name); showToast('Чат закреплён'); }
-  savePinnedChats();
-  renderChatRows();
-}
-function closeChatRowSwipe(){
-  if(!openSwipeChatName)return;
-  let wrap=document.querySelector(`.chatRowWrap[data-chat="${CSS.escape(openSwipeChatName)}"] .rowInner`);
-  if(wrap){
-    wrap.style.transition='transform .18s';
-    wrap.style.transform='translateX(0)';
-    setTimeout(()=>{wrap.style.transition='';},200);
-  }
-  openSwipeChatName=null;
-}
-function openChatRowSwipe(name){
-  let wrap=document.querySelector(`.chatRowWrap[data-chat="${CSS.escape(name)}"] .rowInner`);
-  if(!wrap)return;
-  if(openSwipeChatName&&openSwipeChatName!==name)closeChatRowSwipe();
-  wrap.style.transition='transform .18s';
-  wrap.style.transform='translateX(-64px)';
-  openSwipeChatName=name;
-  setTimeout(()=>{wrap.style.transition='';},200);
-}
-let chatRowSwipeGlobalBound=false;
-function attachChatRowSwipe(){
-  if(!chatRowSwipeGlobalBound){
-    chatRowSwipeGlobalBound=true;
-    document.addEventListener('click',(e)=>{
-      if(!openSwipeChatName)return;
-      if(e.target.closest('.chatRowWrap[data-chat="'+CSS.escape(openSwipeChatName)+'"]'))return;
-      closeChatRowSwipe();
-    });
-  }
-  document.querySelectorAll('.chatRowWrap').forEach(wrapEl=>{
-    const name=wrapEl.dataset.chat;
-    if(name==='Избранное')return; // избранное всегда сверху, не свайпается
-    const inner=wrapEl.querySelector('.rowInner');
-    const pinBtn=wrapEl.querySelector('.rowPinBtn');
-    if(!inner||!pinBtn)return;
-    let startX=0,curX=0,dragging=false,baseX=0;
-    inner.addEventListener('touchstart',e=>{
-      startX=e.touches[0].clientX;
-      dragging=true;
-      baseX=(openSwipeChatName===name)?-64:0;
-    },{passive:true});
-    inner.addEventListener('touchmove',e=>{
-      if(!dragging)return;
-      let dx=e.touches[0].clientX-startX;
-      let x=Math.min(0,Math.max(-64,baseX+dx));
-      curX=x;
-      inner.style.transform=`translateX(${x}px)`;
-    },{passive:true});
-    inner.addEventListener('touchend',()=>{
-      dragging=false;
-      inner.style.transition='transform .18s';
-      if(curX<-32){
-        if(openSwipeChatName&&openSwipeChatName!==name)closeChatRowSwipe();
-        inner.style.transform='translateX(-64px)';
-        openSwipeChatName=name;
-      }else{
-        inner.style.transform='translateX(0)';
-        if(openSwipeChatName===name)openSwipeChatName=null;
-      }
-      setTimeout(()=>{inner.style.transition='';},200);
-      curX=(openSwipeChatName===name)?-64:0;
-    });
-    // ПКМ на компьютере — та же анимация, что и свайп пальцем
-    inner.addEventListener('contextmenu',e=>{
-      e.preventDefault();
-      if(openSwipeChatName===name){ closeChatRowSwipe(); }
-      else{ openChatRowSwipe(name); }
-    });
-    pinBtn.onclick=(e)=>{
-      e.stopPropagation();
-      togglePinChat(name);
-      closeChatRowSwipe();
-    };
-  });
-}
-
 function nowTime(){
   let d=new Date();
   return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
@@ -1424,138 +1179,8 @@ function avatarHtmlFor(name){
   let meta=chatMeta[name];
   if(!meta)return '';
   if(meta.kind==='saved')return `<div class="av" style="background:${meta.color};color:#fff;">${meta.icon}</div>`;
-  if(meta.avatarUrl && isSubActive(name)){
-    return `<div class="av" style="background:${meta.color};color:#fff;"><img src="${escHtml(meta.avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`;
-  }
   return `<div class="av" style="background:${meta.color};color:#fff;">${meta.initials}</div>`;
 }
-/* ---------- папки чатов ---------- */
-const FOLDER_COLORS=['#FF3B30','#FF9500','#FFCC00','#34C759','#2C7EFF','#5E5CE6','#AF52DE','#FF2D92'];
-let folders=[];
-let activeFolderId=null;
-let folderPickedChats=new Set();
-let folderPickedColor=FOLDER_COLORS[4];
-
-async function vchatLoadFolders(){
-  if(!vchatUser)return;
-  const {data,error}=await sb.from('chat_folders').select('*').eq('user_id',vchatUser.id).order('position',{ascending:true});
-  if(error||!data)return;
-  folders=data;
-  renderFolderTabs();
-}
-function renderFolderTabs(){
-  const wrap=document.getElementById('folderTabsWrap');
-  const box=document.getElementById('folderTabs');
-  if(!folders.length){ wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  let html='<div class="folderPill all'+(activeFolderId===null?' on':'')+'" onclick="setActiveFolder(null)">Все чаты</div>';
-  folders.forEach(f=>{
-    html+='<div class="folderPill'+(activeFolderId===f.id?' on':'')+'" style="background:'+f.color+';" data-folder-id="'+f.id+'" onclick="setActiveFolder('+f.id+')" oncontextmenu="event.preventDefault();confirmDeleteFolder('+f.id+');">'+escHtml(f.name)+'</div>';
-  });
-  box.innerHTML=html;
-  attachFolderLongPress();
-}
-function attachFolderLongPress(){
-  document.querySelectorAll('.folderPill[data-folder-id]').forEach(el=>{
-    let timer=null,startX=0,startY=0,fired=false;
-    el.addEventListener('touchstart',(e)=>{
-      fired=false;
-      const t=e.touches[0];
-      startX=t.clientX;startY=t.clientY;
-      timer=setTimeout(()=>{
-        fired=true;
-        if(navigator.vibrate)navigator.vibrate(15);
-        confirmDeleteFolder(parseInt(el.dataset.folderId));
-      },500);
-    },{passive:true});
-    el.addEventListener('touchend',()=>{clearTimeout(timer);},{passive:true});
-    el.addEventListener('touchmove',(e)=>{
-      const t=e.touches[0];
-      if(Math.abs(t.clientX-startX)>10||Math.abs(t.clientY-startY)>10){clearTimeout(timer);}
-    },{passive:true});
-    el.addEventListener('click',(e)=>{ if(fired){e.stopPropagation();e.preventDefault();fired=false;} },true);
-  });
-}
-function setActiveFolder(id){
-  activeFolderId=id;
-  renderFolderTabs();
-  renderChatRows();
-}
-function confirmDeleteFolder(id){
-  const f=folders.find(x=>x.id===id);
-  if(!f)return;
-  if(confirm('Удалить папку "'+f.name+'"? Чаты вернутся на главный экран.')){
-    deleteFolderNow(id);
-  }
-}
-async function deleteFolderNow(id){
-  await sb.from('chat_folders').delete().eq('id',id).eq('user_id',vchatUser.id);
-  folders=folders.filter(f=>f.id!==id);
-  if(activeFolderId===id)activeFolderId=null;
-  renderFolderTabs();
-  renderChatRows();
-  showToast('Папка удалена');
-}
-function openFolderCreate(){
-  if(!vchatUser)return;
-  if(folders.length>=5){ showToast('Можно создать не больше 5 папок'); return; }
-  folderPickedChats=new Set();
-  folderPickedColor=FOLDER_COLORS[Math.floor(Math.random()*FOLDER_COLORS.length)];
-  document.getElementById('folderNameInput').value='';
-  renderFolderColorRow();
-  renderFolderChatPickList();
-  document.getElementById('folderModalOverlay').classList.add('show');
-  document.getElementById('folderModal').classList.add('show');
-}
-function closeFolderCreate(){
-  document.getElementById('folderModalOverlay').classList.remove('show');
-  document.getElementById('folderModal').classList.remove('show');
-}
-function renderFolderColorRow(){
-  const box=document.getElementById('folderColorRow');
-  box.innerHTML=FOLDER_COLORS.map(c=>'<div class="folderColorDot'+(c===folderPickedColor?' on':'')+'" style="background:'+c+';" onclick="pickFolderColor(\''+c+'\')"></div>').join('');
-}
-function pickFolderColor(c){ folderPickedColor=c; renderFolderColorRow(); }
-function renderFolderChatPickList(){
-  const box=document.getElementById('folderChatList');
-  let names=['Избранное',...chatOrder];
-  box.innerHTML=names.map(name=>{
-    const meta=chatMeta[name];
-    const picked=folderPickedChats.has(name);
-    let avHtml;
-    if(meta&&meta.kind==='saved'){ avHtml='<div class="fcAv" style="background:'+meta.color+';">'+meta.icon+'</div>'; }
-    else{ avHtml='<div class="fcAv" style="background:'+(meta?meta.color:'#999')+';">'+(meta?meta.initials:'?')+'</div>'; }
-    const safeName=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    return '<div class="folderChatPick'+(picked?' picked':'')+'" onclick="toggleFolderChatPick(\''+safeName+'\')">'+avHtml+'<div class="fcName">'+escHtml(name)+'</div><div class="fcCheck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>';
-  }).join('');
-}
-function toggleFolderChatPick(name){
-  if(folderPickedChats.has(name)){ folderPickedChats.delete(name); }
-  else{
-    if(folderPickedChats.size>=10){ showToast('Максимум 10 чатов в папке'); return; }
-    folderPickedChats.add(name);
-  }
-  renderFolderChatPickList();
-}
-function folderNameSanitize(el){
-  el.value=el.value.toLowerCase();
-}
-async function saveFolderCreate(){
-  let name=document.getElementById('folderNameInput').value.trim();
-  if(!name){ showToast('Введите название папки'); return; }
-  if(!folderPickedChats.size){ showToast('Выберите хотя бы один чат'); return; }
-  if(!vchatUser)return;
-  const {data,error}=await sb.from('chat_folders').insert({
-    user_id:vchatUser.id, name:name, color:folderPickedColor,
-    chat_usernames:Array.from(folderPickedChats), position:folders.length
-  }).select().single();
-  if(error){ showToast('Ошибка: '+error.message); return; }
-  folders.push(data);
-  closeFolderCreate();
-  renderFolderTabs();
-  showToast('Папка создана');
-}
-
 function chatRowHtml(name){
   let meta=chatMeta[name];
   const ch=`<span class="rowchev">${ICONS.chevron}</span>`;
@@ -1567,54 +1192,25 @@ function chatRowHtml(name){
   }else{
     preview=escHtml(meta.last||'');
   }
-  let pinIcon=(name!=='Избранное'&&pinnedChats.has(name))?`<span class="rowPinIcon">${ICONS.pinRow}</span>`:'';
-  let rowInner=`<div class="row rowInner" data-chat="${escHtml(name)}">
+  return `<div class="row" data-chat="${escHtml(name)}">
       ${avatarHtmlFor(name)}
       <div class="rowtext"><b>${escHtml(name)}${verifiedBadgeHtml(name)}</b><div class="rowPreview">${preview}</div></div>
-      ${pinIcon}${badge}
+      ${badge}
       ${ch}
-    </div>`;
-  if(name==='Избранное'){
-    // избранное всегда сверху и не свайпается/не закрепляется отдельно
-    return `<div class="chatRowWrap" data-chat="${escHtml(name)}">${rowInner}</div>`;
-  }
-  return `<div class="chatRowWrap" data-chat="${escHtml(name)}">
-      <button class="rowPinBtn" data-chat="${escHtml(name)}" title="Закрепить чат">${ICONS.pinRow}</button>
-      ${rowInner}
     </div>`;
 }
 function renderChatRows(){
-  let names=chatOrder;
-  let showSaved=true;
-  if(activeFolderId!==null){
-    let f=folders.find(x=>x.id===activeFolderId);
-    if(f){
-      let set=new Set(f.chat_usernames||[]);
-      names=chatOrder.filter(n=>set.has(n));
-      showSaved=set.has('Избранное');
-    }
-  }
-  // закреплённые чаты — сразу после Избранного, остальные — как раньше (по последней активности)
-  let pinned=names.filter(n=>pinnedChats.has(n));
-  let rest=names.filter(n=>!pinnedChats.has(n));
-  names=[...pinned,...rest];
-  let html=(showSaved?chatRowHtml('Избранное'):'')+names.map(n=>chatRowHtml(n)).join('');
+  let html=chatRowHtml('Избранное')+chatOrder.map(n=>chatRowHtml(n)).join('');
   let box=document.getElementById('chatRows');
   box.innerHTML=html;
-  box.querySelectorAll('.row').forEach(r=>{
-    r.onclick=()=>{
-      if(openSwipeChatName===r.dataset.chat){ closeChatRowSwipe(); return; }
-      openChat(r.dataset.chat);
-    };
-  });
-  attachChatRowSwipe();
+  box.querySelectorAll('.row').forEach(r=>{r.onclick=()=>openChat(r.dataset.chat);});
   updateUnreadBadge();
 }
 function buildChatRows(){renderChatRows();}
 function buildFriendRows(){
   /* Друзья: статичный экран "скоро" — рендер не требуется */
 }
-let profileData={name:'Test',nick:'testt',bio:'',avatarColor:randomAvatarColor(),avatarUrl:null,bannerUrl:null};
+let profileData={name:'Test',nick:'testt',bio:'',avatarColor:randomAvatarColor()};
 
 async function logoutVchat(){
   if(!confirm('Выйти из аккаунта?'))return;
@@ -1646,45 +1242,10 @@ function detectDevice(){
 function renderProfileView(){
   let letter=(profileData.nick||profileData.name||'?')[0].toUpperCase();
   let avEl=document.getElementById('pAvBig');
+  avEl.textContent=letter;
+  avEl.style.background=profileData.avatarColor;
   let peAvEl=document.getElementById('peAvBig');
-  if(profileData.avatarUrl){
-    avEl.style.background='transparent';
-    avEl.innerHTML='<img src="'+escHtml(profileData.avatarUrl)+'" alt="">';
-    if(peAvEl){ peAvEl.style.background='transparent'; peAvEl.innerHTML='<img src="'+escHtml(profileData.avatarUrl)+'" alt="">'; }
-  }else{
-    avEl.innerHTML='';
-    avEl.textContent=letter;
-    avEl.style.background=profileData.avatarColor;
-    if(peAvEl){peAvEl.innerHTML='';peAvEl.textContent=letter;peAvEl.style.background=profileData.avatarColor;}
-  }
-  let bannerWrap=document.getElementById('pBannerWrap');
-  let pCardEl=document.querySelector('.pCard');
-  if(bannerWrap){
-    if(profileData.bannerUrl){
-      document.getElementById('pBannerImg').src=profileData.bannerUrl;
-      bannerWrap.style.display='block';
-      if(pCardEl) pCardEl.classList.add('hasBanner');
-    }else{
-      bannerWrap.style.display='none';
-      if(pCardEl) pCardEl.classList.remove('hasBanner');
-    }
-  }
-  let peBannerImg=document.getElementById('peBannerImg');
-  if(peBannerImg){
-    if(profileData.bannerUrl){ peBannerImg.src=profileData.bannerUrl; peBannerImg.style.display='block'; }
-    else{ peBannerImg.style.display='none'; }
-  }
-  let removeBannerBtn=document.getElementById('peRemoveBannerBtn');
-  if(removeBannerBtn) removeBannerBtn.style.display=profileData.bannerUrl?'block':'none';
-  let removeAvatarBtn=document.getElementById('peRemoveAvatarBtn');
-  if(removeAvatarBtn) removeAvatarBtn.style.display=profileData.avatarUrl?'block':'none';
-  let mediaRow=document.getElementById('pMediaEditRow');
-  if(mediaRow){
-    const sub=vchatUser&&isSubActive(vchatUser.username);
-    mediaRow.classList.toggle('pLockedRow',!sub);
-    let hint=mediaRow.querySelector('.pItemValue');
-    if(hint) hint.textContent=sub?'Баннер и фото профиля':'Баннер и фото — нужна VChat Plus';
-  }
+  if(peAvEl){peAvEl.textContent=letter;peAvEl.style.background=profileData.avatarColor;}
   document.getElementById('pName').innerHTML=escHtml(profileData.name)+verifiedBadgeHtml(profileData.nick);
   document.getElementById('pUser').textContent='@'+profileData.nick;
   document.getElementById('pUserVal').textContent='@'+profileData.nick;
@@ -1731,101 +1292,6 @@ async function saveProfileEdit(){
   }
 }
 
-/* ---------- оформление профиля: баннер и фото (VChat Plus) ---------- */
-const PM_AVATAR_MAX_DIM=1000;
-const PM_BANNER_IMG_MAX_BYTES=400*1024;
-const PM_BANNER_GIF_MAX_BYTES=500*1024;
-
-function openProfileMediaEdit(){
-  if(!vchatUser||!isSubActive(vchatUser.username)){ showToast('Нужна подписка VChat Plus'); return; }
-  document.getElementById('pMediaEditPane').classList.add('open');
-}
-function closeProfileMediaEdit(){
-  document.getElementById('pMediaEditPane').classList.remove('open');
-}
-
-function pmResizeImageToSquare(file,size){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=()=>{
-      const img=new Image();
-      img.onload=()=>{
-        const side=Math.min(img.width,img.height);
-        const sx=(img.width-side)/2, sy=(img.height-side)/2;
-        const canvas=document.createElement('canvas');
-        canvas.width=size; canvas.height=size;
-        const ctx=canvas.getContext('2d');
-        ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
-        canvas.toBlob(blob=>{ if(blob) resolve(blob); else reject(new Error('canvas toBlob failed')); }, 'image/jpeg', 0.9);
-      };
-      img.onerror=()=>reject(new Error('Не удалось прочитать изображение'));
-      img.src=reader.result;
-    };
-    reader.onerror=()=>reject(new Error('Ошибка чтения файла'));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function pmPickBanner(input){
-  const file=input.files&&input.files[0];
-  input.value='';
-  if(!file) return;
-  if(!vchatUser||!isSubActive(vchatUser.username)){ showToast('Нужна подписка VChat Plus'); return; }
-  if(!file.type.startsWith('image/')||file.type==='image/gif'){ showToast('Нужен файл фото (JPG/PNG/WEBP), гифки не поддерживаются'); return; }
-  if(file.size>PM_BANNER_IMG_MAX_BYTES){ showToast('Файл слишком большой: максимум 400 КБ'); return; }
-  showToast('Загрузка баннера...');
-  try{
-    const ext=file.type.split('/')[1]||'jpg';
-    const path=vchatUser.id+'/banner_'+Date.now()+'.'+ext;
-    const {error:upErr}=await sb.storage.from('profile-media').upload(path,file,{upsert:true,contentType:file.type});
-    if(upErr){ showToast('Ошибка загрузки: '+upErr.message); return; }
-    const {data:pub}=sb.storage.from('profile-media').getPublicUrl(path);
-    await sb.from('profiles').update({banner_url:pub.publicUrl}).eq('id',vchatUser.id);
-    profileData.bannerUrl=pub.publicUrl;
-    renderProfileView();
-    showToast('Баннер обновлён');
-  }catch(e){ showToast('Ошибка: '+e.message); }
-}
-
-async function pmPickAvatar(input){
-  const file=input.files&&input.files[0];
-  input.value='';
-  if(!file) return;
-  if(!vchatUser||!isSubActive(vchatUser.username)){ showToast('Нужна подписка VChat Plus'); return; }
-  if(!file.type.startsWith('image/')||file.type==='image/gif'){ showToast('Для фото профиля нужен обычный формат (JPG/PNG/WEBP)'); return; }
-  showToast('Загрузка фото...');
-  try{
-    const blob=await pmResizeImageToSquare(file,PM_AVATAR_MAX_DIM);
-    const path=vchatUser.id+'/avatar_'+Date.now()+'.jpg';
-    const {error:upErr}=await sb.storage.from('profile-media').upload(path,blob,{upsert:true,contentType:'image/jpeg'});
-    if(upErr){ showToast('Ошибка загрузки: '+upErr.message); return; }
-    const {data:pub}=sb.storage.from('profile-media').getPublicUrl(path);
-    await sb.from('profiles').update({avatar_url:pub.publicUrl}).eq('id',vchatUser.id);
-    profileData.avatarUrl=pub.publicUrl;
-    renderProfileView();
-    showToast('Фото профиля обновлено');
-  }catch(e){ showToast('Ошибка: '+e.message); }
-}
-
-async function pmRemoveBanner(){
-  if(!vchatUser||!profileData.bannerUrl) return;
-  try{
-    await sb.from('profiles').update({banner_url:null}).eq('id',vchatUser.id);
-    profileData.bannerUrl=null;
-    renderProfileView();
-    showToast('Баннер удалён');
-  }catch(e){ showToast('Ошибка: '+e.message); }
-}
-async function pmRemoveAvatar(){
-  if(!vchatUser||!profileData.avatarUrl) return;
-  try{
-    await sb.from('profiles').update({avatar_url:null}).eq('id',vchatUser.id);
-    profileData.avatarUrl=null;
-    renderProfileView();
-    showToast('Фото профиля удалено');
-  }catch(e){ showToast('Ошибка: '+e.message); }
-}
-
 /* ---------- open / close chat ---------- */
 function openChat(name){
   curChat=name;
@@ -1838,9 +1304,6 @@ function openChat(name){
   let av=document.getElementById('cwAv');
   if(meta&&meta.kind==='saved'){
     av.style.background=meta.color;av.style.color='#fff';av.innerHTML=meta.icon;
-  }else if(meta&&meta.avatarUrl&&isSubActive(name)){
-    av.style.background=meta.color;av.style.color='#fff';
-    av.innerHTML='<img src="'+escHtml(meta.avatarUrl)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
   }else if(meta){
     av.style.background=meta.color;av.style.color='#fff';av.innerHTML='';av.textContent=meta.initials;
   }
@@ -2194,65 +1657,26 @@ function openProfileCard(){
   if(!curChat||curChat==='Избранное')return;
   let meta=chatMeta[curChat];
   let av=document.getElementById('profileCardAv');
-  let bioBox=document.getElementById('profileCardBio');
-  let bannerImg=document.getElementById('profileCardBanner');
-  let openedChat=curChat;
-  let uid=meta?meta.uid:null;
-
-  // базовое состояние карточки (без показа) — заполняем уже известными данными,
-  // чтобы после подгрузки с сервера не было "прыжка" интерфейса
   av.style.background=meta?meta.color:'var(--card2)';
-  av.innerHTML='';
   av.textContent=meta?(meta.initials||''):'';
-  if(meta&&meta.avatarUrl){
-    av.style.background='transparent';
-    av.innerHTML='<img src="'+escHtml(meta.avatarUrl)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-  }
   document.getElementById('profileCardName').innerHTML=escHtml((meta&&meta.dispname)?meta.dispname:curChat)+subLogoBigHtml(curChat);
   document.getElementById('profileCardUserText').textContent='@'+curChat;
   document.getElementById('profileCardCopied').classList.remove('show');
+  let bioBox=document.getElementById('profileCardBio');
   bioBox.style.display='none';
   bioBox.textContent='';
-  bannerImg.style.display='none';
-  bannerImg.src='';
-
-  let shown=false;
-  function reveal(){
-    if(shown)return;
-    shown=true;
-    document.getElementById('profileOverlay').classList.add('show');
-    document.getElementById('profileCard').classList.add('show');
+  document.getElementById('profileOverlay').classList.add('show');
+  document.getElementById('profileCard').classList.add('show');
+  let uid=meta?meta.uid:null;
+  let openedChat=curChat;
+  if(uid){
+    sb.from('profiles').select('bio').eq('id',uid).maybeSingle().then(({data})=>{
+      if(data&&data.bio&&curChat===openedChat){
+        bioBox.textContent=data.bio;
+        bioBox.style.display='block';
+      }
+    }).catch(()=>{});
   }
-
-  if(!uid){
-    reveal();
-    return;
-  }
-
-  // ждём данные с сервера (аватар/баннер/био/подписку) и только потом показываем
-  // карточку целиком — чтобы не было мигания базовой аватаркой без баннера
-  const fetchPromise=sb.from('profiles').select('bio,avatar_url,banner_url,subscription_until').eq('id',uid).maybeSingle().then(({data})=>{
-    if(!data||curChat!==openedChat)return;
-    if(data.bio){
-      bioBox.textContent=data.bio;
-      bioBox.style.display='block';
-    }
-    const subActive=data.subscription_until&&new Date(data.subscription_until).getTime()>Date.now();
-    if(subActive&&data.avatar_url){
-      av.style.background='transparent';
-      av.innerHTML='<img src="'+escHtml(data.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-    }
-    if(subActive&&data.banner_url){
-      bannerImg.src=data.banner_url;
-      bannerImg.style.display='block';
-    }
-  }).catch(()=>{});
-
-  // подстраховка: если сеть медленная, всё равно открываем карточку не позже 450мс,
-  // чтобы интерфейс не казался "зависшим"
-  const timeoutPromise=new Promise(res=>setTimeout(res,450));
-  Promise.race([fetchPromise,timeoutPromise]).then(reveal);
-  fetchPromise.then(reveal);
 }
 function closeProfileCard(){
   document.getElementById('profileOverlay').classList.remove('show');
@@ -2522,7 +1946,7 @@ function getPublicUrlDirect(path){
   return `${STORAGE_DIRECT_URL}/storage/v1/object/public/chat-files/${path}`;
 }
 
-vchatUser=null; // (уже объявлена как var выше, здесь просто сброс)
+let vchatUser=null;
 
 function previewForRow(m){
   if(m.type==='file') return '📎 '+(m.file_name||'Файл');
@@ -2550,12 +1974,9 @@ async function vchatInit(){
   let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
   if(!profile){ window.location.href='index.html'; return; }
   vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username, ringtone_url:profile.ringtone_url||null};
-  loadPinnedChats();
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
   profileData.bio=profile.bio||'';
-  profileData.avatarUrl=profile.avatar_url||null;
-  profileData.bannerUrl=profile.banner_url||null;
   cacheSub(vchatUser.username, profile.subscription_until);
   renderProfileView();
   initSubBanner();
@@ -2565,7 +1986,6 @@ async function vchatInit(){
     if(adminBtn) adminBtn.style.display='flex';
   }
   await vchatLoadConversations();
-  await vchatLoadFolders();
   vchatHeartbeat();
   setInterval(vchatHeartbeat,20000);
   vchatSubscribeMessages();
@@ -2632,13 +2052,13 @@ async function vchatOpenFromUrl(){
   let username=Object.keys(chatMeta).find(n=>chatMeta[n].uid===uid);
   let dispname=p.get('openname')||'Пользователь';
   if(!username){
-    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',uid).single();
+    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until').eq('id',uid).single();
     if(!prof)return;
     username=prof.username;
     dispname=prof.display_name||prof.username;
     cacheSub(username, prof.subscription_until);
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname,avatarUrl:prof.avatar_url||null};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
       chats[username]=[];
     }
     if(!chatOrder.includes(username))chatOrder=[username,...chatOrder];
@@ -2659,7 +2079,7 @@ async function vchatLoadConversations(){
   });
   partnerIds.delete(vchatUser.id);
   if(!partnerIds.size)return;
-  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url').in('id',Array.from(partnerIds));
+  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until').in('id',Array.from(partnerIds));
   if(!profiles)return;
   let idToProfile={};
   profiles.forEach(p=>idToProfile[p.id]=p);
@@ -2670,10 +2090,9 @@ async function vchatLoadConversations(){
     let username=p.username, dispname=p.display_name||p.username;
     cacheSub(username, p.subscription_until);
     if(!chatMeta[username]){
-      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname,avatarUrl:p.avatar_url||null};
+      chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname};
     }else{
       chatMeta[username].uid=uid;
-      chatMeta[username].avatarUrl=p.avatar_url||null;
     }
     let myMsgs=data.filter(m=>m.sender_id===uid||m.receiver_id===uid);
     chats[username]=myMsgs.map(m=>dbRowToLocal(m));
@@ -2716,35 +2135,29 @@ function onUserSearchInput(q){
   wrap.classList.add('loading');
   vchatSearchTimer=setTimeout(async ()=>{
     if(!vchatUser){return;}
-    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
     wrap.classList.remove('loading');
     if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
     data.forEach(u=>cacheSub(u.username,u.subscription_until));
     box.innerHTML=data.map(u=>{
       let dn=u.display_name||u.username;
-      const subActive=isSubActive(u.username);
-      const showImg=subActive&&u.avatar_url;
-      const avInner=showImg?('<img src="'+escHtml(u.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'):dn[0].toUpperCase();
-      const avStyle=showImg?'':'background:#555;color:#fff;';
-      return `<div class="row" onclick="selectUser('${u.username}','${u.id}','${dn.replace(/'/g,"\\'")}','${encodeURIComponent(u.avatar_url||'')}')">
-        <div class="av" style="${avStyle}">${avInner}</div>
+      return `<div class="row" onclick="selectUser('${u.username}','${u.id}','${dn.replace(/'/g,"\\'")}')">
+        <div class="av" style="background:#555;color:#fff;">${dn[0].toUpperCase()}</div>
         <div class="rowtext"><b>${escHtml(dn)}${verifiedBadgeHtml(u.username)}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
       </div>`;
     }).join('');
   },350);
 }
 
-async function selectUser(username,uid,dispname,avatarUrlEnc){
-  const avatarUrl=avatarUrlEnc?decodeURIComponent(avatarUrlEnc):null;
+async function selectUser(username,uid,dispname){
   document.getElementById('userSearchInput').value='';
   document.getElementById('uResults').innerHTML='';
   document.getElementById('chatRows').style.display='';
   if(!chatMeta[username]){
-    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0,dispname:dispname,avatarUrl:avatarUrl};
+    chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',unread:0,dispname:dispname};
     chats[username]=[];
   }
   chatMeta[username].uid=uid;
-  chatMeta[username].avatarUrl=avatarUrl;
   if(!chatOrder.includes(username))chatOrder=[username,...chatOrder];
   renderChatRows();
   await vchatOpenRealChat(username,uid,dispname);
@@ -2844,11 +2257,11 @@ function vchatSubscribeMessages(){
       if(name){
         vchatPushIncoming(name,m);
       }else{
-        sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',m.sender_id).single().then(({data})=>{
+        sb.from('profiles').select('username,display_name,subscription_until').eq('id',m.sender_id).single().then(({data})=>{
           if(!data)return;
           let nm=data.username, dn=data.display_name||data.username;
           cacheSub(nm, data.subscription_until);
-          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn,avatarUrl:data.avatar_url||null};
+          chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
           chats[nm]=[];
           if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
           vchatPushIncoming(nm,m);
@@ -2908,11 +2321,11 @@ async function vchatPollNewMessages(){
     if(name){
       if(!chats[name]||!chats[name].some(x=>x.id===m.id))vchatPushIncoming(name,m);
     }else{
-      const {data:p}=await sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',m.sender_id).single();
+      const {data:p}=await sb.from('profiles').select('username,display_name,subscription_until').eq('id',m.sender_id).single();
       if(!p)continue;
       let nm=p.username, dn=p.display_name||p.username;
       cacheSub(nm, p.subscription_until);
-      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn,avatarUrl:p.avatar_url||null};
+      chatMeta[nm]={color:randomAvatarColor(),initials:initials(dn),last:'',uid:m.sender_id,unread:0,dispname:dn};
       chats[nm]=[];
       if(!chatOrder.includes(nm))chatOrder=[nm,...chatOrder];
       vchatPushIncoming(nm,m);
@@ -3328,7 +2741,7 @@ function openCallScreen(mode,otherUid,otherName,myId,myName,callId){
   document.getElementById('micBadge').classList.remove('show');
   document.getElementById('muteBtn').classList.remove('on');
   document.getElementById('miniMuteBtn').classList.remove('on');
-  document.getElementById('speakerBtn').classList.remove('on');
+  document.getElementById('speakerBtn')?.classList.remove('on');
   const lbl1=document.getElementById('muteLabel'); if(lbl1)lbl1.textContent='Микрофон';
   const lbl2=document.getElementById('speakerLabel'); if(lbl2)lbl2.textContent='Динамик';
 
