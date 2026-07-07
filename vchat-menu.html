@@ -945,6 +945,12 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       </button>
       <span class="outgoingLabel">Завершить</span>
     </div>
+    <div class="btnCol">
+      <button class="cbtn speaker" id="speakerBtn" onclick="vcToggleSpeaker()" title="Громкая связь">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+      <span class="outgoingLabel" id="speakerLabel">Динамик</span>
+    </div>
   </div>
 
   <div class="incomingRow" id="controlsIncoming" style="display:none;">
@@ -3322,7 +3328,7 @@ function openCallScreen(mode,otherUid,otherName,myId,myName,callId){
   document.getElementById('micBadge').classList.remove('show');
   document.getElementById('muteBtn').classList.remove('on');
   document.getElementById('miniMuteBtn').classList.remove('on');
-  document.getElementById('speakerBtn')?.classList.remove('on');
+  document.getElementById('speakerBtn').classList.remove('on');
   const lbl1=document.getElementById('muteLabel'); if(lbl1)lbl1.textContent='Микрофон';
   const lbl2=document.getElementById('speakerLabel'); if(lbl2)lbl2.textContent='Динамик';
 
