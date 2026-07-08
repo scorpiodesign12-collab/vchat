@@ -56,7 +56,7 @@ body{display:flex;}
   70%{box-shadow:0 0 0 22px rgba(44,126,255,0);}
   100%{box-shadow:0 0 0 0 rgba(44,126,255,0);}
 }
-.callName{font-size:24px;font-weight:700;margin-top:8px;color:var(--fg);}
+.callName{font-size:24px;font-weight:700;margin-top:8px;}
 .callTimer{font-size:15px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums;}
 .controls{display:flex;align-items:center;justify-content:center;gap:28px;width:100%;max-width:380px;}
 .cbtn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;}
@@ -196,6 +196,7 @@ let callTimerInterval=null, callSeconds=0, ended=false;
 let muted=false, speakerOn=false;
 let pc=null, localStream=null, remoteStream=null, disconnectedTimer=null;
 let pendingIce=[];
+let initialOfferSent=false;
 let logged=false;
 
 const RTC_CONFIG={
@@ -335,10 +336,15 @@ function createPeer(){
     log('WARNING: creating peer without local stream — no microphone track will be sent!');
   }
   // только звонящая сторона инициирует пересогласование (иначе оба одновременно
-  // пришлют offer и получится конфликт "glare")
+  // пришлют offer и получится конфликт "glare").
+  // ВАЖНО: initialOfferSent — без этого флага браузер мог запустить
+  // onnegotiationneeded ПАРАЛЛЕЛЬНО с ручным createOffer() в startAsCaller()
+  // (сразу же после addTrack выше), из-за чего иногда одновременно уходило
+  // два разных offer'а и соединение с первого раза не устанавливалось —
+  // именно поэтому помогало "позвонить ещё раз".
   if(mode==='outgoing'){
     pc.onnegotiationneeded=async()=>{
-      if(!pc) return;
+      if(!pc || !initialOfferSent) return;
       try{
         const offer=await pc.createOffer({iceRestart:true});
         await pc.setLocalDescription(offer);
@@ -359,6 +365,7 @@ async function startAsCaller(){
   log('offer created and sent');
   safeSend('webrtc-offer',{sdp:pc.localDescription});
   safeSend('mic-state',{muted:muted});
+  initialOfferSent=true;
 }
 
 async function handleOffer(sdp){
