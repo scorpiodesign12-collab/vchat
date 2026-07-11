@@ -196,7 +196,6 @@ let callTimerInterval=null, callSeconds=0, ended=false;
 let muted=false, speakerOn=false;
 let pc=null, localStream=null, remoteStream=null, disconnectedTimer=null;
 let pendingIce=[];
-let initialOfferSent=false;
 let logged=false;
 
 const RTC_CONFIG={
@@ -336,15 +335,10 @@ function createPeer(){
     log('WARNING: creating peer without local stream — no microphone track will be sent!');
   }
   // только звонящая сторона инициирует пересогласование (иначе оба одновременно
-  // пришлют offer и получится конфликт "glare").
-  // ВАЖНО: initialOfferSent — без этого флага браузер мог запустить
-  // onnegotiationneeded ПАРАЛЛЕЛЬНО с ручным createOffer() в startAsCaller()
-  // (сразу же после addTrack выше), из-за чего иногда одновременно уходило
-  // два разных offer'а и соединение с первого раза не устанавливалось —
-  // именно поэтому помогало "позвонить ещё раз".
+  // пришлют offer и получится конфликт "glare")
   if(mode==='outgoing'){
     pc.onnegotiationneeded=async()=>{
-      if(!pc || !initialOfferSent) return;
+      if(!pc) return;
       try{
         const offer=await pc.createOffer({iceRestart:true});
         await pc.setLocalDescription(offer);
@@ -365,7 +359,6 @@ async function startAsCaller(){
   log('offer created and sent');
   safeSend('webrtc-offer',{sdp:pc.localDescription});
   safeSend('mic-state',{muted:muted});
-  initialOfferSent=true;
 }
 
 async function handleOffer(sdp){

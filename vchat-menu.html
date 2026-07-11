@@ -227,42 +227,6 @@ body{display:flex;}
 .attachBtn{background:transparent;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:50%;transition:.15s;}
 .attachBtn:hover{background:var(--card);color:var(--fg);}
 .attachBtn svg{width:20px;height:20px;}
-.micBtn{background:transparent;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:50%;transition:.15s;}
-.micBtn:hover{background:var(--card);color:var(--fg);}
-.micBtn svg{width:20px;height:20px;}
-.voiceRecordBar{display:none;align-items:center;gap:10px;padding:8px 10px;}
-.voiceRecordBar.show{display:flex;}
-.vrIconBtn{width:38px;height:38px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-.vrIconBtn svg{width:17px;height:17px;}
-.vrCancel{background:var(--card2);color:var(--muted);}
-.vrStop{background:#ff3b30;color:#fff;}
-.vrSend{background:var(--btn);color:var(--btn-fg);}
-.vrLive{display:flex;align-items:center;gap:8px;flex:1;}
-.vrDot{width:10px;height:10px;border-radius:50%;background:#ff3b30;animation:vrPulse 1.1s infinite ease-in-out;flex-shrink:0;}
-@keyframes vrPulse{0%,100%{opacity:1;}50%{opacity:.25;}}
-.vrTimer{font-size:14px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums;}
-.vrPreview{display:none;align-items:center;gap:10px;flex:1;min-width:0;}
-.vrPreviewTime{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;}
-.vrSeekWrap{flex:1;padding:10px 0;cursor:pointer;}
-.vrSeekTrack{height:4px;border-radius:2px;background:var(--card2);position:relative;}
-.vrSeekFill{position:absolute;left:0;top:0;bottom:0;width:0%;background:var(--accent,#2C7EFF);border-radius:2px;}
-.voiceRecordBar.recording .vrLive{display:flex;}
-.voiceRecordBar.recording .vrPreview{display:none;}
-.voiceRecordBar.recording .vrStop{display:flex;}
-.voiceRecordBar.recording .vrSend{display:none;}
-.voiceRecordBar.previewing .vrLive{display:none;}
-.voiceRecordBar.previewing .vrPreview{display:flex;}
-.voiceRecordBar.previewing .vrStop{display:none;}
-.voiceRecordBar.previewing .vrSend{display:flex;}
-/* ---------- голосовое сообщение в чате ---------- */
-.msg.voice{display:flex;align-items:center;gap:10px;min-width:220px;padding:10px 14px;}
-.voicePlayBtn{width:36px;height:36px;border-radius:50%;border:none;background:rgba(127,127,127,.18);color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-.voicePlayBtn svg{width:15px;height:15px;}
-.msg.voice .voiceSeekWrap{flex:1;padding:12px 0;cursor:pointer;min-width:80px;}
-.msg.voice .voiceSeekTrack{height:3px;border-radius:2px;background:rgba(127,127,127,.3);position:relative;}
-.msg.voice .voiceSeekFill{position:absolute;left:0;top:0;bottom:0;width:0%;background:currentColor;border-radius:2px;}
-.msg.voice .voiceSeekKnob{position:absolute;top:50%;left:0%;width:10px;height:10px;border-radius:50%;background:currentColor;transform:translate(-50%,-50%);}
-.msg.voice .voiceTime{font-size:11.5px;opacity:.75;flex-shrink:0;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .emptyDetail{display:none;flex:1;align-items:center;justify-content:center;color:var(--muted);font-size:14px;flex-direction:column;gap:8px;transform:translateY(-200px);}
 /* search highlight */
 .hlmatch{background:rgba(255,200,0,.35);border-radius:3px;}
@@ -668,42 +632,14 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
         <!-- Sendbar -->
         <div class="sendbar">
-          <div class="sendRow" id="sendRow">
+          <div class="sendRow">
             <button class="attachBtn" onclick="triggerAttach()" title="Прикрепить файл">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
         <textarea id="cwInput" placeholder="Сообщение..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this);onChatInputTyping();" onblur="onChatInputBlur()"></textarea>
-            <button class="micBtn" id="micRecordBtn" onclick="startVoiceRecording()" title="Голосовое сообщение" style="display:none;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-            </button>
             <button class="sendBtn" onclick="sendMsg()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
-          </div>
-          <div class="voiceRecordBar" id="voiceRecordBar">
-            <button class="vrIconBtn vrCancel" onclick="cancelVoiceRecording()" title="Отменить">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-            <div class="vrLive">
-              <span class="vrDot"></span>
-              <span class="vrTimer" id="vrTimer">00:00</span>
-            </div>
-            <div class="vrPreview" id="vrPreview">
-              <button class="vrIconBtn vrPlay" id="vrPlayBtn" onclick="toggleVoicePreviewPlay()">
-                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-              </button>
-              <div class="vrSeekWrap" onclick="seekVoicePreview(event)">
-                <div class="vrSeekTrack"><div class="vrSeekFill" id="vrSeekFill"></div></div>
-              </div>
-              <span class="vrPreviewTime" id="vrPreviewTime">00:00</span>
-            </div>
-            <button class="vrIconBtn vrStop" id="vrStopBtn" onclick="stopVoiceRecording()" title="Остановить">
-              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-            </button>
-            <button class="vrIconBtn vrSend" id="vrSendBtn" onclick="sendVoiceMessage()" title="Отправить" style="display:none;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-            <audio id="vrPreviewAudio" style="display:none;"></audio>
           </div>
         </div>
         <input type="file" id="fileInput" style="display:none" accept=".pdf,.txt,.doc,.docx" onchange="handleFile(this)">
@@ -788,7 +724,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           <div class="subBannerLogo"></div>
           <div class="subBannerTitle">VChat PLUS</div>
           <ul class="subBannerFeatures">
-            <li>🎙️ <span><b>Голосовые сообщения</b> в чатах — записывай и отправляй голосовые вместо долгого набора текста</span></li>
+            <li>📷 <span><b>Отправка фотографий</b> в чатах — делись фото с друзьями прямо в переписке</span></li>
             <li>📰 <span><b>Лента с постами</b> — публикуй фото и мысли, читай ленту и общайся под постами других пользователей</span></li>
             <li>🎵 <span><b>Свой рингтон</b> — добавь любимую музыку, которая будет играть при входящем звонке</span></li>
           </ul>
@@ -867,7 +803,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           <div class="subBannerLogo"></div>
           <div class="subBannerTitle">VChat PLUS</div>
           <ul class="subBannerFeatures">
-            <li>🎙️ <span><b>Голосовые сообщения</b> в чатах — записывай и отправляй голосовые вместо долгого набора текста</span></li>
+            <li>📷 <span><b>Отправка фотографий</b> в чатах — делись фото с друзьями прямо в переписке</span></li>
             <li>📰 <span><b>Лента с постами</b> — публикуй фото и мысли, читай ленту и общайся под постами других пользователей</span></li>
             <li>🎵 <span><b>Свой рингтон</b> — добавь любимую музыку, которая будет играть при входящем звонке</span></li>
           </ul>
@@ -1663,9 +1599,7 @@ function chatRowHtml(name){
   let unread=meta.unread||0;
   let badge=unread>0?`<div class="rowBadge">${unread>99?'99+':unread}</div>`:'';
   let preview;
-  if(recordingMap[name]){
-    preview=`<span class="typingText">записывает голосовое</span><span class="typingDotsRow"><span></span><span></span><span></span></span>`;
-  }else if(typingMap[name]){
+  if(typingMap[name]){
     preview=`<span class="typingText">печатает</span><span class="typingDotsRow"><span></span><span></span><span></span></span>`;
   }else{
     preview=escHtml(meta.last||'');
@@ -1950,8 +1884,6 @@ function openChat(name){
   if(!chats[name])chats[name]=[];
   closeCwSearch();
   cancelReply();
-  if(vrRecording||vrBlob){ cancelVoiceRecording(); }
-  updateMicButtonVisibility();
   setupTypingChannelFor(meta&&meta.uid?meta.uid:null);
   let callBtn=document.getElementById('cwCallBtn');
   if(callBtn){
@@ -2112,24 +2044,6 @@ function renderChat(highlight, forceBottom){
         ${renderTimeRow(m)}
       </div>`;
     }
-    if(m.type==='voice'){
-      return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
-        <div class="msgInner">
-          <span class="swipeArrow">${ICONS.chevron}</span>
-          <div class="msg voice ${m.from}">
-            <button class="voicePlayBtn" id="voicePlayBtn_${m.id}" onclick="toggleVoicePlay(${m.id})">
-              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-            </button>
-            <div class="voiceSeekWrap" onclick="seekVoiceMsg(event,${m.id})">
-              <div class="voiceSeekTrack"><div class="voiceSeekFill" id="voiceFill_${m.id}"></div><div class="voiceSeekKnob" id="voiceKnob_${m.id}"></div></div>
-            </div>
-            <span class="voiceTime" id="voiceTime_${m.id}">${vcFmtTimeSimple(m.duration||0)}</span>
-            <audio id="voiceAudioEl_${m.id}" preload="none" src="${escHtml(m.url||'')}" ontimeupdate="voiceTimeUpdate(${m.id})" onended="voiceEnded(${m.id})"></audio>
-          </div>
-        </div>
-        ${renderTimeRow(m)}
-      </div>`;
-    }
     if(m.type==='call'){
       let mm=Math.floor(m.duration/60).toString().padStart(2,'0');
       let ss=(m.duration%60).toString().padStart(2,'0');
@@ -2158,7 +2072,7 @@ function renderChat(highlight, forceBottom){
       </div>
       ${renderTimeRow(m)}
     </div>`;
-  }).join('') + ((typingMap[curChat]||recordingMap[curChat])?`<div class="typingBubble show"><span></span><span></span><span></span></div>`:'');
+  }).join('') + (typingMap[curChat]?`<div class="typingBubble show"><span></span><span></span><span></span></div>`:'');
   if(wasAtBottom){
     w.scrollTop=w.scrollHeight;
     chatUnseenCount=0;
@@ -2222,7 +2136,7 @@ function startReply(id){
   if(!m)return;
   replyTarget=id;
   document.getElementById('rpName').textContent='Ответить';
-  document.getElementById('rpText').textContent=m.type==='file'?('📎 '+m.name):m.type==='image'?'📷 Фото':m.type==='voice'?'🎤 Голосовое сообщение':(m.text||'');
+  document.getElementById('rpText').textContent=m.type==='file'?('📎 '+m.name):m.type==='image'?'📷 Фото':(m.text||'');
   document.getElementById('replyPreview').classList.add('show');
   let inp=document.getElementById('cwInput');
   if(inp)inp.focus();
@@ -2239,7 +2153,7 @@ function updatePinnedBar(){
   let p=pinnedMap[curChat];
   let m=p?findMsgById(p.id):null;
   if(!m){bar.classList.remove('show');return;}
-  let txt=m.type==='file'?('📎 '+m.name):m.type==='image'?'📷 Фото':m.type==='voice'?'🎤 Голосовое сообщение':(m.text||'');
+  let txt=m.type==='file'?('📎 '+m.name):m.type==='image'?'📷 Фото':(m.text||'');
   document.getElementById('pinnedBarText').textContent=txt;
   bar.classList.add('show');
 }
@@ -2405,7 +2319,7 @@ function attachSwipeHandlers(){
     const wrap=inner.closest('.msgWrap');
     const id=parseInt(wrap.dataset.id,10);
     const srcMsg=findMsgById(id);
-    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'||srcMsg.type==='image'||srcMsg.type==='voice'))return; // нельзя отвечать свайпом на звонки, файлы, фото и голосовые
+    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'||srcMsg.type==='image'))return; // нельзя отвечать свайпом на звонки, файлы и фото
     let startX=0,curX=0,dragging=false;
     const arrow=inner.querySelector('.swipeArrow');
     const isOut=wrap.classList.contains('out');
@@ -2454,22 +2368,6 @@ function vchatListenTyping(){
           renderChatRows();
           if(curChat===name)renderChat();
         },5000);
-      }
-      renderChatRows();
-      if(curChat===name)renderChat();
-    })
-    .on('broadcast',{event:'recording'},(msg)=>{
-      const p=msg.payload||{};
-      let name=Object.keys(chatMeta).find(n=>chatMeta[n].uid===p.from);
-      if(!name)return;
-      recordingMap[name]=!!p.recording;
-      clearTimeout(typingAutoClear['rec_'+name]);
-      if(p.recording){
-        typingAutoClear['rec_'+name]=setTimeout(()=>{
-          recordingMap[name]=false;
-          renderChatRows();
-          if(curChat===name)renderChat();
-        },15000);
       }
       renderChatRows();
       if(curChat===name)renderChat();
@@ -2730,7 +2628,6 @@ function previewForRow(m){
   if(m.type==='file') return '📎 '+(m.file_name||'Файл');
   if(m.type==='image') return '📷 Фото';
   if(m.type==='call') return '📞 Звонок';
-  if(m.type==='voice') return '🎤 Голосовое сообщение';
   return m.content||'';
 }
 function dbRowToLocal(m){
@@ -2742,9 +2639,6 @@ function dbRowToLocal(m){
   }
   if(m.type==='image'){
     return {id:m.id,from:from,type:'image',url:m.file_url||null,time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
-  }
-  if(m.type==='voice'){
-    return {id:m.id,from:from,type:'voice',url:m.file_url||null,duration:parseInt(m.content)||0,time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
   }
   if(m.type==='call'){
     let info={duration:0,status:'ended'};
@@ -3043,238 +2937,6 @@ function bumpChatOrder(name){
     chatOrder=[name,...chatOrder.filter(n=>n!==name)];
   }
 }
-
-/* ================= голосовые сообщения (VChat Plus) ================= */
-function vcFmtTimeSimple(s){
-  s=Math.max(0,Math.floor(s||0));
-  const m=Math.floor(s/60).toString().padStart(2,'0');
-  const sec=(s%60).toString().padStart(2,'0');
-  return m+':'+sec;
-}
-function updateMicButtonVisibility(){
-  const micBtn=document.getElementById('micRecordBtn');
-  if(!micBtn) return;
-  const canRecord=vchatUser&&isSubActive(vchatUser.username)&&curChat&&curChat!=='Избранное';
-  micBtn.style.display=canRecord?'flex':'none';
-}
-
-let vrMediaRecorder=null, vrChunks=[], vrStream=null, vrStartTime=0, vrTimerInterval=null, vrBlob=null, vrRecording=false, vrPreviewPlaying=false;
-
-async function startVoiceRecording(){
-  if(!vchatUser||!isSubActive(vchatUser.username)){ showToast('Голосовые сообщения доступны с VChat Plus'); return; }
-  if(!curChat||curChat==='Избранное'||!chatMeta[curChat]||!chatMeta[curChat].uid){ showToast('Открой диалог с собеседником'); return; }
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ showToast('Микрофон недоступен в этом браузере'); return; }
-  try{
-    vrStream=await navigator.mediaDevices.getUserMedia({audio:true});
-  }catch(e){
-    showToast('Нет доступа к микрофону');
-    return;
-  }
-  vrChunks=[];
-  vrBlob=null;
-  let mimeType='audio/webm';
-  try{
-    if(window.MediaRecorder && MediaRecorder.isTypeSupported && !MediaRecorder.isTypeSupported(mimeType)) mimeType='';
-  }catch(e){ mimeType=''; }
-  try{
-    vrMediaRecorder = mimeType ? new MediaRecorder(vrStream,{mimeType}) : new MediaRecorder(vrStream);
-  }catch(e){
-    showToast('Запись голосовых не поддерживается этим браузером');
-    vrStream.getTracks().forEach(t=>t.stop()); vrStream=null;
-    return;
-  }
-  vrMediaRecorder.ondataavailable=(e)=>{ if(e.data&&e.data.size>0) vrChunks.push(e.data); };
-  vrMediaRecorder.onstop=()=>{
-    vrBlob=new Blob(vrChunks,{type:(vrMediaRecorder&&vrMediaRecorder.mimeType)||'audio/webm'});
-    const audioEl=document.getElementById('vrPreviewAudio');
-    if(audioEl){ audioEl.src=URL.createObjectURL(vrBlob); }
-    const bar=document.getElementById('voiceRecordBar');
-    if(bar){ bar.classList.remove('recording'); bar.classList.add('previewing'); }
-    if(vrStream){ vrStream.getTracks().forEach(t=>t.stop()); vrStream=null; }
-  };
-  vrMediaRecorder.start();
-  vrRecording=true;
-  vrStartTime=Date.now();
-  document.getElementById('sendRow').style.display='none';
-  const bar=document.getElementById('voiceRecordBar');
-  bar.classList.add('show');
-  bar.classList.add('recording');
-  bar.classList.remove('previewing');
-  document.getElementById('vrTimer').textContent='00:00';
-  clearInterval(vrTimerInterval);
-  vrTimerInterval=setInterval(()=>{
-    document.getElementById('vrTimer').textContent=vcFmtTimeSimple((Date.now()-vrStartTime)/1000);
-  },250);
-  sendRecordingStatus(true);
-}
-
-function stopVoiceRecording(){
-  if(!vrMediaRecorder||vrMediaRecorder.state==='inactive') return;
-  try{ vrMediaRecorder.stop(); }catch(e){}
-  vrRecording=false;
-  clearInterval(vrTimerInterval);
-  sendRecordingStatus(false);
-}
-
-function cancelVoiceRecording(){
-  if(vrMediaRecorder && vrMediaRecorder.state!=='inactive'){
-    vrMediaRecorder.onstop=null;
-    try{ vrMediaRecorder.stop(); }catch(e){}
-  }
-  if(vrStream){ vrStream.getTracks().forEach(t=>t.stop()); vrStream=null; }
-  clearInterval(vrTimerInterval);
-  vrRecording=false;
-  vrBlob=null; vrChunks=[];
-  sendRecordingStatus(false);
-  const bar=document.getElementById('voiceRecordBar');
-  bar.classList.remove('show','recording','previewing');
-  const audioEl=document.getElementById('vrPreviewAudio');
-  if(audioEl){ audioEl.pause(); audioEl.src=''; }
-  document.getElementById('vrSeekFill').style.width='0%';
-  document.getElementById('vrPreviewTime').textContent='00:00';
-  document.getElementById('sendRow').style.display='flex';
-}
-
-function toggleVoicePreviewPlay(){
-  const audioEl=document.getElementById('vrPreviewAudio');
-  if(!audioEl||!audioEl.src) return;
-  const btn=document.getElementById('vrPlayBtn');
-  if(audioEl.paused){
-    audioEl.play().catch(()=>{});
-    vrPreviewPlaying=true;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
-  }else{
-    audioEl.pause();
-    vrPreviewPlaying=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
-  }
-}
-function seekVoicePreview(e){
-  const audioEl=document.getElementById('vrPreviewAudio');
-  if(!audioEl||!audioEl.duration) return;
-  const track=e.currentTarget.querySelector('.vrSeekTrack');
-  const rect=track.getBoundingClientRect();
-  const ratio=Math.min(1,Math.max(0,(e.clientX-rect.left)/rect.width));
-  audioEl.currentTime=ratio*audioEl.duration;
-}
-
-async function sendVoiceMessage(){
-  if(vrRecording){ stopVoiceRecording(); await new Promise(r=>setTimeout(r,300)); }
-  if(!vrBlob){ showToast('Нет записи'); return; }
-  const chatName=curChat;
-  const meta=chatMeta[chatName];
-  if(!meta||!meta.uid||!vchatUser){ cancelVoiceRecording(); return; }
-  const previewAudio=document.getElementById('vrPreviewAudio');
-  let durationSec=Math.round((previewAudio&&previewAudio.duration)||(vrStartTime?( (Date.now()-vrStartTime)/1000 ):0));
-  if(!durationSec||!isFinite(durationSec)) durationSec=Math.round((Date.now()-vrStartTime)/1000);
-  durationSec=Math.max(1,durationSec);
-  const blobToSend=vrBlob;
-  const bar=document.getElementById('voiceRecordBar');
-  bar.classList.remove('show','recording','previewing');
-  document.getElementById('sendRow').style.display='flex';
-  vrBlob=null; vrChunks=[];
-  showToast('Отправка голосового...');
-  try{
-    const ext=blobToSend.type.includes('ogg')?'ogg':(blobToSend.type.includes('mp4')?'m4a':'webm');
-    const path=vchatUser.id+'/voice_'+Date.now()+'.'+ext;
-    const {error:upErr}=await sb.storage.from('chat-files').upload(path,blobToSend,{contentType:blobToSend.type||'audio/webm'});
-    if(upErr){ showToast('Не удалось загрузить голосовое'); return; }
-    const {data:pub}=sb.storage.from('chat-files').getPublicUrl(path);
-    const {data:row,error}=await sb.from('messages').insert({
-      sender_id:vchatUser.id, receiver_id:meta.uid, content:String(durationSec), type:'voice', file_url:pub.publicUrl
-    }).select().single();
-    if(error){ showToast('Не удалось отправить голосовое'); return; }
-    chats[chatName]=chats[chatName]||[];
-    chats[chatName].push(dbRowToLocal(row));
-    meta.last='🎤 Голосовое сообщение';
-    bumpChatOrder(chatName);
-    renderChatRows();
-    if(curChat===chatName) renderChat(null,true);
-  }catch(e){ showToast('Ошибка сети'); }
-}
-
-let currentlyPlayingVoiceId=null;
-function toggleVoicePlay(id){
-  const audioEl=document.getElementById('voiceAudioEl_'+id);
-  if(!audioEl) return;
-  if(currentlyPlayingVoiceId!==null && currentlyPlayingVoiceId!==id){
-    const prev=document.getElementById('voiceAudioEl_'+currentlyPlayingVoiceId);
-    if(prev) prev.pause();
-    setVoicePlayIcon(currentlyPlayingVoiceId,false);
-  }
-  if(audioEl.paused){
-    audioEl.play().catch(()=>showToast('Не удалось воспроизвести'));
-    currentlyPlayingVoiceId=id;
-    setVoicePlayIcon(id,true);
-  }else{
-    audioEl.pause();
-    setVoicePlayIcon(id,false);
-  }
-}
-function setVoicePlayIcon(id,playing){
-  const btn=document.getElementById('voicePlayBtn_'+id);
-  if(!btn) return;
-  btn.innerHTML = playing
-    ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>'
-    : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
-}
-function voiceTimeUpdate(id){
-  const audioEl=document.getElementById('voiceAudioEl_'+id);
-  if(!audioEl||!audioEl.duration||!isFinite(audioEl.duration)) return;
-  const ratio=audioEl.currentTime/audioEl.duration;
-  const fill=document.getElementById('voiceFill_'+id);
-  if(fill) fill.style.width=(ratio*100)+'%';
-  const knob=document.getElementById('voiceKnob_'+id);
-  if(knob) knob.style.left=(ratio*100)+'%';
-  const timeEl=document.getElementById('voiceTime_'+id);
-  if(timeEl) timeEl.textContent=vcFmtTimeSimple(audioEl.currentTime)+' / '+vcFmtTimeSimple(audioEl.duration);
-}
-function voiceEnded(id){
-  setVoicePlayIcon(id,false);
-  if(currentlyPlayingVoiceId===id) currentlyPlayingVoiceId=null;
-  const fill=document.getElementById('voiceFill_'+id);
-  if(fill) fill.style.width='0%';
-  const knob=document.getElementById('voiceKnob_'+id);
-  if(knob) knob.style.left='0%';
-}
-function seekVoiceMsg(e,id){
-  const audioEl=document.getElementById('voiceAudioEl_'+id);
-  if(!audioEl||!audioEl.duration||!isFinite(audioEl.duration)) return;
-  const track=e.currentTarget.querySelector('.voiceSeekTrack');
-  const rect=track.getBoundingClientRect();
-  const ratio=Math.min(1,Math.max(0,(e.clientX-rect.left)/rect.width));
-  audioEl.currentTime=ratio*audioEl.duration;
-  if(audioEl.paused){ toggleVoicePlay(id); }
-}
-/* keep the little preview seek bar in sync while recording preview plays */
-document.addEventListener('timeupdate',(e)=>{
-  if(e.target && e.target.id==='vrPreviewAudio'){
-    const audioEl=e.target;
-    if(audioEl.duration&&isFinite(audioEl.duration)){
-      const ratio=audioEl.currentTime/audioEl.duration;
-      const fill=document.getElementById('vrSeekFill');
-      if(fill) fill.style.width=(ratio*100)+'%';
-      const timeEl=document.getElementById('vrPreviewTime');
-      if(timeEl) timeEl.textContent=vcFmtTimeSimple(audioEl.currentTime);
-    }
-  }
-},true);
-document.addEventListener('ended',(e)=>{
-  if(e.target && e.target.id==='vrPreviewAudio'){
-    vrPreviewPlaying=false;
-    const btn=document.getElementById('vrPlayBtn');
-    if(btn) btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
-  }
-},true);
-
-/* ---------- индикатор "записывает голосовое" (как "печатает") ---------- */
-let recordingMap={};
-function sendRecordingStatus(isRecording){
-  const meta=chatMeta[curChat];
-  if(!meta||!meta.uid||!currentTypingChannel||!vchatUser)return;
-  currentTypingChannel.send({type:'broadcast',event:'recording',payload:{from:vchatUser.id,recording:isRecording}});
-}
-
 
 /* ---------- получение сообщений в реальном времени ---------- */
 function vchatSubscribeMessages(){
