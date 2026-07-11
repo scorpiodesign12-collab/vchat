@@ -192,6 +192,23 @@ body{display:flex;}
 /* file preview above sendbar */
 .filePreview{display:none;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:8px 12px;margin-bottom:6px;flex-shrink:0;}
 .filePreview.show{display:flex;}
+.attachMenuOverlay{position:fixed;inset:0;background:transparent;z-index:60;display:none;}
+.attachMenuOverlay.show{display:block;}
+.attachMenu{position:absolute;left:12px;bottom:64px;background:var(--bg);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:61;display:none;flex-direction:column;min-width:200px;border:1px solid var(--line);}
+.attachMenu.show{display:flex;}
+.attachMenuItem{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;cursor:pointer;font-size:14px;color:var(--fg);}
+.attachMenuItem:active{background:var(--card);}
+.amIcon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0;}
+.amIcon svg{width:20px;height:20px;}
+.amLock{margin-left:auto;font-size:10px;font-weight:700;color:#D81B60;background:rgba(216,27,96,.12);padding:3px 7px;border-radius:8px;flex-shrink:0;}
+.filePreview .fpThumb{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.msg.image{background:transparent!important;padding:3px!important;}
+.msg.image img{max-width:220px;max-height:280px;border-radius:14px;display:block;cursor:pointer;object-fit:cover;}
+.chatImgOverlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;display:none;align-items:center;justify-content:center;}
+.chatImgOverlay.show{display:flex;}
+.chatImgOverlay img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:8px;}
+.chatImgClose{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.chatImgClose svg{width:18px;height:18px;}
 .filePreview svg{width:20px;height:20px;flex-shrink:0;color:var(--muted);}
 .filePreview .fpName{flex:1;font-size:13px;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .filePreview .fpSize{font-size:11.5px;color:var(--muted);}
@@ -593,7 +610,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
         <!-- File preview -->
         <div class="filePreview" id="filePreview">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <svg id="fpIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <img id="fpThumb" class="fpThumb" style="display:none;" alt="">
           <div style="flex:1;min-width:0;">
             <div class="fpName" id="fpName">файл.pdf</div>
             <div class="fpSize" id="fpSize">0 КБ</div>
@@ -625,6 +643,19 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           </div>
         </div>
         <input type="file" id="fileInput" style="display:none" accept=".pdf,.txt,.doc,.docx" onchange="handleFile(this)">
+        <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleImageFile(this)">
+        <div class="attachMenuOverlay" id="attachMenuOverlay" onclick="closeAttachMenu()"></div>
+        <div class="attachMenu" id="attachMenu">
+          <div class="attachMenuItem" onclick="chooseAttachDoc()">
+            <div class="amIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <span>Документ</span>
+          </div>
+          <div class="attachMenuItem" onclick="chooseAttachPhoto()">
+            <div class="amIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+            <span>Фото</span>
+            <span class="amLock" id="amLockBadge" style="display:none;">VChat Plus</span>
+          </div>
+        </div>
 
         <!-- Empty state (desktop: shown inside this same pane when no chat is active) -->
         <div class="emptyDetail" id="emptyDetail">
@@ -840,6 +871,12 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 </div>
 
 <div class="attachToast" id="attachToast"></div>
+<div class="chatImgOverlay" id="chatImgOverlay" onclick="closeChatImage()">
+  <button class="chatImgClose" onclick="event.stopPropagation();closeChatImage();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <img id="chatImgFull" src="" alt="" onclick="event.stopPropagation();">
+</div>
 
 <div class="ctxOverlay" id="ctxOverlay" onclick="closeCtxMenu()" oncontextmenu="event.preventDefault();closeCtxMenu();"></div>
 <div class="ctxMenu" id="ctxMenu">
@@ -1895,7 +1932,7 @@ function renderReplyQuote(m){
   if(!m.replyTo)return '';
   let target=findMsgById(m.replyTo);
   if(!target)return '';
-  let preview=target.type==='file'?('📎 '+target.name):escHtml(target.text||'');
+  let preview=target.type==='file'?('📎 '+target.name):target.type==='image'?'📷 Фото':escHtml(target.text||'');
   let who=target.from==='out'?'Вы':document.getElementById('cwName').textContent;
   return `<div class="replyQuote" onclick="jumpToMessage(${target.id})"><b>${who}</b><span>${preview}</span></div>`;
 }
@@ -1998,6 +2035,15 @@ function renderChat(highlight, forceBottom){
         ${renderTimeRow(m)}
       </div>`;
     }
+    if(m.type==='image'){
+      return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
+        <div class="msgInner">
+          <span class="swipeArrow">${ICONS.chevron}</span>
+          <div class="msg image ${m.from}">${renderReplyQuote(m)}<img src="${escHtml(m.url||'')}" onclick="openChatImage('${escHtml(m.url||'')}')" alt=""></div>
+        </div>
+        ${renderTimeRow(m)}
+      </div>`;
+    }
     if(m.type==='call'){
       let mm=Math.floor(m.duration/60).toString().padStart(2,'0');
       let ss=(m.duration%60).toString().padStart(2,'0');
@@ -2090,7 +2136,7 @@ function startReply(id){
   if(!m)return;
   replyTarget=id;
   document.getElementById('rpName').textContent='Ответить';
-  document.getElementById('rpText').textContent=m.type==='file'?('📎 '+m.name):(m.text||'');
+  document.getElementById('rpText').textContent=m.type==='file'?('📎 '+m.name):m.type==='image'?'📷 Фото':(m.text||'');
   document.getElementById('replyPreview').classList.add('show');
   let inp=document.getElementById('cwInput');
   if(inp)inp.focus();
@@ -2107,7 +2153,7 @@ function updatePinnedBar(){
   let p=pinnedMap[curChat];
   let m=p?findMsgById(p.id):null;
   if(!m){bar.classList.remove('show');return;}
-  let txt=m.type==='file'?('📎 '+m.name):(m.text||'');
+  let txt=m.type==='file'?('📎 '+m.name):m.type==='image'?'📷 Фото':(m.text||'');
   document.getElementById('pinnedBarText').textContent=txt;
   bar.classList.add('show');
 }
@@ -2273,7 +2319,7 @@ function attachSwipeHandlers(){
     const wrap=inner.closest('.msgWrap');
     const id=parseInt(wrap.dataset.id,10);
     const srcMsg=findMsgById(id);
-    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'))return; // нельзя отвечать свайпом на звонки и файлы
+    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'||srcMsg.type==='image'))return; // нельзя отвечать свайпом на звонки, файлы и фото
     let startX=0,curX=0,dragging=false;
     const arrow=inner.querySelector('.swipeArrow');
     const isOut=wrap.classList.contains('out');
@@ -2375,9 +2421,9 @@ function localSendMsg(){
   let fileLabel=null;
   if(hasFile){
     let f=pendingFile;
-    fileLabel=f.name;
+    fileLabel=f.kind==='image'?'📷 Фото':f.name;
     let url=f.file?URL.createObjectURL(f.file):null;
-    chats[curChat].push({id:msgIdSeq++,from:'out',type:'file',name:f.name,size:f.sizeStr,time:nowTime(),createdAt:new Date().toISOString(),replyTo:replyId,url:url});
+    chats[curChat].push({id:msgIdSeq++,from:'out',type:f.kind==='image'?'image':'file',name:f.name,size:f.sizeStr,time:nowTime(),createdAt:new Date().toISOString(),replyTo:replyId,url:url});
     cancelAttach();
     replyId=null;
   }
@@ -2403,15 +2449,62 @@ function downloadFile(id){
   if(!m||!m.url){showToast('Файл недоступен для скачивания');return;}
   window.open(m.url,'_blank');
 }
+function openChatImage(url){
+  if(!url)return;
+  document.getElementById('chatImgFull').src=url;
+  document.getElementById('chatImgOverlay').classList.add('show');
+}
+function closeChatImage(){
+  document.getElementById('chatImgOverlay').classList.remove('show');
+}
 
 /* ---------- file attach ---------- */
 const MAX_SIZE=10*1024*1024;
+const MAX_IMAGE_SIZE=10*1024*1024;
 const ALLOWED=['pdf','txt','doc','docx'];
 let pendingFile=null;
 
 function triggerAttach(){
   if(!curChat){showToast('Сначала откройте чат');return;}
+  openAttachMenu();
+}
+function openAttachMenu(){
+  const sub = (typeof vchatUser!=='undefined' && vchatUser) && isSubActive(vchatUser.username);
+  document.getElementById('amLockBadge').style.display = sub ? 'none' : 'inline-block';
+  document.getElementById('attachMenuOverlay').classList.add('show');
+  document.getElementById('attachMenu').classList.add('show');
+}
+function closeAttachMenu(){
+  document.getElementById('attachMenuOverlay').classList.remove('show');
+  document.getElementById('attachMenu').classList.remove('show');
+}
+function chooseAttachDoc(){
+  closeAttachMenu();
   document.getElementById('fileInput').click();
+}
+function chooseAttachPhoto(){
+  const sub = (typeof vchatUser!=='undefined' && vchatUser) && isSubActive(vchatUser.username);
+  closeAttachMenu();
+  if(!sub){ showToast('Отправка фото — только с подпиской VChat Plus'); return; }
+  document.getElementById('imageInput').click();
+}
+function fmtBytes(bytes){
+  return bytes<1024?bytes+' Б':bytes<1048576?(bytes/1024).toFixed(1)+' КБ':(bytes/1048576).toFixed(2)+' МБ';
+}
+function showFilePreview(){
+  const icon=document.getElementById('fpIcon');
+  const thumb=document.getElementById('fpThumb');
+  document.getElementById('fpName').textContent=pendingFile.kind==='image'?'Фото':pendingFile.name;
+  document.getElementById('fpSize').textContent=pendingFile.sizeStr;
+  if(pendingFile.kind==='image'){
+    thumb.src=pendingFile.previewUrl;
+    thumb.style.display='block';
+    icon.style.display='none';
+  }else{
+    thumb.style.display='none';
+    icon.style.display='block';
+  }
+  document.getElementById('filePreview').classList.add('show');
 }
 function handleFile(input){
   let file=input.files[0];
@@ -2420,13 +2513,20 @@ function handleFile(input){
   let ext=file.name.split('.').pop().toLowerCase();
   if(!ALLOWED.includes(ext)){showToast('Только PDF, TXT, DOC, DOCX');return;}
   if(file.size>MAX_SIZE){showToast('Файл больше 10 МБ');return;}
-  let sz=file.size<1024?file.size+' Б':file.size<1048576?(file.size/1024).toFixed(1)+' КБ':(file.size/1048576).toFixed(2)+' МБ';
-  pendingFile={name:file.name,sizeStr:sz,file:file};
-  document.getElementById('fpName').textContent=file.name;
-  document.getElementById('fpSize').textContent=sz;
-  document.getElementById('filePreview').classList.add('show');
+  pendingFile={name:file.name,sizeStr:fmtBytes(file.size),file:file,kind:'file'};
+  showFilePreview();
+}
+function handleImageFile(input){
+  let file=input.files[0];
+  if(!file)return;
+  input.value='';
+  if(!file.type.startsWith('image/')){showToast('Нужен файл изображения');return;}
+  if(file.size>MAX_IMAGE_SIZE){showToast('Фото больше 10 МБ');return;}
+  pendingFile={name:file.name,sizeStr:fmtBytes(file.size),file:file,kind:'image',previewUrl:URL.createObjectURL(file)};
+  showFilePreview();
 }
 function cancelAttach(){
+  if(pendingFile && pendingFile.previewUrl){ try{ URL.revokeObjectURL(pendingFile.previewUrl); }catch(e){} }
   pendingFile=null;
   document.getElementById('filePreview').classList.remove('show');
 }
@@ -2526,6 +2626,7 @@ vchatUser=null; // (уже объявлена как var выше, здесь п
 
 function previewForRow(m){
   if(m.type==='file') return '📎 '+(m.file_name||'Файл');
+  if(m.type==='image') return '📷 Фото';
   if(m.type==='call') return '📞 Звонок';
   return m.content||'';
 }
@@ -2535,6 +2636,9 @@ function dbRowToLocal(m){
   let from=m.sender_id===vchatUser.id?'out':'in';
   if(m.type==='file'){
     return {id:m.id,from:from,type:'file',name:m.file_name||'Файл',size:m.file_size||'',url:m.file_url||null,time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
+  }
+  if(m.type==='image'){
+    return {id:m.id,from:from,type:'image',url:m.file_url||null,time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
   }
   if(m.type==='call'){
     let info={duration:0,status:'ended'};
@@ -2795,20 +2899,19 @@ async function sendMsg(){
     let f=pendingFile;
     cancelAttach();
     inp.disabled=true;
-    showToast('Загрузка файла...');
+    showToast(f.kind==='image'?'Загрузка фото...':'Загрузка файла...');
     try{
       let path=vchatUser.id+'/'+Date.now()+'_'+f.file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
       let {error:upErr}=await uploadFileDirect(path,f.file,f.file.type,false);
-      if(upErr){ console.error(upErr); showToast('Не удалось загрузить файл'); inp.disabled=false; return; }
+      if(upErr){ console.error(upErr); showToast(f.kind==='image'?'Не удалось загрузить фото':'Не удалось загрузить файл'); inp.disabled=false; return; }
       let fileUrl=getPublicUrlDirect(path);
-      let {data:row,error}=await sb.from('messages').insert({
-        sender_id:vchatUser.id, receiver_id:meta.uid, content:null,
-        type:'file', file_name:f.name, file_size:f.sizeStr, file_url:fileUrl,
-        reply_to:replyId
-      }).select().single();
-      if(error){ console.error(error); showToast('Не удалось отправить файл'); inp.disabled=false; return; }
+      let insertPayload = f.kind==='image'
+        ? { sender_id:vchatUser.id, receiver_id:meta.uid, content:null, type:'image', file_url:fileUrl, reply_to:replyId }
+        : { sender_id:vchatUser.id, receiver_id:meta.uid, content:null, type:'file', file_name:f.name, file_size:f.sizeStr, file_url:fileUrl, reply_to:replyId };
+      let {data:row,error}=await sb.from('messages').insert(insertPayload).select().single();
+      if(error){ console.error(error); showToast(f.kind==='image'?'Не удалось отправить фото':'Не удалось отправить файл'); inp.disabled=false; return; }
       chats[chatName].push(dbRowToLocal(row));
-      meta.last='📎 '+f.name;
+      meta.last=f.kind==='image'?'📷 Фото':'📎 '+f.name;
       bumpChatOrder(chatName);
       renderChat();
     }catch(e){ console.error(e); showToast('Ошибка отправки файла'); }
