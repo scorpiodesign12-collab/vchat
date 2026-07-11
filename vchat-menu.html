@@ -1272,10 +1272,13 @@ function toggleA11yPanel(){
   chevron.style.transform=open?'rotate(180deg)':'rotate(0deg)';
 }
 function applyA11yScale(percent){
-  // используем CSS zoom — во всех Chromium-движках (сайт, Electron-приложение)
-  // это единственный простой способ увеличить сразу весь интерфейс (текст,
-  // кнопки, сообщения) без переписывания всех размеров в файле на rem/em.
-  document.documentElement.style.zoom=(percent/100);
+  // ВАЖНО: масштабируем не всю страницу (document.documentElement), а только
+  // .content — область справа от левой панели с иконками. Раньше zoom стоял
+  // на <html> целиком, из-за чего вся страница "сжималась по высоте" и левая
+  // колонка с иконками (профиль/настройки) физически переставала помещаться
+  // и уезжала за пределы окна. Теперь панель с иконками неприкосновенна,
+  // масштабируется только сам контент (текст, сообщения, кнопки внутри вкладок).
+  document.querySelectorAll('.content').forEach(el=>{ el.style.zoom=(percent/100); });
 }
 function onA11yScaleInput(value){
   let percent=parseInt(value,10)||100;
