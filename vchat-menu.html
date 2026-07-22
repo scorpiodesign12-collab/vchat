@@ -238,7 +238,18 @@ body{display:flex;}
 .hlmatch{background:rgba(255,200,0,.35);border-radius:3px;}
 
 /* message wrapper / swipe / time */
-.msgWrap{position:relative;max-width:100%;display:flex;flex-direction:column;}
+.msgWrap{position:relative;max-width:100%;display:flex;flex-direction:column;touch-action:manipulation;}
+.reactionBurst{position:fixed;font-size:60px;pointer-events:none;z-index:500;transform:translate(-50%,-50%) scale(.2);opacity:0;animation:reactionBurstAnim .7s cubic-bezier(.34,1.56,.64,1) forwards;}
+@keyframes reactionBurstAnim{
+  0%{transform:translate(-50%,-50%) scale(.2);opacity:0;}
+  35%{transform:translate(-50%,-50%) scale(1.25);opacity:1;}
+  60%{transform:translate(-50%,-50%) scale(1);opacity:1;}
+  100%{transform:translate(-50%,-50%) scale(1.15);opacity:0;}
+}
+.msgReactions{position:absolute;bottom:-9px;display:flex;gap:3px;z-index:3;}
+.msgWrap.out .msgReactions{right:6px;}
+.msgWrap.in .msgReactions{left:6px;}
+.reactionPill{background:var(--bg);border:1.5px solid var(--card);border-radius:11px;padding:1px 6px;font-size:13px;line-height:1.5;box-shadow:0 1px 4px rgba(0,0,0,.18);}
 .daySep{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12.5px;font-weight:600;}
 .daySep::before,.daySep::after{content:'';flex:1;height:1px;background:var(--line);}
 .daySep span{white-space:nowrap;}
@@ -859,14 +870,31 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
 
         <div class="label" style="margin-top:20px;">Разделы</div>
-        <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
+        <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
           <div class="pItem" style="cursor:default;">
             <div class="pIconWrap" style="background:#FF9500;" data-icon="friends"></div>
-            <div class="pItemBody"><div class="pItemLabel">Новости</div><div class="pItemValue">Отдельная вкладка с новостями внизу экрана</div></div>
+            <div class="pItemBody"><div class="pItemLabel">Новости</div></div>
             <label class="toggleSwitch">
               <input type="checkbox" id="newsToggleInput" onchange="toggleNewsTabSetting(this.checked)">
               <span class="toggleSlider"></span>
             </label>
+          </div>
+          <div class="pItem" style="cursor:default;border-bottom:none;">
+            <div class="pIconWrap" style="background:#34c759;" data-icon="feed"></div>
+            <div class="pItemBody"><div class="pItemLabel">Лента</div></div>
+            <label class="toggleSwitch">
+              <input type="checkbox" id="feedToggleInput" onchange="toggleFeedTabSetting(this.checked)">
+              <span class="toggleSlider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="label" style="margin-top:20px;">Реакции</div>
+        <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
+          <div class="hint" style="margin:0 0 12px;">Эмодзи, которое ставится двойным нажатием по сообщению — своё или чужое, в любом чате.</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input type="text" id="quickReactionInput" maxlength="8" style="width:56px;text-align:center;font-size:22px;padding:10px 0;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);">
+            <button class="tbtn" style="flex:1;" onclick="saveQuickReaction()">Сохранить</button>
           </div>
         </div>
 
@@ -1215,6 +1243,145 @@ function toggleNewsTabSetting(checked){
   try{ localStorage.setItem(NEWS_TAB_STORAGE_KEY, checked?'1':'0'); }catch(e){}
   applyNewsTabVisibility();
   if(checked) initNewsTab();
+}
+
+/* ---------- переключатель вкладки "Лента" в настройках ---------- */
+const FEED_TAB_STORAGE_KEY='vchat_feed_enabled';
+function isFeedTabEnabled(){
+  try{
+    let v=localStorage.getItem(FEED_TAB_STORAGE_KEY);
+    return v===null ? true : v==='1';
+  }catch(e){ return true; }
+}
+function applyFeedTabVisibility(){
+  const enabled=isFeedTabEnabled();
+  ['rFeed','nFeed'].forEach(id=>{
+    let el=document.getElementById(id);
+    if(el) el.style.display = enabled ? '' : 'none';
+  });
+  if(!enabled){
+    let tf=document.getElementById('tabFeed');
+    if(tf && tf.classList.contains('on')) showTab('Chats');
+  }
+  let toggleInput=document.getElementById('feedToggleInput');
+  if(toggleInput) toggleInput.checked=enabled;
+}
+function toggleFeedTabSetting(checked){
+  try{ localStorage.setItem(FEED_TAB_STORAGE_KEY, checked?'1':'0'); }catch(e){}
+  applyFeedTabVisibility();
+  if(checked) initFeedTab();
+}
+
+/* ---------- реакция двойным тапом по сообщению ---------- */
+const QUICK_REACTION_KEY='vchat_quick_reaction';
+function getQuickReaction(){
+  try{ return localStorage.getItem(QUICK_REACTION_KEY)||'❤️'; }catch(e){ return '❤️'; }
+}
+function initQuickReactionInput(){
+  let el=document.getElementById('quickReactionInput');
+  if(el) el.value=getQuickReaction();
+}
+function saveQuickReaction(){
+  let el=document.getElementById('quickReactionInput');
+  let val=(el.value||'').trim();
+  if(!val){ showToast('Введите эмодзи'); return; }
+  if(val.length>8) val=val.slice(0,8);
+  try{ localStorage.setItem(QUICK_REACTION_KEY, val); }catch(e){}
+  el.value=val;
+  showToast('Реакция сохранена');
+}
+
+let msgReactions={}; // messageId -> [{user_id, emoji}]
+
+async function loadReactionsForChat(name){
+  let msgs=chats[name];
+  if(!msgs||!msgs.length) return;
+  let ids=msgs.filter(m=>m.type!=='daysep').map(m=>m.id);
+  if(!ids.length) return;
+  try{
+    let {data,error}=await sb.from('message_reactions').select('message_id,user_id,emoji').in('message_id',ids);
+    if(error||!data) return;
+    data.forEach(r=>{
+      if(!msgReactions[r.message_id]) msgReactions[r.message_id]=[];
+      msgReactions[r.message_id]=msgReactions[r.message_id].filter(x=>x.user_id!==r.user_id);
+      msgReactions[r.message_id].push({user_id:r.user_id, emoji:r.emoji});
+    });
+    if(curChat===name) renderChat(null,false);
+  }catch(e){ console.error(e); }
+}
+
+function showReactionBurst(wrapEl,emoji){
+  let rect=wrapEl.getBoundingClientRect();
+  let burst=document.createElement('div');
+  burst.className='reactionBurst';
+  burst.textContent=emoji;
+  burst.style.left=(rect.left+rect.width/2)+'px';
+  burst.style.top=(rect.top+rect.height/2)+'px';
+  document.body.appendChild(burst);
+  setTimeout(()=>{ if(burst.parentNode) burst.parentNode.removeChild(burst); },750);
+}
+
+async function triggerMsgReaction(id,wrapEl){
+  let m=findMsgById(id);
+  if(!m||m.type==='daysep'||!vchatUser) return;
+  let emoji=getQuickReaction();
+  showReactionBurst(wrapEl,emoji);
+  let mine=(msgReactions[id]||[]).find(r=>r.user_id===vchatUser.id);
+  if(mine && mine.emoji===emoji){
+    msgReactions[id]=(msgReactions[id]||[]).filter(r=>r.user_id!==vchatUser.id);
+    renderChat(null,false);
+    try{ await sb.from('message_reactions').delete().eq('message_id',id).eq('user_id',vchatUser.id); }catch(e){ console.error(e); }
+    return;
+  }
+  msgReactions[id]=(msgReactions[id]||[]).filter(r=>r.user_id!==vchatUser.id);
+  msgReactions[id].push({user_id:vchatUser.id, emoji:emoji});
+  renderChat(null,false);
+  try{
+    await sb.from('message_reactions').upsert({message_id:id,user_id:vchatUser.id,emoji:emoji},{onConflict:'message_id,user_id'});
+  }catch(e){ console.error(e); }
+}
+
+let lastTapInfo={id:null,time:0};
+function setupMsgReactionTaps(){
+  let box=document.getElementById('cwMsgs');
+  if(!box||box.dataset.reactionTapBound) return;
+  box.dataset.reactionTapBound='1';
+  box.addEventListener('click',function(e){
+    let wrap=e.target.closest('.msgWrap');
+    if(!wrap||!box.contains(wrap)) return;
+    let id=parseInt(wrap.dataset.id);
+    if(isNaN(id)) return;
+    let now=Date.now();
+    if(lastTapInfo.id===id && (now-lastTapInfo.time)<350){
+      lastTapInfo={id:null,time:0};
+      triggerMsgReaction(id,wrap);
+    }else{
+      lastTapInfo={id:id,time:now};
+    }
+  });
+}
+
+function vchatSubscribeReactions(){
+  sb.channel('reactions-listen-'+vchatUser.id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},payload=>{
+      let mid=(payload.new&&payload.new.message_id!=null)?payload.new.message_id:(payload.old?payload.old.message_id:null);
+      if(mid==null) return;
+      let inAnyChat=false;
+      for(let name in chats){
+        if(chats[name] && chats[name].some(m=>m.id===mid)){ inAnyChat=true; break; }
+      }
+      if(!inAnyChat) return;
+      if(payload.eventType==='DELETE'){
+        msgReactions[mid]=(msgReactions[mid]||[]).filter(r=>r.user_id!==payload.old.user_id);
+      }else{
+        let arr=(msgReactions[mid]||[]).filter(r=>r.user_id!==payload.new.user_id);
+        arr.push({user_id:payload.new.user_id, emoji:payload.new.emoji});
+        msgReactions[mid]=arr;
+      }
+      if(curChat && chats[curChat] && chats[curChat].some(m=>m.id===mid)){
+        renderChat(null,false);
+      }
+    }).subscribe();
 }
 
 /* ---------- вкладка "Новости" (Спорт / Прочее), питается из таблицы news_posts ---------- */
@@ -2000,6 +2167,8 @@ function openChat(name){
   pane.classList.add('open','chatActive');
   renderChat();
   updatePinnedBar();
+  setupMsgReactionTaps();
+  loadReactionsForChat(name);
   try{ history.pushState({vchatChatOpen:true}, ''); }catch(e){}
 }
 function backToChats(fromPopState){
@@ -2027,6 +2196,12 @@ function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 function findMsgById(id){
   if(!chats[curChat])return null;
   return chats[curChat].find(m=>m.id===id)||null;
+}
+
+function renderReactionPills(m){
+  let arr=msgReactions[m.id];
+  if(!arr||!arr.length) return '';
+  return `<div class="msgReactions">${arr.map(r=>`<span class="reactionPill">${escHtml(r.emoji)}</span>`).join('')}</div>`;
 }
 
 function renderReplyQuote(m){
@@ -2133,6 +2308,7 @@ function renderChat(highlight, forceBottom){
           <span class="swipeArrow">${ICONS.chevron}</span>
           <div class="msg file ${m.from}" onclick="downloadFile(${m.id})" title="Скачать файл">${renderReplyQuote(m)}${ICONS.file}<div class="fileinfo"><b>${escHtml(m.name)}</b><span>${m.size}</span></div></div>
         </div>
+        ${renderReactionPills(m)}
         ${renderTimeRow(m)}
       </div>`;
     }
@@ -2142,6 +2318,7 @@ function renderChat(highlight, forceBottom){
           <span class="swipeArrow">${ICONS.chevron}</span>
           <div class="msg image ${m.from}">${renderReplyQuote(m)}<img src="${escHtml(m.url||'')}" onclick="openChatImage('${escHtml(m.url||'')}')" alt=""></div>
         </div>
+        ${renderReactionPills(m)}
         ${renderTimeRow(m)}
       </div>`;
     }
@@ -2158,6 +2335,7 @@ function renderChat(highlight, forceBottom){
           <span class="swipeArrow">${ICONS.chevron}</span>
           <div class="msg call ${m.from}">${icon}<span>${label}</span></div>
         </div>
+        ${renderReactionPills(m)}
         ${renderTimeRow(m)}
       </div>`;
     }
@@ -2171,6 +2349,7 @@ function renderChat(highlight, forceBottom){
         <span class="swipeArrow">${ICONS.chevron}</span>
         <div class="msg ${m.from}" oncontextmenu="openCtxMenu(event,${m.id})">${renderReplyQuote(m)}${txt}</div>
       </div>
+      ${renderReactionPills(m)}
       ${renderTimeRow(m)}
     </div>`;
   }).join('') + (typingMap[curChat]?`<div class="typingBubble show"><span></span><span></span><span></span></div>`:'');
@@ -2690,6 +2869,8 @@ let savedTheme='light';
 try{ savedTheme = localStorage.getItem('vchat_theme')||'light'; }catch(e){}
 setDark(savedTheme==='dark');
 applyNewsTabVisibility();
+applyFeedTabVisibility();
+initQuickReactionInput();
 initA11yScale();
 
 </script>
@@ -2776,6 +2957,7 @@ async function vchatInit(){
   vchatHeartbeat();
   setInterval(vchatHeartbeat,20000);
   vchatSubscribeMessages();
+  vchatSubscribeReactions();
   vchatListenForCalls();
   vchatListenTyping();
   await vchatOpenFromUrl();
