@@ -1403,9 +1403,16 @@ function updateQuickReactionSettingsPreview(){
 
 /* ---------- набор эмодзи (Mac / Android / Twemoji / JoyPixels) ---------- */
 const EMOJI_SET_KEY='vchat_emoji_set';
-const EMOJI_SET_SAMPLE=['😀','😉','😱','🙌'];
+// код-поинты зашиты вручную, чтобы превью в списке не зависело от того,
+// успела ли загрузиться внешняя библиотека twemoji.min.js к моменту открытия окна
+const EMOJI_SET_SAMPLE=[
+  {ch:'😀', code:'1f600'},
+  {ch:'😉', code:'1f609'},
+  {ch:'😱', code:'1f631'},
+  {ch:'🙌', code:'1f64c'}
+];
 const EMOJI_SETS=[
-  {id:'native', name:'Mac', desc:'Эмодзи Apple'},
+  {id:'native', name:'Mac', desc:'Родные эмодзи вашего устройства'},
   {id:'noto', name:'Android', desc:'Стиль Google (Noto Color Emoji)'},
   {id:'twemoji', name:'Twemoji', desc:'Стиль Twitter/X'},
   {id:'joypixels', name:'JoyPixels', desc:'Открытый набор эмодзи'}
@@ -1431,10 +1438,19 @@ function emojiUrlFnFor(mode){
   if(mode==='joypixels') return joypixelsIconUrl;
   return notoIconUrl;
 }
+// ждём загрузки twemoji.min.js (он подключается отдельным <script> ниже и может
+// ещё не успеть выполниться к первому клику по эмодзи-пикеру)
+function waitForTwemoji(cb, triesLeft){
+  if(window.twemoji){ cb(); return; }
+  if(triesLeft===undefined) triesLeft=40; // ~4 секунды максимум
+  if(triesLeft<=0){ cb(); return; }
+  setTimeout(()=>waitForTwemoji(cb, triesLeft-1), 100);
+}
 function emojifyEl(el){
-  if(!el || !window.twemoji) return;
+  if(!el) return;
   const mode=getEmojiSetMode();
   if(mode==='native') return;
+  if(!window.twemoji) return; // подтянется при следующей перерисовке чата
   const urlFn=emojiUrlFnFor(mode);
   try{
     window.twemoji.parse(el, {
@@ -1444,11 +1460,9 @@ function emojifyEl(el){
   }catch(e){}
 }
 function sampleHtmlFor(setId){
-  if(setId==='native'||!window.twemoji) return EMOJI_SET_SAMPLE.join(' ');
+  if(setId==='native') return EMOJI_SET_SAMPLE.map(e=>e.ch).join(' ');
   const urlFn = emojiUrlFnFor(setId);
-  try{
-    return window.twemoji.parse(EMOJI_SET_SAMPLE.join(' '), { className:'emojiImg', callback:function(icon){return urlFn(icon);} });
-  }catch(e){ return EMOJI_SET_SAMPLE.join(' '); }
+  return EMOJI_SET_SAMPLE.map(e=>`<img class="emojiImg" src="${urlFn(e.code)}" alt="${e.ch}" loading="lazy" onerror="this.replaceWith(document.createTextNode('${e.ch}'))">`).join('');
 }
 function buildEmojiSetList(){
   const box=document.getElementById('emojiSetList');
@@ -1477,7 +1491,7 @@ function pickEmojiSet(id){
   try{ localStorage.setItem(EMOJI_SET_KEY, id); }catch(e){}
   updateEmojiSetSettingsPreview();
   buildEmojiSetList();
-  if(curChat) renderChat(null,true);
+  waitForTwemoji(()=>{ if(curChat) renderChat(null,true); });
   showToast('Набор эмодзи изменён');
   setTimeout(closeEmojiSetPicker, 250);
 }
