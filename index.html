@@ -110,8 +110,9 @@ textarea.input{resize:none;height:74px;}
 #captchaCanvas{width:100%;height:280px;display:block;touch-action:none;cursor:crosshair;}
 .captchaClear{position:absolute;top:10px;right:10px;width:32px;height:32px;}
 .captchaClear svg{width:15px;height:15px;}
-.onbIconWrap{width:96px;height:96px;border-radius:28px;background:var(--card);display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--fg);}
+.onbIconWrap{width:96px;height:96px;border-radius:28px;background:var(--card);display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--fg);overflow:hidden;}
 .onbIconWrap svg{width:46px;height:46px;}
+.onbIconWrap video{width:100%;height:100%;object-fit:cover;display:block;}
 .onbVideoWrap{width:160px;height:160px;border-radius:32px;background:var(--card);display:flex;align-items:center;justify-content:center;margin-bottom:20px;overflow:hidden;}
 .onbVideoWrap video{width:100%;height:100%;object-fit:cover;display:block;}
 .onbDots{display:flex;gap:6px;justify-content:center;margin:18px 0 4px;z-index:1;}
@@ -246,7 +247,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3l"></button></div>
   <div class="screenBody">
     <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-      <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
+      <div class="onbIconWrap fadeUp"><video src="кричитпривет.webm" autoplay loop muted playsinline></video></div>
       <div class="title fadeUp" style="animation-delay:.05s;">Вход</div>
       <div class="sub fadeUp" style="animation-delay:.1s;">Введите юзернейм от вашего аккаунта</div>
     </div>
@@ -268,7 +269,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3"></button></div>
   <div class="screenBody">
     <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-      <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
+      <div class="onbIconWrap fadeUp"><video src="кричитпривет.webm" autoplay loop muted playsinline></video></div>
       <div class="title fadeUp" style="animation-delay:.05s;">Регистрация</div>
       <div class="sub fadeUp" style="animation-delay:.1s;">Если у вас имеется аккаунт в VCHAT, просто нажмите «Войти»</div>
     </div>
@@ -290,7 +291,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s3')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3name"></button></div>
   <div class="screenBody">
     <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-      <div class="onbIconWrap fadeUp"><span data-icon="profile"></span></div>
+      <div class="onbIconWrap fadeUp"><video src="впоросы.webm" autoplay loop muted playsinline></video></div>
       <div class="title fadeUp" style="animation-delay:.05s;">Как тебя зовут?</div>
       <div class="sub fadeUp" style="animation-delay:.1s;">Это имя увидят другие пользователи</div>
     </div>
@@ -308,7 +309,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="navLoginBack()" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4l"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
-      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><span data-icon="lock"></span></div>
+      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><video src="замок.webm" autoplay loop muted playsinline></video></div>
       <div class="title" style="font-size:20px;color:var(--muted);">Введи пароль</div>
       <div class="sub" id="s4loginSub" style="margin-top:2px;"></div>
       <div class="dots" id="pwdotsLogin"></div>
@@ -327,7 +328,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s3name')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
-      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><span data-icon="lock"></span></div>
+      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><video src="замок.webm" autoplay loop muted playsinline></video></div>
       <div class="title" style="font-size:20px;color:var(--muted);">Создай пароль</div>
       <div class="dots" id="pwdots"></div>
     </div>
@@ -345,7 +346,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s4')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4b"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
-      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><span data-icon="lock"></span></div>
+      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><video src="замок.webm" autoplay loop muted playsinline></video></div>
       <div class="title" style="font-size:20px;color:var(--muted);" id="confirmTitle">Повтори пароль</div>
       <div class="dots" id="pwdotsConfirm"></div>
     </div>
