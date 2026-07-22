@@ -21,7 +21,8 @@
 }
 [data-theme="dark"]{ --bg:#0b0b0d; --fg:#f5f5f7; --card:#1c1c1f; --card2:#262629; --muted:#9a9aa2; --line:#222225; --btn:#f5f5f7; --btn-fg:#0b0b0d; }
 *{box-sizing:border-box;}
-html,body{margin:0;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;transition:background .2s ease;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;transition:background .2s ease;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;scrollbar-width:none;-ms-overflow-style:none;}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0;}
 input,textarea{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text;}
 body{display:flex;}
 #app{width:100%;height:100vh;height:100dvh;margin:0 auto;position:relative;overflow:hidden;background:var(--bg);color:var(--fg);}
@@ -31,7 +32,9 @@ body{display:flex;}
 }
 .icon{width:20px;height:20px;display:inline-flex;}
 .icon svg{width:100%;height:100%;}
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:26px 24px;opacity:0;pointer-events:none;transform:translateX(14px);transition:opacity .28s ease, transform .28s ease;overflow-y:auto;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:26px 24px;opacity:0;pointer-events:none;transform:translateX(14px);transition:opacity .28s ease, transform .28s ease;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.screen::-webkit-scrollbar{display:none;width:0;height:0;}
+.screenBody{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
 .screen.active{opacity:1;pointer-events:auto;transform:translateX(0);z-index:2;}
 #s1,#sBlank{overflow:hidden;}
 .topbar{display:flex;justify-content:space-between;align-items:center;z-index:1;}
@@ -157,7 +160,7 @@ textarea.input{resize:none;height:74px;}
 }
 @media(min-width:860px){
   .screen{align-items:center;}
-  .screen .center,.screen .stack,.screen .btn,.screen .input,.screen .label,.screen h2,.screen .sub,.screen .hint,.screen .noticeBox,.screen .spacer,.screen .keypad,.screen .dots,.screen .avatarRow,.screen .colors,.screen .chatprev,.screen .themesw,.screen .skip{width:100%;max-width:380px;}
+  .screen .center,.screen .stack,.screen .btn,.screen .input,.screen .label,.screen h2,.screen .sub,.screen .hint,.screen .noticeBox,.screen .spacer,.screen .keypad,.screen .dots,.screen .avatarRow,.screen .colors,.screen .chatprev,.screen .themesw,.screen .skip,.screen .screenBody{width:100%;max-width:380px;}
   .screen .topbar{width:100%;max-width:none;}
 }
 </style>
@@ -241,60 +244,63 @@ textarea.input{resize:none;height:74px;}
 <!-- 3login. Login by username -->
 <div class="screen" id="s3login">
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3l"></button></div>
-  <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-    <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
-    <div class="title fadeUp" style="animation-delay:.05s;">Вход</div>
-    <div class="sub fadeUp" style="animation-delay:.1s;">Введите юзернейм от вашего аккаунта</div>
+  <div class="screenBody">
+    <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
+      <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
+      <div class="title fadeUp" style="animation-delay:.05s;">Вход</div>
+      <div class="sub fadeUp" style="animation-delay:.1s;">Введите юзернейм от вашего аккаунта</div>
+    </div>
+    <div class="inputWrap fadeUp" style="animation-delay:.15s;">
+      <input class="input" id="loginUsername" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'loginStatus','loginUsernameError');toggleNextBtn('loginUsername','s3loginNextBtn')">
+      <div class="statusIcon" id="loginStatus"></div>
+    </div>
+    <div id="loginUsernameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
+    <div class="noticeBox">
+      <span class="icon" data-icon="info"></span>
+      <span class="txt">Данное приложение очень сырое и может иногда содержать баги.<br>Прошу прощения, скоро всё исправится. Версия: 0.1.2</span>
+    </div>
+    <button class="btn btn-primary btn-hidden" id="s3loginNextBtn" style="margin-top:22px;" onclick="doLoginNext()">Далее</button>
   </div>
-  <div class="inputWrap fadeUp" style="animation-delay:.15s;">
-    <input class="input" id="loginUsername" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'loginStatus','loginUsernameError');toggleNextBtn('loginUsername','s3loginNextBtn')">
-    <div class="statusIcon" id="loginStatus"></div>
-  </div>
-  <div id="loginUsernameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
-  <div class="noticeBox">
-    <span class="icon" data-icon="info"></span>
-    <span class="txt">Данное приложение очень сырое и может иногда содержать баги.<br>Прошу прощения, скоро всё исправится. Версия: 0.1.2</span>
-  </div>
-  <div class="spacer"></div>
-  <button class="btn btn-primary btn-hidden" id="s3loginNextBtn" onclick="doLoginNext()">Далее</button>
 </div>
 
 <!-- 3. Registration: username only -->
 <div class="screen" id="s3">
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3"></button></div>
-  <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-    <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
-    <div class="title fadeUp" style="animation-delay:.05s;">Регистрация</div>
-    <div class="sub fadeUp" style="animation-delay:.1s;">Если у вас имеется аккаунт в VCHAT, просто нажмите «Войти»</div>
+  <div class="screenBody">
+    <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
+      <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
+      <div class="title fadeUp" style="animation-delay:.05s;">Регистрация</div>
+      <div class="sub fadeUp" style="animation-delay:.1s;">Если у вас имеется аккаунт в VCHAT, просто нажмите «Войти»</div>
+    </div>
+    <div class="inputWrap fadeUp" style="animation-delay:.15s;">
+      <input class="input" id="username" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'regStatus','usernameError');toggleNextBtn('username','s3NextBtn')">
+      <div class="statusIcon" id="regStatus"></div>
+    </div>
+    <div id="usernameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
+    <div class="noticeBox">
+      <span class="icon" data-icon="info"></span>
+      <span class="txt">Данное приложение очень сырое и может иногда содержать баги.<br>Прошу прощения, скоро всё исправится. Версия: 0.1.2</span>
+    </div>
+    <button class="btn btn-primary btn-hidden" id="s3NextBtn" style="margin-top:22px;" onclick="doRegNext()">Далее</button>
   </div>
-  <div class="inputWrap fadeUp" style="animation-delay:.15s;">
-    <input class="input" id="username" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'regStatus','usernameError');toggleNextBtn('username','s3NextBtn')">
-    <div class="statusIcon" id="regStatus"></div>
-  </div>
-  <div id="usernameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
-  <div class="noticeBox">
-    <span class="icon" data-icon="info"></span>
-    <span class="txt">Данное приложение очень сырое и может иногда содержать баги.<br>Прошу прощения, скоро всё исправится. Версия: 0.1.2</span>
-  </div>
-  <div class="spacer"></div>
-  <button class="btn btn-primary btn-hidden" id="s3NextBtn" onclick="doRegNext()">Далее</button>
 </div>
 
 <!-- 3name. Registration: display name only -->
 <div class="screen" id="s3name">
   <div class="topbar"><button class="iconbtn" onclick="nav('s3')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3name"></button></div>
-  <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-    <div class="onbIconWrap fadeUp"><span data-icon="profile"></span></div>
-    <div class="title fadeUp" style="animation-delay:.05s;">Как тебя зовут?</div>
-    <div class="sub fadeUp" style="animation-delay:.1s;">Это имя увидят другие пользователи</div>
+  <div class="screenBody">
+    <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
+      <div class="onbIconWrap fadeUp"><span data-icon="profile"></span></div>
+      <div class="title fadeUp" style="animation-delay:.05s;">Как тебя зовут?</div>
+      <div class="sub fadeUp" style="animation-delay:.1s;">Это имя увидят другие пользователи</div>
+    </div>
+    <div class="inputWrap fadeUp" style="animation-delay:.15s;">
+      <input class="input" id="dispname" placeholder="Как тебя зовут?" maxlength="12" oninput="onDispnameInput(this,'dispStatus','dispnameError');toggleNextBtn('dispname','s3nameNextBtn')">
+      <div class="statusIcon" id="dispStatus"></div>
+    </div>
+    <div id="dispnameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
+    <button class="btn btn-primary btn-hidden" id="s3nameNextBtn" style="margin-top:22px;" onclick="doRegNameNext()">Далее</button>
   </div>
-  <div class="inputWrap fadeUp" style="animation-delay:.15s;">
-    <input class="input" id="dispname" placeholder="Как тебя зовут?" maxlength="12" oninput="onDispnameInput(this,'dispStatus','dispnameError');toggleNextBtn('dispname','s3nameNextBtn')">
-    <div class="statusIcon" id="dispStatus"></div>
-  </div>
-  <div id="dispnameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
-  <div class="spacer"></div>
-  <button class="btn btn-primary btn-hidden" id="s3nameNextBtn" onclick="doRegNameNext()">Далее</button>
 </div>
 
 <!-- 4login. Password entry for login -->
@@ -355,48 +361,51 @@ textarea.input{resize:none;height:74px;}
 <!-- 5. About me -->
 <div class="screen" id="s5">
   <div class="topbar"><button class="iconbtn" onclick="nav('s4')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm5"></button></div>
-  <h2 class="fadeUp" style="animation-delay:.05s;">О себе</h2>
-  <div class="sub fadeUp" style="text-align:left;animation-delay:.1s;">Это необязательно — можно пропустить</div>
-  <div class="label fadeUp" style="animation-delay:.15s;">О себе</div>
-  <textarea class="input fadeUp" id="bio" placeholder="Расскажи о себе..." style="animation-delay:.2s;height:120px;" oninput="limitBioLines(this)"></textarea>
-  <div class="spacer"></div>
-  <button class="btn btn-primary fadeUp" style="animation-delay:.25s;" onclick="nav('s6')">Продолжить</button>
-  <button class="skip fadeUp" style="animation-delay:.3s;" onclick="nav('s6')">Пропустить</button>
+  <div class="screenBody">
+    <h2 class="fadeUp" style="animation-delay:.05s;">О себе</h2>
+    <div class="sub fadeUp" style="text-align:left;animation-delay:.1s;">Это необязательно — можно пропустить</div>
+    <div class="label fadeUp" style="animation-delay:.15s;">О себе</div>
+    <textarea class="input fadeUp" id="bio" placeholder="Расскажи о себе..." style="animation-delay:.2s;height:120px;" oninput="limitBioLines(this)"></textarea>
+    <button class="btn btn-primary fadeUp" style="animation-delay:.25s;margin-top:22px;" onclick="nav('s6')">Продолжить</button>
+    <button class="skip fadeUp" style="animation-delay:.3s;" onclick="nav('s6')">Пропустить</button>
+  </div>
 </div>
 
 <!-- 6. Theme -->
 <div class="screen" id="s6">
   <div class="topbar"><button class="iconbtn" onclick="nav('s5')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm6"></button></div>
-  <h2>Выбери тему</h2>
-  <div class="sub" style="text-align:left;">Можно изменить в настройках</div>
-  <div class="chatprev">
-    <div class="msg in">Привет! Как дела?</div>
-    <div class="msg out">Всё хорошо, спасибо. А у тебя как?</div>
-    <div class="msg in">Это VChat?</div>
-    <div class="msg out">Да, мой мессенджер</div>
+  <div class="screenBody">
+    <h2>Выбери тему</h2>
+    <div class="sub" style="text-align:left;">Можно изменить в настройках</div>
+    <div class="chatprev">
+      <div class="msg in">Привет! Как дела?</div>
+      <div class="msg out">Всё хорошо, спасибо. А у тебя как?</div>
+      <div class="msg in">Это VChat?</div>
+      <div class="msg out">Да, мой мессенджер</div>
+    </div>
+    <div class="themesw">
+      <button class="tbtn" id="tDark" onclick="setDark(true)"><span data-icon="moon" style="width:15px;height:15px;"></span>Тёмная</button>
+      <button class="tbtn on" id="tLight" onclick="setDark(false)"><span data-icon="sun" style="width:15px;height:15px;"></span>Светлая</button>
+    </div>
+    <div class="label">Акцентный цвет</div>
+    <div class="colors" id="accentColors1"></div>
+    <button class="btn btn-primary" style="margin-top:22px;" onclick="nav('s6b');startCaptcha();">Продолжить</button>
   </div>
-  <div class="themesw">
-    <button class="tbtn" id="tDark" onclick="setDark(true)"><span data-icon="moon" style="width:15px;height:15px;"></span>Тёмная</button>
-    <button class="tbtn on" id="tLight" onclick="setDark(false)"><span data-icon="sun" style="width:15px;height:15px;"></span>Светлая</button>
-  </div>
-  <div class="label">Акцентный цвет</div>
-  <div class="colors" id="accentColors1"></div>
-  <div class="spacer"></div>
-  <button class="btn btn-primary" onclick="nav('s6b');startCaptcha();">Продолжить</button>
 </div>
 
 <!-- 6b. Drawing captcha -->
 <div class="screen" id="s6b">
   <div class="topbar"><button class="iconbtn" onclick="nav('s6')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm6b"></button></div>
-  <h2>Проверка</h2>
-  <div class="sub" style="text-align:left;" id="captchaTask">Нарисуй курсором или пальцем улыбающийся смайлик</div>
-  <div class="captchaWrap">
-    <canvas id="captchaCanvas"></canvas>
-    <button class="iconbtn captchaClear" onclick="clearCaptcha()" title="Очистить" data-icon="backspace"></button>
+  <div class="screenBody">
+    <h2>Проверка</h2>
+    <div class="sub" style="text-align:left;" id="captchaTask">Нарисуй курсором или пальцем улыбающийся смайлик</div>
+    <div class="captchaWrap">
+      <canvas id="captchaCanvas"></canvas>
+      <button class="iconbtn captchaClear" onclick="clearCaptcha()" title="Очистить" data-icon="backspace"></button>
+    </div>
+    <div class="hint" id="captchaResult" style="display:none;"></div>
+    <button class="btn btn-primary" id="captchaSubmitBtn" style="margin-top:22px;" onclick="checkCaptcha()">Готово</button>
   </div>
-  <div class="hint" id="captchaResult" style="display:none;"></div>
-  <div class="spacer"></div>
-  <button class="btn btn-primary" id="captchaSubmitBtn" onclick="checkCaptcha()">Готово</button>
 </div>
 
 <!-- 7. Done -->
@@ -674,14 +683,14 @@ renderSavedAccounts();
 function toggleDark(){setDark(document.getElementById('app').getAttribute('data-theme')!=='dark');}
 function setDark(on){
   document.getElementById('app').setAttribute('data-theme',on?'dark':'light');
-  ['dm1','dm2','dm3l','dm3','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>{
+  ['dm1','dm2','dm3l','dm3','dm3name','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>{
     let el=document.getElementById(id); if(el)el.innerHTML=ICONS[on?'sun':'moon'];
     if(el)el.onclick=toggleDark;
   });
   ['tDark','sDark'].forEach(i=>document.getElementById(i)&&document.getElementById(i).classList.toggle('on',on));
   ['tLight','sLight'].forEach(i=>document.getElementById(i)&&document.getElementById(i).classList.toggle('on',!on));
 }
-['dm1','dm2','dm3l','dm3','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>document.getElementById(id).innerHTML=ICONS.moon);
+['dm1','dm2','dm3l','dm3','dm3name','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>document.getElementById(id).innerHTML=ICONS.moon);
 
 /* ---------- accent colors (theme: чёрный / белый / розовый) ---------- */
 const accentPalette=[
