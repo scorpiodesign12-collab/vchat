@@ -247,7 +247,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3l"></button></div>
   <div class="screenBody">
     <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-      <div class="onbIconWrap fadeUp"><video src="кричитпривет.webm" autoplay loop muted playsinline></video></div>
+      <div class="onbVideoWrap fadeUp"><video src="кричитпривет.webm" autoplay loop muted playsinline></video></div>
       <div class="title fadeUp" style="animation-delay:.05s;">Вход</div>
       <div class="sub fadeUp" style="animation-delay:.1s;">Введите юзернейм от вашего аккаунта</div>
     </div>
@@ -269,7 +269,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3"></button></div>
   <div class="screenBody">
     <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-      <div class="onbIconWrap fadeUp"><video src="кричитпривет.webm" autoplay loop muted playsinline></video></div>
+      <div class="onbVideoWrap fadeUp"><video src="кричитпривет.webm" autoplay loop muted playsinline></video></div>
       <div class="title fadeUp" style="animation-delay:.05s;">Регистрация</div>
       <div class="sub fadeUp" style="animation-delay:.1s;">Если у вас имеется аккаунт в VCHAT, просто нажмите «Войти»</div>
     </div>
@@ -291,7 +291,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s3')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3name"></button></div>
   <div class="screenBody">
     <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
-      <div class="onbIconWrap fadeUp"><video src="впоросы.webm" autoplay loop muted playsinline></video></div>
+      <div class="onbVideoWrap fadeUp"><video src="впоросы.webm" autoplay loop muted playsinline></video></div>
       <div class="title fadeUp" style="animation-delay:.05s;">Как тебя зовут?</div>
       <div class="sub fadeUp" style="animation-delay:.1s;">Это имя увидят другие пользователи</div>
     </div>
@@ -309,7 +309,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="navLoginBack()" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4l"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
-      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><video src="замок.webm" autoplay loop muted playsinline></video></div>
+      <div class="onbVideoWrap fadeUp"><video src="замок.webm" autoplay loop muted playsinline></video></div>
       <div class="title" style="font-size:20px;color:var(--muted);">Введи пароль</div>
       <div class="sub" id="s4loginSub" style="margin-top:2px;"></div>
       <div class="dots" id="pwdotsLogin"></div>
@@ -328,7 +328,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s3name')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
-      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><video src="замок.webm" autoplay loop muted playsinline></video></div>
+      <div class="onbVideoWrap fadeUp"><video src="замок.webm" autoplay loop muted playsinline></video></div>
       <div class="title" style="font-size:20px;color:var(--muted);">Создай пароль</div>
       <div class="dots" id="pwdots"></div>
     </div>
@@ -346,7 +346,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s4')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4b"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
-      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><video src="замок.webm" autoplay loop muted playsinline></video></div>
+      <div class="onbVideoWrap fadeUp"><video src="замок.webm" autoplay loop muted playsinline></video></div>
       <div class="title" style="font-size:20px;color:var(--muted);" id="confirmTitle">Повтори пароль</div>
       <div class="dots" id="pwdotsConfirm"></div>
     </div>
@@ -589,8 +589,18 @@ async function doLoginNext(){
 /* ---------- navigation between onboarding screens ---------- */
 function nav(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  let target=document.getElementById(id);
+  target.classList.add('active');
+  /* играем видео только на активном экране — иначе все ролики крутятся одновременно и всё лагает */
+  document.querySelectorAll('#app video').forEach(v=>{
+    if(target.contains(v)){ v.currentTime=0; v.play().catch(()=>{}); }
+    else{ v.pause(); }
+  });
 }
+/* при загрузке страницы сразу ставим на паузу все видео вне текущего активного экрана */
+document.querySelectorAll('#app video').forEach(v=>{
+  if(!v.closest('.screen.active')) v.pause();
+});
 
 /* ---------- back button for login-password screen (ведёт либо на s2, либо на s3login) ---------- */
 let loginBackTarget='s3login';
