@@ -41,8 +41,9 @@ body{display:flex;}
 .logo{width:84px;height:84px;color:var(--fg);filter:drop-shadow(0 8px 18px rgba(0,0,0,.18));}
 .title{font-size:25px;font-weight:700;letter-spacing:-.02em;color:var(--fg);}
 .sub{color:var(--muted);font-size:14px;line-height:1.5;}
-.btn{border:none;border-radius:30px;padding:20px;font-size:19px;font-weight:600;cursor:pointer;width:100%;transition:transform .12s, opacity .12s;}
+.btn{border:none;border-radius:30px;padding:20px;font-size:19px;font-weight:600;cursor:pointer;width:100%;transition:transform .28s cubic-bezier(.34,1.56,.64,1), opacity .22s ease;}
 .btn:active{transform:scale(.97);}
+.btn-hidden{opacity:0;transform:translateY(28px);pointer-events:none;}
 .btn-primary{background:var(--btn);color:var(--btn-fg);}
 .btn-ghost{background:var(--card);color:var(--fg);margin-top:10px;}
 .stack{display:flex;flex-direction:column;z-index:1;}
@@ -240,10 +241,13 @@ textarea.input{resize:none;height:74px;}
 <!-- 3login. Login by username -->
 <div class="screen" id="s3login">
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3l"></button></div>
-  <h2>Вход</h2>
-  <div class="sub" style="text-align:left;">Введите юзернейм от вашего аккаунта</div>
-  <div class="inputWrap">
-    <input class="input" id="loginUsername" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'loginStatus','loginUsernameError')">
+  <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
+    <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
+    <div class="title fadeUp" style="animation-delay:.05s;">Вход</div>
+    <div class="sub fadeUp" style="animation-delay:.1s;">Введите юзернейм от вашего аккаунта</div>
+  </div>
+  <div class="inputWrap fadeUp" style="animation-delay:.15s;">
+    <input class="input" id="loginUsername" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'loginStatus','loginUsernameError');toggleNextBtn('loginUsername','s3loginNextBtn')">
     <div class="statusIcon" id="loginStatus"></div>
   </div>
   <div id="loginUsernameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
@@ -252,31 +256,45 @@ textarea.input{resize:none;height:74px;}
     <span class="txt">Данное приложение очень сырое и может иногда содержать баги.<br>Прошу прощения, скоро всё исправится. Версия: 0.1.2</span>
   </div>
   <div class="spacer"></div>
-  <button class="btn btn-primary" onclick="doLoginNext()">Далее</button>
+  <button class="btn btn-primary btn-hidden" id="s3loginNextBtn" onclick="doLoginNext()">Далее</button>
 </div>
 
-<!-- 3. Account no number -->
+<!-- 3. Registration: username only -->
 <div class="screen" id="s3">
   <div class="topbar"><button class="iconbtn" onclick="nav('s2')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3"></button></div>
-  <h2>Регистрация</h2>
-  <div class="sub" style="text-align:left;">Если у вас имеется аккаунт в VCHAT просто нажмите «Войти»</div>
-  <div class="inputWrap">
-    <input class="input" id="username" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'regStatus','usernameError')">
+  <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
+    <div class="onbIconWrap fadeUp"><span data-icon="at"></span></div>
+    <div class="title fadeUp" style="animation-delay:.05s;">Регистрация</div>
+    <div class="sub fadeUp" style="animation-delay:.1s;">Если у вас имеется аккаунт в VCHAT, просто нажмите «Войти»</div>
+  </div>
+  <div class="inputWrap fadeUp" style="animation-delay:.15s;">
+    <input class="input" id="username" placeholder="@ username" maxlength="10" oninput="onUsernameInput(this,'regStatus','usernameError');toggleNextBtn('username','s3NextBtn')">
     <div class="statusIcon" id="regStatus"></div>
   </div>
   <div id="usernameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
-  <div class="label">Имя</div>
-  <div class="inputWrap">
-    <input class="input" id="dispname" placeholder="Как тебя зовут?" maxlength="12" oninput="onDispnameInput(this,'dispStatus','dispnameError')">
-    <div class="statusIcon" id="dispStatus"></div>
-  </div>
-  <div id="dispnameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
   <div class="noticeBox">
     <span class="icon" data-icon="info"></span>
     <span class="txt">Данное приложение очень сырое и может иногда содержать баги.<br>Прошу прощения, скоро всё исправится. Версия: 0.1.2</span>
   </div>
   <div class="spacer"></div>
-  <button class="btn btn-primary" onclick="doRegNext()">Далее</button>
+  <button class="btn btn-primary btn-hidden" id="s3NextBtn" onclick="doRegNext()">Далее</button>
+</div>
+
+<!-- 3name. Registration: display name only -->
+<div class="screen" id="s3name">
+  <div class="topbar"><button class="iconbtn" onclick="nav('s3')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm3name"></button></div>
+  <div class="center" style="flex:0 0 auto;margin:6px 0 10px;">
+    <div class="onbIconWrap fadeUp"><span data-icon="profile"></span></div>
+    <div class="title fadeUp" style="animation-delay:.05s;">Как тебя зовут?</div>
+    <div class="sub fadeUp" style="animation-delay:.1s;">Это имя увидят другие пользователи</div>
+  </div>
+  <div class="inputWrap fadeUp" style="animation-delay:.15s;">
+    <input class="input" id="dispname" placeholder="Как тебя зовут?" maxlength="12" oninput="onDispnameInput(this,'dispStatus','dispnameError');toggleNextBtn('dispname','s3nameNextBtn')">
+    <div class="statusIcon" id="dispStatus"></div>
+  </div>
+  <div id="dispnameError" style="display:none;color:#e25555;font-size:12.5px;margin-top:6px;margin-left:2px;"></div>
+  <div class="spacer"></div>
+  <button class="btn btn-primary btn-hidden" id="s3nameNextBtn" onclick="doRegNameNext()">Далее</button>
 </div>
 
 <!-- 4login. Password entry for login -->
@@ -284,6 +302,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="navLoginBack()" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4l"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
+      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><span data-icon="lock"></span></div>
       <div class="title" style="font-size:20px;color:var(--muted);">Введи пароль</div>
       <div class="sub" id="s4loginSub" style="margin-top:2px;"></div>
       <div class="dots" id="pwdotsLogin"></div>
@@ -299,9 +318,10 @@ textarea.input{resize:none;height:74px;}
 
 <!-- 4. Password -->
 <div class="screen" id="s4">
-  <div class="topbar"><button class="iconbtn" onclick="nav('s3')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4"></button></div>
+  <div class="topbar"><button class="iconbtn" onclick="nav('s3name')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
+      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><span data-icon="lock"></span></div>
       <div class="title" style="font-size:20px;color:var(--muted);">Создай пароль</div>
       <div class="dots" id="pwdots"></div>
     </div>
@@ -319,6 +339,7 @@ textarea.input{resize:none;height:74px;}
   <div class="topbar"><button class="iconbtn" onclick="nav('s4')" data-icon="back"></button><button class="iconbtn" onclick="toggleDark()" id="dm4b"></button></div>
   <div class="pwdBody">
     <div class="center" style="flex:0;">
+      <div class="onbIconWrap fadeUp" style="margin-bottom:14px;"><span data-icon="lock"></span></div>
       <div class="title" style="font-size:20px;color:var(--muted);" id="confirmTitle">Повтори пароль</div>
       <div class="dots" id="pwdotsConfirm"></div>
     </div>
@@ -403,11 +424,22 @@ backspace:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
 cross:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
 info:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
-camera:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`
+camera:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+at:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-5.5 8.28"/></svg>`,
+lock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
 };
 const LOGO_SVG=`<svg viewBox="0 0 757 594"><path fill="currentColor" d="M144.149 288.366C173.497 341.032 44.8848 145.047 44.8848 145.047L250.319 175.265C283.983 176.991 273.625 176.991 290.888 157.997L414.322 0L435.901 128.099C441.08 157.997 435.901 153.68 465.249 145.047L757 50.0756L296.93 341.032C269.309 357.436 305.562 359.163 315.057 359.163C324.552 359.163 520.491 366.07 478.196 298.727C435.901 231.384 597.314 459.314 597.314 459.314L386.7 423.511C350.447 419.599 360.805 410.102 340.089 436.003L223.561 594L194.213 449.817C187.308 415.282 194.213 418.735 166.592 425.642C138.97 432.549 55.5306 459.026 0 475.718L328.513 257.285C377.205 229.657 374.616 231.384 315.057 233.974C255.498 236.564 114.802 235.701 144.149 288.366Z"/></svg>`;
 document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=ICONS[el.dataset.icon]);
 document.querySelectorAll('.logo').forEach(el=>el.innerHTML=LOGO_SVG);
+
+/* ---------- показать/скрыть кнопку "Далее" в зависимости от заполненности поля ---------- */
+function toggleNextBtn(inputId,btnId){
+  let input=document.getElementById(inputId);
+  let btn=document.getElementById(btnId);
+  if(!input||!btn)return;
+  if(input.value.trim()){ btn.classList.remove('btn-hidden'); }
+  else{ btn.classList.add('btn-hidden'); }
+}
 
 /* ---------- статус-иконка (галочка / крестик) вместо спиннера ---------- */
 function setFieldStatus(statusId,state){
@@ -473,9 +505,7 @@ let regUsername='', regDispname='';
 
 async function doRegNext(){
   let uInput=document.getElementById('username');
-  let dInput=document.getElementById('dispname');
   let uErr=document.getElementById('usernameError');
-  let dErr=document.getElementById('dispnameError');
   let uVal=uInput.value.replace('@','');
   if(!uVal){
     uErr.textContent='Напишите что-то, чтобы продолжить';uErr.style.display='block';
@@ -486,6 +516,21 @@ async function doRegNext(){
     uErr.textContent=usernameStateMsg(uState);uErr.style.display='block';
     setFieldStatus('regStatus','bad');return;
   }
+  let btn=document.getElementById('s3NextBtn');
+  if(btn)btn.textContent='Проверяю...';
+  const taken = await vchatUsernameTaken(uVal);
+  if(btn)btn.textContent='Далее';
+  if(taken){
+    uErr.textContent='Этот юзернейм уже занят';uErr.style.display='block';
+    setFieldStatus('regStatus','bad');return;
+  }
+  regUsername=uVal;
+  nav('s3name');
+}
+
+function doRegNameNext(){
+  let dInput=document.getElementById('dispname');
+  let dErr=document.getElementById('dispnameError');
   let dVal=dInput.value;
   if(!dVal.trim()){
     dErr.textContent='Напишите что-то, чтобы продолжить';dErr.style.display='block';
@@ -496,15 +541,6 @@ async function doRegNext(){
     dErr.textContent=dispnameStateMsg(dState);dErr.style.display='block';
     setFieldStatus('dispStatus','bad');return;
   }
-  let btn=document.querySelector('#s3 .btn-primary');
-  if(btn)btn.textContent='Проверяю...';
-  const taken = await vchatUsernameTaken(uVal);
-  if(btn)btn.textContent='Далее';
-  if(taken){
-    uErr.textContent='Этот юзернейм уже занят';uErr.style.display='block';
-    setFieldStatus('regStatus','bad');return;
-  }
-  regUsername=uVal;
   regDispname=dVal;
   nav('s4');
 }
