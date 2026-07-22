@@ -268,8 +268,8 @@ body{display:flex;}
 .emojiSetList{display:flex;flex-direction:column;gap:2px;}
 .emojiSetRow{display:flex;align-items:center;gap:14px;padding:10px 6px;cursor:pointer;border-radius:12px;}
 .emojiSetRow:hover{background:var(--card2);}
-.emojiSetSample{display:flex;gap:3px;font-size:19px;width:56px;flex-shrink:0;line-height:1;}
-.emojiSetSample img.emojiImg{width:20px;height:20px;vertical-align:middle;}
+.emojiSetSample{display:grid;grid-template-columns:repeat(2,1fr);gap:3px 4px;font-size:16px;width:42px;flex-shrink:0;line-height:1.15;}
+.emojiSetSample img.emojiImg{width:17px;height:17px;vertical-align:middle;}
 .emojiSetInfo{flex:1;min-width:0;}
 .emojiSetName{font-size:15px;font-weight:600;color:var(--fg);}
 .emojiSetDesc{font-size:12.5px;color:var(--muted);margin-top:1px;}
@@ -939,7 +939,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <div class="pIconWrap" style="background:#FFCC00;">
               <span style="font-size:16px;line-height:1;">😀</span>
             </div>
-            <div class="pItemBody"><div class="pItemLabel">Набор эмодзи</div><div class="pItemValue" id="emojiSetPreviewLabel">Обычные</div></div>
+            <div class="pItemBody"><div class="pItemLabel">Набор эмодзи</div><div class="pItemValue" id="emojiSetPreviewLabel">Mac</div></div>
             <span class="rowchev" data-icon="chevron" style="color:var(--muted);"></span>
           </div>
         </div>
@@ -1401,20 +1401,21 @@ function updateQuickReactionSettingsPreview(){
   if(el) el.textContent=getQuickReaction();
 }
 
-/* ---------- набор эмодзи (Обычные / Android / Twemoji) ---------- */
+/* ---------- набор эмодзи (Mac / Android / Twemoji / JoyPixels) ---------- */
 const EMOJI_SET_KEY='vchat_emoji_set';
 const EMOJI_SET_SAMPLE=['😀','😉','😱','🙌'];
 const EMOJI_SETS=[
-  {id:'native', name:'Обычные', desc:'Системные эмодзи устройства'},
+  {id:'native', name:'Mac', desc:'Эмодзи Apple'},
   {id:'noto', name:'Android', desc:'Стиль Google (Noto Color Emoji)'},
-  {id:'twemoji', name:'Twemoji', desc:'Стиль Twitter/X'}
+  {id:'twemoji', name:'Twemoji', desc:'Стиль Twitter/X'},
+  {id:'joypixels', name:'JoyPixels', desc:'Открытый набор эмодзи'}
 ];
 function getEmojiSetMode(){
   try{ return localStorage.getItem(EMOJI_SET_KEY)||'native'; }catch(e){ return 'native'; }
 }
 function emojiSetLabel(id){
   const s=EMOJI_SETS.find(x=>x.id===id);
-  return s?s.name:'Обычные';
+  return s?s.name:'Mac';
 }
 function twemojiIconUrl(iconId){
   return 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/'+iconId+'.svg';
@@ -1422,20 +1423,29 @@ function twemojiIconUrl(iconId){
 function notoIconUrl(iconId){
   return 'https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji/png/128/emoji_u'+iconId.replace(/-/g,'_')+'.png';
 }
+function joypixelsIconUrl(iconId){
+  return 'https://cdn.jsdelivr.net/joypixels/assets/8.0/png/unicode/64/'+iconId+'.png';
+}
+function emojiUrlFnFor(mode){
+  if(mode==='twemoji') return twemojiIconUrl;
+  if(mode==='joypixels') return joypixelsIconUrl;
+  return notoIconUrl;
+}
 function emojifyEl(el){
   if(!el || !window.twemoji) return;
   const mode=getEmojiSetMode();
   if(mode==='native') return;
+  const urlFn=emojiUrlFnFor(mode);
   try{
     window.twemoji.parse(el, {
       className:'emojiImg',
-      callback: mode==='twemoji' ? function(icon){ return twemojiIconUrl(icon); } : function(icon){ return notoIconUrl(icon); }
+      callback: function(icon){ return urlFn(icon); }
     });
   }catch(e){}
 }
 function sampleHtmlFor(setId){
   if(setId==='native'||!window.twemoji) return EMOJI_SET_SAMPLE.join(' ');
-  const urlFn = setId==='twemoji'?twemojiIconUrl:notoIconUrl;
+  const urlFn = emojiUrlFnFor(setId);
   try{
     return window.twemoji.parse(EMOJI_SET_SAMPLE.join(' '), { className:'emojiImg', callback:function(icon){return urlFn(icon);} });
   }catch(e){ return EMOJI_SET_SAMPLE.join(' '); }
