@@ -257,28 +257,6 @@ body{display:flex;}
 #quickReactionEditPane .pEditBody{max-width:420px;width:100%;margin:0 auto;}
 .qrEmojiGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;max-height:280px;overflow-y:auto;padding:4px 2px;scrollbar-width:none;}
 .qrEmojiGrid::-webkit-scrollbar{display:none;}
-/* ---------- выбор набора эмодзи ---------- */
-.emojiSetOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:flex-end;justify-content:center;}
-.emojiSetOverlay.open{display:flex;}
-@media(min-width:640px){.emojiSetOverlay{align-items:center;}}
-.emojiSetSheet{background:var(--card);width:100%;max-width:420px;border-radius:20px 20px 0 0;padding:20px 18px 10px;max-height:80vh;overflow-y:auto;scrollbar-width:none;}
-.emojiSetSheet::-webkit-scrollbar{display:none;}
-@media(min-width:640px){.emojiSetSheet{border-radius:20px;}}
-.emojiSetTitle{font-size:17px;font-weight:700;color:var(--fg);margin-bottom:10px;text-align:center;}
-.emojiSetList{display:flex;flex-direction:column;gap:2px;}
-.emojiSetRow{display:flex;align-items:center;gap:14px;padding:10px 6px;cursor:pointer;border-radius:12px;}
-.emojiSetRow:hover{background:var(--card2);}
-.emojiSetSample{display:grid;grid-template-columns:repeat(2,1fr);gap:3px 4px;font-size:16px;width:42px;flex-shrink:0;line-height:1.15;}
-.emojiSetSample img.emojiImg{width:17px;height:17px;vertical-align:middle;}
-.emojiSetInfo{flex:1;min-width:0;}
-.emojiSetName{font-size:15px;font-weight:600;color:var(--fg);}
-.emojiSetDesc{font-size:12.5px;color:var(--muted);margin-top:1px;}
-.emojiSetDesc.active{color:var(--accent,#2C7EFF);}
-.emojiSetRadio{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-.emojiSetRadio.checked{border-color:var(--accent,#2C7EFF);}
-.emojiSetRadio.checked::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--accent,#2C7EFF);}
-.emojiSetCloseBtn{width:100%;text-align:center;background:none;border:none;color:var(--accent,#2C7EFF);font-size:15px;font-weight:600;padding:14px 0 6px;cursor:pointer;}
-img.emojiImg{width:1.2em;height:1.2em;vertical-align:-0.2em;margin:0 1px;}
 .qrEmojiBtn{font-size:21px;background:none;border:none;border-radius:12px;padding:7px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;line-height:1;}
 .qrEmojiBtn:hover{background:var(--card2);}
 .qrEmojiBtn.selected{background:var(--accent,#2C7EFF);box-shadow:0 0 0 2px var(--accent,#2C7EFF) inset;}
@@ -886,19 +864,28 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         <div class="colors" id="accentColors"></div>
 
         <div class="label" style="margin-top:20px;">Рингтон звонка</div>
-        <div class="pGroup" id="ringtoneLockedBox" style="background:var(--card);border-radius:16px;padding:14px 16px;display:none;">
-          <div class="hint" style="margin:0;">🎵 Свой рингтон на входящие звонки доступен с <b>VChat Plus</b>. Пока подписки нет — при входящем звонке будет тишина, как сейчас.</div>
-        </div>
-        <div class="pGroup" id="ringtoneBox" style="background:var(--card);border-radius:16px;padding:14px 16px;display:none;">
-          <div class="hint" style="margin:0 0 12px;">MP3-файл, который будет играть при входящем звонке, пока активна подписка Plus. Если подписка закончится — снова будет тишина.</div>
-          <div id="ringtoneCurrent" style="display:none;align-items:center;gap:10px;margin-bottom:12px;">
-            <span style="font-size:18px;">🎵</span>
-            <span id="ringtoneFileName" style="font-size:13.5px;flex:1;word-break:break-word;color:var(--fg);">Свой рингтон загружен</span>
-            <button style="padding:8px 12px;border-radius:10px;border:none;background:var(--card2);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;" onclick="removeRingtone()">Удалить</button>
+        <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
+          <button id="ringtoneToggleBtn" onclick="toggleRingtonePanel()" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:0;cursor:pointer;color:var(--fg);font-size:14.5px;font-weight:700;text-align:left;">
+            <span data-icon="call" style="width:20px;height:20px;display:inline-flex;flex-shrink:0;"></span>
+            <span style="flex:1;">Рингтон звонка</span>
+            <span id="ringtoneChevron" style="width:16px;height:16px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </button>
+          <div id="ringtonePanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+            <div id="ringtoneLockedBox" style="display:none;">
+              <div class="hint" style="margin:0;">🎵 Свой рингтон на входящие звонки доступен с <b>VChat Plus</b>. Пока подписки нет — при входящем звонке будет тишина, как сейчас.</div>
+            </div>
+            <div id="ringtoneBox" style="display:none;">
+              <div class="hint" style="margin:0 0 12px;">MP3-файл, который будет играть при входящем звонке, пока активна подписка Plus. Если подписка закончится — снова будет тишина.</div>
+              <div id="ringtoneCurrent" style="display:none;align-items:center;gap:10px;margin-bottom:12px;">
+                <span style="font-size:18px;">🎵</span>
+                <span id="ringtoneFileName" style="font-size:13.5px;flex:1;word-break:break-word;color:var(--fg);">Свой рингтон загружен</span>
+                <button style="padding:8px 12px;border-radius:10px;border:none;background:var(--card2);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;" onclick="removeRingtone()">Удалить</button>
+              </div>
+              <input type="file" id="ringtoneInput" accept="audio/mpeg,.mp3" style="display:none;" onchange="onRingtoneFileSelected(event)">
+              <button class="tbtn" style="width:100%;" onclick="document.getElementById('ringtoneInput').click()">Выбрать MP3-файл</button>
+              <div class="hint" id="ringtoneStatus" style="margin-top:10px;display:none;"></div>
+            </div>
           </div>
-          <input type="file" id="ringtoneInput" accept="audio/mpeg,.mp3" style="display:none;" onchange="onRingtoneFileSelected(event)">
-          <button class="tbtn" style="width:100%;" onclick="document.getElementById('ringtoneInput').click()">Выбрать MP3-файл</button>
-          <div class="hint" id="ringtoneStatus" style="margin-top:10px;display:none;"></div>
         </div>
 
         <div class="label" style="margin-top:20px;">Разделы</div>
@@ -933,13 +920,20 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           </div>
         </div>
 
-        <div class="label" style="margin-top:20px;">Внешний вид</div>
+        <div class="label" style="margin-top:20px;">Подписка</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
-          <div class="pItem" onclick="openEmojiSetPicker()">
-            <div class="pIconWrap" style="background:#FFCC00;">
-              <span style="font-size:16px;line-height:1;">😀</span>
-            </div>
-            <div class="pItemBody"><div class="pItemLabel">Набор эмодзи</div><div class="pItemValue" id="emojiSetPreviewLabel">Mac</div></div>
+          <div class="pItem" style="cursor:pointer;" onclick="openSubscriptionInfo()">
+            <div class="pIconWrap" style="background:#D81B60;"><span class="subRowIcon" style="width:16px;height:16px;display:inline-flex;"></span></div>
+            <div class="pItemBody"><div class="pItemLabel">VChat Plus</div><div class="pItemValue" id="subRowStatus">Не активна</div></div>
+            <span class="rowchev" data-icon="chevron" style="color:var(--muted);"></span>
+          </div>
+        </div>
+
+        <div class="label" style="margin-top:20px;">Конфиденциальность</div>
+        <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
+          <div class="pItem" style="cursor:pointer;" onclick="openPrivacyEdit()">
+            <div class="pIconWrap" style="background:#5E5CE6;" data-icon="lock"></div>
+            <div class="pItemBody"><div class="pItemLabel">Конфиденциальность</div></div>
             <span class="rowchev" data-icon="chevron" style="color:var(--muted);"></span>
           </div>
         </div>
@@ -1086,12 +1080,34 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   </div>
 </div>
 
-<!-- ===== выбор набора эмодзи ===== -->
-<div class="emojiSetOverlay" id="emojiSetOverlay" onclick="closeEmojiSetPicker()">
-  <div class="emojiSetSheet" onclick="event.stopPropagation()">
-    <div class="emojiSetTitle">Выбрать набор эмодзи</div>
-    <div class="emojiSetList" id="emojiSetList"></div>
-    <button class="emojiSetCloseBtn" onclick="closeEmojiSetPicker()">Закрыть</button>
+<!-- ===== конфиденциальность ===== -->
+<div class="pEditPane" id="privacyEditPane">
+  <div class="pEditTopbar" style="position:relative;justify-content:center;">
+    <div class="peTitle">Конфиденциальность</div>
+    <button class="peCloseX" onclick="closePrivacyEdit()" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="pEditBody">
+    <div class="hint" style="margin:0 0 16px;">Эти настройки управляют тем, что видят другие пользователи в вашем профиле.</div>
+    <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
+      <div class="pItem" style="cursor:default;">
+        <div class="pIconWrap" style="background:#34C759;" data-icon="status"></div>
+        <div class="pItemBody"><div class="pItemLabel">Статус «в сети»</div></div>
+        <label class="toggleSwitch">
+          <input type="checkbox" id="privacyOnlineInput" onchange="togglePrivacyOnlineSetting(this.checked)">
+          <span class="toggleSlider"></span>
+        </label>
+      </div>
+      <div class="pItem" style="cursor:default;border-bottom:none;">
+        <div class="pIconWrap" style="background:#7B61FF;" data-icon="clock"></div>
+        <div class="pItemBody"><div class="pItemLabel">Время последнего захода</div></div>
+        <label class="toggleSwitch">
+          <input type="checkbox" id="privacyLastSeenInput" onchange="togglePrivacyLastSeenSetting(this.checked)">
+          <span class="toggleSlider"></span>
+        </label>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1205,7 +1221,8 @@ clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="
 call:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z"/></svg>`,
 callMissed:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 7 17 13 11 7"/><path d="M21.4 16.5c-1.3-1.1-2.7-2-4.3-2.6-.4-.2-.9-.1-1.2.2l-1.6 1.6c-2.1-1-3.8-2.7-4.8-4.8l1.6-1.6c.3-.3.4-.8.2-1.2-.6-1.6-1.5-3-2.6-4.3-.4-.4-1-.5-1.5-.2L4.5 5C3.9 5.4 3.6 6 3.7 6.7c.9 6.5 6 11.6 12.6 12.6.7.1 1.3-.2 1.7-.8l1.4-2.7c.3-.5.2-1.1-.2-1.5z" fill="currentColor" stroke="none"/></svg>`,
 logout:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
-verified:`<svg viewBox="0 0 24 24"><path fill="#2C7EFF" d="M12 2l2.39 1.7 2.9-.3 1.13 2.66 2.66 1.13-.3 2.9L22.48 12l-1.7 2.39.3 2.9-2.66 1.13-1.13 2.66-2.9-.3L12 22.48l-2.39-1.7-2.9.3-1.13-2.66-2.66-1.13.3-2.9L1.52 12l1.7-2.39-.3-2.9 2.66-1.13L6.71 3.92l2.9.3z"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+verified:`<svg viewBox="0 0 24 24"><path fill="#2C7EFF" d="M12 2l2.39 1.7 2.9-.3 1.13 2.66 2.66 1.13-.3 2.9L22.48 12l-1.7 2.39.3 2.9-2.66 1.13-1.13 2.66-2.9-.3L12 22.48l-2.39-1.7-2.9.3-1.13-2.66-2.66-1.13.3-2.9L1.52 12l1.7-2.39-.3-2.9 2.66-1.13L6.71 3.92l2.9.3z"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+lock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/><line x1="12" y1="14.5" x2="12" y2="17"/></svg>`
 };
 const LOGO_SVG=`<svg viewBox="0 0 757 594"><path fill="currentColor" d="M144.149 288.366C173.497 341.032 44.8848 145.047 44.8848 145.047L250.319 175.265C283.983 176.991 273.625 176.991 290.888 157.997L414.322 0L435.901 128.099C441.08 157.997 435.901 153.68 465.249 145.047L757 50.0756L296.93 341.032C269.309 357.436 305.562 359.163 315.057 359.163C324.552 359.163 520.491 366.07 478.196 298.727C435.901 231.384 597.314 459.314 597.314 459.314L386.7 423.511C350.447 419.599 360.805 410.102 340.089 436.003L223.561 594L194.213 449.817C187.308 415.282 194.213 418.735 166.592 425.642C138.97 432.549 55.5306 459.026 0 475.718L328.513 257.285C377.205 229.657 374.616 231.384 315.057 233.974C255.498 236.564 114.802 235.701 144.149 288.366Z"/></svg>`;
 
@@ -1241,7 +1258,37 @@ function cacheSub(username,until){
   subscriptionCache[username.toLowerCase()]=until||null;
 }
 
+/* ---------- строка "Подписка" в настройках ---------- */
+function renderSubscriptionSettingsRow(){
+  const statusEl=document.getElementById('subRowStatus');
+  if(!statusEl)return;
+  const active=vchatUser?isSubActive(vchatUser.username):false;
+  const until=vchatUser?subscriptionCache[vchatUser.username.toLowerCase()]:null;
+  if(active && until){
+    const d=new Date(until);
+    const dd=String(d.getDate()).padStart(2,'0');
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    statusEl.textContent='Активна до '+dd+'.'+mm+'.'+d.getFullYear();
+  }else{
+    statusEl.textContent='Не активна';
+  }
+}
+function openSubscriptionInfo(){
+  if(vchatUser && isSubActive(vchatUser.username)){
+    showToast('Подписка VChat Plus активна');
+  }else{
+    window.open('https://t.me/vchatsocial','_blank');
+  }
+}
+
 /* ---------- свой рингтон на входящие звонки (только VChat Plus) ---------- */
+function toggleRingtonePanel(){
+  let panel=document.getElementById('ringtonePanel');
+  let chevron=document.getElementById('ringtoneChevron');
+  let open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  chevron.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+}
 function initRingtoneSettings(){
   const locked=document.getElementById('ringtoneLockedBox');
   const box=document.getElementById('ringtoneBox');
@@ -1293,6 +1340,35 @@ async function removeRingtone(){
   vchatUser.ringtone_url=null;
   renderRingtoneBox();
   showToast('Рингтон удалён');
+}
+
+/* ---------- конфиденциальность ---------- */
+const PRIVACY_ONLINE_KEY='vchat_privacy_online';
+const PRIVACY_LASTSEEN_KEY='vchat_privacy_lastseen';
+function isPrivacyOnlineEnabled(){
+  try{ let v=localStorage.getItem(PRIVACY_ONLINE_KEY); return v===null?true:v==='1'; }catch(e){ return true; }
+}
+function isPrivacyLastSeenEnabled(){
+  try{ let v=localStorage.getItem(PRIVACY_LASTSEEN_KEY); return v===null?true:v==='1'; }catch(e){ return true; }
+}
+function togglePrivacyOnlineSetting(checked){
+  try{ localStorage.setItem(PRIVACY_ONLINE_KEY, checked?'1':'0'); }catch(e){}
+}
+function togglePrivacyLastSeenSetting(checked){
+  try{ localStorage.setItem(PRIVACY_LASTSEEN_KEY, checked?'1':'0'); }catch(e){}
+}
+function initPrivacySettings(){
+  const onlineInput=document.getElementById('privacyOnlineInput');
+  if(onlineInput) onlineInput.checked=isPrivacyOnlineEnabled();
+  const lastSeenInput=document.getElementById('privacyLastSeenInput');
+  if(lastSeenInput) lastSeenInput.checked=isPrivacyLastSeenEnabled();
+}
+function openPrivacyEdit(){
+  initPrivacySettings();
+  document.getElementById('privacyEditPane').classList.add('open');
+}
+function closePrivacyEdit(){
+  document.getElementById('privacyEditPane').classList.remove('open');
 }
 
 /* ---------- переключатель вкладки "Новости" в настройках ---------- */
@@ -1403,104 +1479,11 @@ function updateQuickReactionSettingsPreview(){
   if(el){ el.textContent=getQuickReaction(); emojifyEl(el); waitForTwemoji(()=>emojifyEl(el)); }
 }
 
-/* ---------- набор эмодзи (Mac / Android / Twemoji / JoyPixels) ---------- */
-const EMOJI_SET_KEY='vchat_emoji_set';
-// код-поинты зашиты вручную, чтобы превью в списке не зависело от того,
-// успела ли загрузиться внешняя библиотека twemoji.min.js к моменту открытия окна
-const EMOJI_SET_SAMPLE=[
-  {ch:'😀', code:'1f600'},
-  {ch:'😉', code:'1f609'},
-  {ch:'😱', code:'1f631'},
-  {ch:'🙌', code:'1f64c'}
-];
-const EMOJI_SETS=[
-  {id:'native', name:'Mac', desc:'Родные эмодзи вашего устройства'},
-  {id:'noto', name:'Android', desc:'Стиль Google (Noto Color Emoji)'},
-  {id:'twemoji', name:'Twemoji', desc:'Стиль Twitter/X'},
-  {id:'joypixels', name:'JoyPixels', desc:'Открытый набор эмодзи'}
-];
-function getEmojiSetMode(){
-  try{ return localStorage.getItem(EMOJI_SET_KEY)||'native'; }catch(e){ return 'native'; }
-}
-function emojiSetLabel(id){
-  const s=EMOJI_SETS.find(x=>x.id===id);
-  return s?s.name:'Mac';
-}
-function twemojiIconUrl(iconId){
-  return 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/'+iconId+'.svg';
-}
-function notoIconUrl(iconId){
-  return 'https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji/png/128/emoji_u'+iconId.replace(/-/g,'_')+'.png';
-}
-function joypixelsIconUrl(iconId){
-  return 'https://cdn.jsdelivr.net/joypixels/assets/8.0/png/unicode/64/'+iconId+'.png';
-}
-function emojiUrlFnFor(mode){
-  if(mode==='twemoji') return twemojiIconUrl;
-  if(mode==='joypixels') return joypixelsIconUrl;
-  return notoIconUrl;
-}
-// ждём загрузки twemoji.min.js (он подключается отдельным <script> ниже и может
-// ещё не успеть выполниться к первому клику по эмодзи-пикеру)
-function waitForTwemoji(cb, triesLeft){
-  if(window.twemoji){ cb(); return; }
-  if(triesLeft===undefined) triesLeft=40; // ~4 секунды максимум
-  if(triesLeft<=0){ cb(); return; }
-  setTimeout(()=>waitForTwemoji(cb, triesLeft-1), 100);
-}
-function emojifyEl(el){
-  if(!el) return;
-  const mode=getEmojiSetMode();
-  if(mode==='native') return;
-  if(!window.twemoji) return; // подтянется при следующей перерисовке чата
-  const urlFn=emojiUrlFnFor(mode);
-  try{
-    window.twemoji.parse(el, {
-      className:'emojiImg',
-      callback: function(icon){ return urlFn(icon); }
-    });
-  }catch(e){}
-}
-function sampleHtmlFor(setId){
-  if(setId==='native') return EMOJI_SET_SAMPLE.map(e=>e.ch).join(' ');
-  const urlFn = emojiUrlFnFor(setId);
-  return EMOJI_SET_SAMPLE.map(e=>`<img class="emojiImg" src="${urlFn(e.code)}" alt="${e.ch}" loading="lazy" onerror="this.replaceWith(document.createTextNode('${e.ch}'))">`).join('');
-}
-function buildEmojiSetList(){
-  const box=document.getElementById('emojiSetList');
-  if(!box)return;
-  const current=getEmojiSetMode();
-  box.innerHTML=EMOJI_SETS.map(s=>{
-    const checked=s.id===current;
-    return `<div class="emojiSetRow" onclick="pickEmojiSet('${s.id}')">
-      <div class="emojiSetSample">${sampleHtmlFor(s.id)}</div>
-      <div class="emojiSetInfo">
-        <div class="emojiSetName">${escHtml(s.name)}</div>
-        <div class="emojiSetDesc${checked?' active':''}">${checked?'Текущий набор':escHtml(s.desc)}</div>
-      </div>
-      <div class="emojiSetRadio${checked?' checked':''}"></div>
-    </div>`;
-  }).join('');
-}
-function openEmojiSetPicker(){
-  buildEmojiSetList();
-  document.getElementById('emojiSetOverlay').classList.add('open');
-}
-function closeEmojiSetPicker(){
-  document.getElementById('emojiSetOverlay').classList.remove('open');
-}
-function pickEmojiSet(id){
-  try{ localStorage.setItem(EMOJI_SET_KEY, id); }catch(e){}
-  updateEmojiSetSettingsPreview();
-  buildEmojiSetList();
-  waitForTwemoji(()=>{ if(curChat) renderChat(null,true); });
-  showToast('Набор эмодзи изменён');
-  setTimeout(closeEmojiSetPicker, 250);
-}
-function updateEmojiSetSettingsPreview(){
-  const el=document.getElementById('emojiSetPreviewLabel');
-  if(el) el.textContent=emojiSetLabel(getEmojiSetMode());
-}
+/* ---------- эмодзи: рендер только нативными эмодзи устройства ---------- */
+// функция выбора набора эмодзи (Mac/Android/Twemoji/JoyPixels) убрана по просьбе
+// пользователя — оставлены безопасные заглушки, чтобы остальной код не сломался
+function waitForTwemoji(cb){ if(cb) cb(); }
+function emojifyEl(el){ /* конвертация в сторонние наборы эмодзи отключена */ }
 
 let msgReactions={}; // messageId -> [{user_id, emoji}]
 
@@ -1685,6 +1668,7 @@ function closeNewsPost(){
 
 document.querySelectorAll('[data-icon]').forEach(el=>{if(ICONS[el.dataset.icon])el.innerHTML=ICONS[el.dataset.icon];});
 document.querySelectorAll('.logo').forEach(el=>el.innerHTML=LOGO_SVG);
+document.querySelectorAll('.subRowIcon').forEach(el=>el.innerHTML=SUB_BADGE_SVG);
 
 /* ---------- Слабовидящие: масштаб интерфейса 100%-120% ---------- */
 function toggleA11yPanel(){
@@ -1798,6 +1782,7 @@ function showTab(name){
   document.querySelectorAll('.navbtn,.rail .iconbtn').forEach(b=>b.classList.remove('on'));
   let n=document.getElementById('n'+name);if(n)n.classList.add('on');
   let r=document.getElementById('r'+name);if(r)r.classList.add('on');
+  if(name==='Settings') renderSubscriptionSettingsRow();
 }
 
 const BOOKMARK_SVG=`<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>`;
@@ -3099,12 +3084,10 @@ setDark(savedTheme==='dark');
 applyNewsTabVisibility();
 applyFeedTabVisibility();
 updateQuickReactionSettingsPreview();
-updateEmojiSetSettingsPreview();
 initA11yScale();
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js"></script>
 <script>
 const SUPABASE_URL='https://vchat-proxy.scorpiodesign12.workers.dev';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc29tdWlnbmVkamljenlnY2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDQ4MjEsImV4cCI6MjA5ODM4MDgyMX0.qosfz4-WAJMO2uUTzYslzkn_H_8atGuiVQqqQ2sz1M4';
