@@ -1368,6 +1368,8 @@ function buildQuickReactionGrid(){
   const grid=document.getElementById('qrEmojiGrid');
   if(!grid)return;
   grid.innerHTML=QUICK_REACTION_EMOJIS.map(e=>`<button type="button" class="qrEmojiBtn${e===qrPicked?' selected':''}" onclick="pickQuickReaction('${e}',this)">${e}</button>`).join('');
+  emojifyEl(grid);
+  waitForTwemoji(()=>emojifyEl(grid));
 }
 function pickQuickReaction(emoji,btnEl){
   qrPicked=emoji;
@@ -1377,7 +1379,7 @@ function pickQuickReaction(emoji,btnEl){
 }
 function updateQuickReactionPreview(){
   const emojiEl=document.getElementById('qrPreviewEmoji');
-  if(emojiEl){ emojiEl.textContent=qrPicked; emojifyEl(emojiEl); }
+  if(emojiEl){ emojiEl.textContent=qrPicked; emojifyEl(emojiEl); waitForTwemoji(()=>emojifyEl(emojiEl)); }
   const avEl=document.getElementById('qrPreviewAv');
   if(avEl){
     if(profileData.avatarUrl && vchatUser && isSubActive(vchatUser.username)){
@@ -1398,7 +1400,7 @@ function saveQuickReactionPicked(){
 }
 function updateQuickReactionSettingsPreview(){
   const el=document.getElementById('quickReactionPreviewEmoji');
-  if(el) el.textContent=getQuickReaction();
+  if(el){ el.textContent=getQuickReaction(); emojifyEl(el); waitForTwemoji(()=>emojifyEl(el)); }
 }
 
 /* ---------- набор эмодзи (Mac / Android / Twemoji / JoyPixels) ---------- */
