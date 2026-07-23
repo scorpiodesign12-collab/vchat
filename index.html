@@ -1157,8 +1157,16 @@ async function vchatLogin(username, pin){
       const { data, error } = await sb.auth.getSession();
       if (!error && data && data.session) {
         window.location.href = 'vchat-menu.html';
+        return;
       }
     } catch(e) { console.error('Session check error:', e); }
+    // ?goto=login — сразу открыть экран "Войти / Регистрация", минуя онбординг
+    // (используется, например, после удаления аккаунта)
+    try {
+      if (new URLSearchParams(window.location.search).get('goto') === 'login') {
+        nav('s2');
+      }
+    } catch(e) {}
   })();
 </script>
 <script>

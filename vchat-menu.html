@@ -2203,25 +2203,17 @@ async function confirmDeleteAccount(){
   btn.disabled=true;
   btn.textContent='Удаление…';
   try{
-    let email=(vchatUser&&vchatUser.email)||null;
-    if(!email){
-      try{
-        const { data:{ session } } = await sb.auth.getSession(); // локально, сети не касается
-        if(session){
-          const uResp = await fetch(`${STORAGE_DIRECT_URL}/auth/v1/user`, {
-            headers:{ 'apikey': SUPABASE_KEY, 'Authorization':'Bearer '+session.access_token }
-          });
-          const uJson = await uResp.json().catch(()=>null);
-          email = uJson && uJson.email;
-        }
-      }catch(e){}
-    }
-    if(!email) throw new Error('Не удалось определить email аккаунта');
+    const username=vchatUser&&vchatUser.username;
+    if(!username) throw new Error('Не удалось определить имя пользователя');
+    // логин в этом приложении сделан через username+PIN: реальный email/пароль в Supabase
+    // собираются как username@gmail.com / PIN+"Vx9!" (см. vchatEmailFor/vchatPassFor в index.html)
+    const email=username.toLowerCase()+'@gmail.com';
+    const realPassword=password+'Vx9!';
     // проверяем пароль напрямую через Supabase, минуя прокси-воркер (он падает на /auth/v1/token)
     const reauthResp = await fetch(`${STORAGE_DIRECT_URL}/auth/v1/token?grant_type=password`, {
       method:'POST',
       headers:{ 'apikey': SUPABASE_KEY, 'Content-Type':'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password: realPassword })
     });
     const reauthJson = await reauthResp.json().catch(()=>null);
     if(!reauthResp.ok || !(reauthJson&&reauthJson.access_token)){
@@ -2241,7 +2233,7 @@ async function confirmDeleteAccount(){
       throw new Error((json&&json.error)||`Ошибка сервера (${resp.status})`);
     }
     try{ localStorage.removeItem('vchat_last_account'); }catch(e){}
-    window.location.href='index.html';
+    window.location.href='index.html?goto=login';
   }catch(e){
     errEl.textContent=e.message||String(e);
     errEl.style.display='block';
