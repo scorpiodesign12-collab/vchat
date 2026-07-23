@@ -1107,6 +1107,9 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div class="hint" style="text-align:center;margin:6px 4px 18px;color:#ff3b30;">Это действие необратимо. Аккаунт, все чаты, звонки и файлы будут удалены навсегда.</div>
     <div class="pSecLabel" style="margin-top:4px;">Введите пароль для подтверждения</div>
     <input type="password" id="deleteAccountPassword" placeholder="Пароль" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:15px;margin-top:8px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')confirmDeleteAccount()">
+    <div class="pSecLabel" style="margin-top:16px;">Напишите фразу ниже в точности, чтобы подтвердить</div>
+    <div class="hint" style="margin:2px 4px 8px;font-weight:700;color:var(--fg);user-select:none;">Яудаляюсвойаккаунт</div>
+    <input type="text" id="deleteAccountPhrase" placeholder="Введите фразу выше" autocapitalize="off" autocomplete="off" spellcheck="false" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:15px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')confirmDeleteAccount()">
     <div class="hint" id="deleteAccountError" style="color:#ff3b30;margin-top:10px;display:none;"></div>
     <button class="tbtn" style="width:100%;margin-top:18px;background:#ff3b30;color:#fff;" id="deleteAccountConfirmBtn" onclick="confirmDeleteAccount()">Удалить аккаунт навсегда</button>
   </div>
@@ -1318,6 +1321,8 @@ function openSubscriptionInfo(){
 function openDeleteAccountModal(){
   const pass=document.getElementById('deleteAccountPassword');
   if(pass) pass.value='';
+  const phrase=document.getElementById('deleteAccountPhrase');
+  if(phrase) phrase.value='';
   const err=document.getElementById('deleteAccountError');
   if(err) err.style.display='none';
   const btn=document.getElementById('deleteAccountConfirmBtn');
@@ -1329,10 +1334,17 @@ function closeDeleteAccountModal(){
 }
 async function confirmDeleteAccount(){
   const passEl=document.getElementById('deleteAccountPassword');
+  const phraseEl=document.getElementById('deleteAccountPhrase');
   const err=document.getElementById('deleteAccountError');
   const btn=document.getElementById('deleteAccountConfirmBtn');
   const pass=passEl?passEl.value:'';
+  const phrase=phraseEl?phraseEl.value.trim():'';
   err.style.display='none';
+  if(phrase!=='Яудаляюсвойаккаунт'){
+    err.textContent='Фраза введена неточно. Перепроверьте и попробуйте снова.';
+    err.style.display='block';
+    return;
+  }
   if(!pass){ err.textContent='Введите пароль'; err.style.display='block'; return; }
   if(!vchatUser) return;
   btn.disabled=true; btn.textContent='Проверка пароля...';
@@ -1345,7 +1357,7 @@ async function confirmDeleteAccount(){
       btn.disabled=false; btn.textContent='Удалить аккаунт навсегда';
       return;
     }
-    const {error:authErr}=await sb.auth.signInWithPassword({email:email,password:pass});
+    const {error:authErr}=await sb.auth.signInWithPassword({email:email,password:pass+'Vx9!'});
     if(authErr){
       err.textContent='Неверный пароль';
       err.style.display='block';
