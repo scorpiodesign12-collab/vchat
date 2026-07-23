@@ -741,6 +741,7 @@ function setDark(on){
   ['tDark','sDark'].forEach(i=>document.getElementById(i)&&document.getElementById(i).classList.toggle('on',on));
   ['tLight','sLight'].forEach(i=>document.getElementById(i)&&document.getElementById(i).classList.toggle('on',!on));
   updateVideoMp4Sources(on);
+  redrawCaptcha();
 }
 ['dm1','dm2','dm3l','dm3','dm3name','dm4l','dm4','dm4b','dm5','dm6','dm6b','dmOnb1','dmOnb2','dmOnb3','dmOnb4','dmOnbEnd'].forEach(id=>document.getElementById(id).innerHTML=ICONS.moon);
 updateVideoMp4Sources(document.getElementById('app').getAttribute('data-theme')==='dark');
@@ -843,8 +844,27 @@ function resizeCaptchaCanvas(){
   let r=captchaCanvas.getBoundingClientRect();
   captchaCanvas.width=r.width*2;
   captchaCanvas.height=r.height*2;
+  redrawCaptcha();
 }
 window.addEventListener('resize',()=>{if(document.getElementById('s6b').classList.contains('active'))resizeCaptchaCanvas();});
+
+/* перерисовывает уже нарисованные штрихи текущим цветом темы — иначе линия, нарисованная в тёмной теме, остаётся белой и после переключения на светлую */
+function redrawCaptcha(){
+  if(!captchaCtx||!captchaCanvas)return;
+  captchaCtx.clearRect(0,0,captchaCanvas.width,captchaCanvas.height);
+  let isDark=document.getElementById('app').getAttribute('data-theme')==='dark';
+  captchaCtx.strokeStyle=isDark?'#ffffff':'#111114';
+  captchaCtx.lineWidth=6;
+  captchaCtx.lineCap='round';
+  captchaCtx.lineJoin='round';
+  captchaStrokes.forEach(stroke=>{
+    if(stroke.length<2)return;
+    captchaCtx.beginPath();
+    captchaCtx.moveTo(stroke[0].x,stroke[0].y);
+    for(let i=1;i<stroke.length;i++)captchaCtx.lineTo(stroke[i].x,stroke[i].y);
+    captchaCtx.stroke();
+  });
+}
 
 function clearCaptcha(){
   captchaStrokes=[];
@@ -862,7 +882,7 @@ function checkCaptcha(){
   let ok = analyzeSmile(captchaStrokes);
   if(ok){
     showCaptchaResult(true,'Принято!');
-    setTimeout(()=>nav('s7'),650);
+    setTimeout(()=>finishOnboarding(),650);
   }else{
     captchaAttempts++;
     showCaptchaResult(false,'Не похоже на нужную фигуру, попробуй ещё раз');
