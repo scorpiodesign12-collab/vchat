@@ -496,16 +496,17 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .pDot.off{background:var(--muted);}
 .pSection{margin-top:24px;width:100%;}
 .pSecLabel{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:0 4px 8px;}
-.pGroup{background:var(--card);border-radius:16px;overflow:hidden;}
-.pItem{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);}
+.pGroup{background:var(--card);border-radius:18px;overflow:hidden;}
+.pItem{display:flex;align-items:center;gap:14px;padding:15px 16px;border-bottom:1px solid var(--line);}
 .pItem:last-child{border-bottom:none;}
 .verifiedBadge{display:inline-flex;width:14px;height:14px;vertical-align:middle;margin-left:3px;flex-shrink:0;position:relative;top:-1px;}
 .verifiedBadge svg{width:100%;height:100%;}
-.pIconWrap{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;}
-.pIconWrap svg{width:16px;height:16px;}
+.pIconWrap{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;}
+.pIconWrap svg{width:18px;height:18px;}
 .pItemBody{min-width:0;flex:1;}
-.pItemLabel{font-size:11.5px;color:var(--muted);line-height:1.2;}
-.pItemValue{font-size:14.5px;font-weight:600;color:var(--fg);margin-top:1px;word-break:break-word;}
+.pItemLabel{font-size:15px;font-weight:700;color:var(--fg);line-height:1.25;}
+.pItemValue{font-size:12.5px;color:var(--muted);margin-top:2px;word-break:break-word;font-weight:500;}
+.rowchev svg{width:18px;height:18px;}
 .pEditBtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--card);border:none;border-radius:16px;padding:14px;margin-top:22px;font-size:15px;font-weight:600;color:var(--accent2,#2C7EFF);cursor:pointer;}
 .pEditBtn svg{width:16px;height:16px;}
 .pEditBtn:hover{background:var(--card2);}
@@ -840,10 +841,10 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
         <div class="label" style="margin-top:20px;">Слабовидящие</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
-          <button id="a11yToggleBtn" onclick="toggleA11yPanel()" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:0;cursor:pointer;color:var(--fg);font-size:14.5px;font-weight:700;text-align:left;">
-            <span data-icon="glasses" style="width:20px;height:20px;display:inline-flex;flex-shrink:0;"></span>
-            <span style="flex:1;">Слабовидящие</span>
-            <span id="a11yChevron" style="width:16px;height:16px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <button id="a11yToggleBtn" onclick="toggleA11yPanel()" style="display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;padding:0;cursor:pointer;color:var(--fg);text-align:left;">
+            <div class="pIconWrap" style="background:#5E5CE6;"><span data-icon="glasses" style="width:18px;height:18px;display:inline-flex;"></span></div>
+            <span style="flex:1;font-size:15px;font-weight:700;">Слабовидящие</span>
+            <span id="a11yChevron" style="width:18px;height:18px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
           </button>
           <div id="a11yPanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
             <div class="hint" style="margin:0 0 12px;">Увеличивает весь текст, кнопки и сообщения в переписке — удобно для тех, кому обычный размер мелковат.</div>
@@ -865,10 +866,10 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
         <div class="label" style="margin-top:20px;">Рингтон звонка</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
-          <button id="ringtoneToggleBtn" onclick="toggleRingtonePanel()" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:0;cursor:pointer;color:var(--fg);font-size:14.5px;font-weight:700;text-align:left;">
-            <span data-icon="call" style="width:20px;height:20px;display:inline-flex;flex-shrink:0;"></span>
-            <span style="flex:1;">Рингтон звонка</span>
-            <span id="ringtoneChevron" style="width:16px;height:16px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <button id="ringtoneToggleBtn" onclick="toggleRingtonePanel()" style="display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;padding:0;cursor:pointer;color:var(--fg);text-align:left;">
+            <div class="pIconWrap" style="background:#FF9500;"><span data-icon="call" style="width:18px;height:18px;display:inline-flex;"></span></div>
+            <span style="flex:1;font-size:15px;font-weight:700;">Рингтон звонка</span>
+            <span id="ringtoneChevron" style="width:18px;height:18px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
           </button>
           <div id="ringtonePanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
             <div id="ringtoneLockedBox" style="display:none;">
