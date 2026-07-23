@@ -89,7 +89,11 @@ h2{font-size:25px;margin:8px 0 2px;font-weight:700;letter-spacing:-.02em;color:v
 .savedAccAvWrap{position:relative;cursor:pointer;}
 .savedAccAv{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line);transition:transform .18s ease, opacity .18s ease;}
 .savedAccName{font-size:11px;color:var(--muted);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .15s ease;}
-.savedAccX{position:absolute;top:-3px;right:-3px;width:19px;height:19px;border-radius:50%;background:var(--card2);border:2px solid var(--bg);color:var(--muted);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+.savedAccX{position:absolute;top:-3px;right:-3px;width:19px;height:19px;border-radius:50%;background:var(--card2);border:2px solid var(--bg);color:var(--muted);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;opacity:0;transform:scale(.5);pointer-events:none;transition:opacity .18s ease, transform .18s ease;}
+.savedAccounts.editMode .savedAccX{opacity:1;transform:scale(1);pointer-events:auto;}
+.savedAccounts.editMode .savedAccAv{animation:savedAccJiggle .26s ease-in-out infinite alternate;}
+.savedAcc:nth-child(even) .savedAccAv{animation-delay:.08s;}
+@keyframes savedAccJiggle{0%{transform:rotate(-2deg);}100%{transform:rotate(2deg);}}
 .savedAccX:active{transform:scale(.88);}
 .savedAccShard{position:fixed;width:7px;height:7px;border-radius:2px;pointer-events:none;z-index:9999;animation:savedAccShardFly .55s ease-out forwards;}
 @keyframes savedAccShardFly{
@@ -243,7 +247,7 @@ textarea.input{resize:none;height:74px;}
 
 <!-- 2. Intro -->
 <div class="screen" id="s2">
-  <div class="topbar"><span></span><button class="iconbtn" onclick="toggleDark()" id="dm2"></button></div>
+  <div class="topbar"><button class="iconbtn" onclick="toggleSavedAccEditMode()" id="savedAccEditBtn" data-icon="trash" style="display:none;"></button><button class="iconbtn" onclick="toggleDark()" id="dm2"></button></div>
   <div class="center"><div class="logo" style="width:170px;height:170px;">{{LOGO}}</div><div class="sub" style="font-size:13px;color:var(--muted);margin-top:4px;">Простой, Быстрый<br>мессенджер</div></div>
   <div class="savedAccounts" id="savedAccountsRow" style="display:none;"></div>
   <div class="stack">
@@ -466,7 +470,8 @@ at:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
 lock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
 edit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>`,
 palette:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1a1.6 1.6 0 0 1 1.7-1.6h2c3 0 5.5-2.5 5.5-5.5C22 6 17.5 2 12 2z"/><circle cx="6.5" cy="11.5" r="1"/><circle cx="9.5" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/><circle cx="17.5" cy="11.5" r="1"/></svg>`,
-shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`
+shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+trash:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`
 };
 const LOGO_SVG=`<svg viewBox="0 0 757 594"><path fill="currentColor" d="M144.149 288.366C173.497 341.032 44.8848 145.047 44.8848 145.047L250.319 175.265C283.983 176.991 273.625 176.991 290.888 157.997L414.322 0L435.901 128.099C441.08 157.997 435.901 153.68 465.249 145.047L757 50.0756L296.93 341.032C269.309 357.436 305.562 359.163 315.057 359.163C324.552 359.163 520.491 366.07 478.196 298.727C435.901 231.384 597.314 459.314 597.314 459.314L386.7 423.511C350.447 419.599 360.805 410.102 340.089 436.003L223.561 594L194.213 449.817C187.308 415.282 194.213 418.735 166.592 425.642C138.97 432.549 55.5306 459.026 0 475.718L328.513 257.285C377.205 229.657 374.616 231.384 315.057 233.974C255.498 236.564 114.802 235.701 144.149 288.366Z"/></svg>`;
 document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=ICONS[el.dataset.icon]);
@@ -658,10 +663,10 @@ function loadSavedAccounts(){
 function persistSavedAccounts(list){
   try{ localStorage.setItem(SAVED_ACC_KEY, JSON.stringify(list)); }catch(e){}
 }
-function upsertSavedAccount(username, dispname){
+function upsertSavedAccount(username, dispname, avatarUrl){
   if(!username)return;
   let list=loadSavedAccounts().filter(a=>a.username.toLowerCase()!==username.toLowerCase());
-  list.unshift({username:username, dispname:dispname||username, ts:Date.now()});
+  list.unshift({username:username, dispname:dispname||username, avatar_url:avatarUrl||null, ts:Date.now()});
   if(list.length>6)list=list.slice(0,6);
   persistSavedAccounts(list);
   renderSavedAccounts();
@@ -682,8 +687,16 @@ async function fetchDisplayNameByUsername(username){
 }
 async function saveAccountAfterLogin(username, knownDispname){
   let dispname=knownDispname;
-  if(!dispname) dispname=await fetchDisplayNameByUsername(username);
-  upsertSavedAccount(username, dispname);
+  let avatarUrl=null;
+  try{
+    const {data}=await sb.from('profiles').select('display_name,avatar_url').eq('username',username).maybeSingle();
+    if(data){
+      if(!dispname) dispname=data.display_name;
+      avatarUrl=data.avatar_url||null;
+    }
+  }catch(e){}
+  if(!dispname) dispname=username;
+  upsertSavedAccount(username, dispname, avatarUrl);
 }
 function openSavedAccountLogin(username){
   loginUsernameVal=username;
@@ -695,15 +708,37 @@ function openSavedAccountLogin(username){
   pwdLogin='';renderDotsLogin();
   nav('s4login');
 }
+let savedAccEditMode=false;
+function toggleSavedAccEditMode(){
+  savedAccEditMode=!savedAccEditMode;
+  let wrap=document.getElementById('savedAccountsRow');
+  if(wrap) wrap.classList.toggle('editMode',savedAccEditMode);
+  let btn=document.getElementById('savedAccEditBtn');
+  if(btn) btn.classList.toggle('on',savedAccEditMode);
+}
+function savedAccAvHtml(a){
+  if(a.avatar_url){
+    return `<div class="savedAccAv" style="background-image:url('${a.avatar_url.replace(/'/g,"%27")}');background-size:cover;background-position:center;"></div>`;
+  }
+  return `<div class="savedAccAv" style="background:${savedAccColor(a.username)};">${savedAccInitials(a.dispname)}</div>`;
+}
 function renderSavedAccounts(){
   let wrap=document.getElementById('savedAccountsRow');
   if(!wrap)return;
   let list=loadSavedAccounts();
-  if(!list.length){ wrap.style.display='none'; wrap.innerHTML=''; return; }
+  let editBtn=document.getElementById('savedAccEditBtn');
+  if(!list.length){
+    wrap.style.display='none'; wrap.innerHTML=''; wrap.classList.remove('editMode');
+    if(editBtn){ editBtn.style.display='none'; editBtn.classList.remove('on'); }
+    savedAccEditMode=false;
+    return;
+  }
   wrap.style.display='flex';
+  wrap.classList.toggle('editMode',savedAccEditMode);
+  if(editBtn) editBtn.style.display='flex';
   wrap.innerHTML=list.map(a=>`<div class="savedAcc" data-u="${a.username}">
       <div class="savedAccAvWrap">
-        <div class="savedAccAv" style="background:${savedAccColor(a.username)};">${savedAccInitials(a.dispname)}</div>
+        ${savedAccAvHtml(a)}
         <button type="button" class="savedAccX" data-u="${a.username}" aria-label="Убрать аккаунт">✕</button>
       </div>
       <div class="savedAccName">${a.username}</div>
@@ -711,6 +746,7 @@ function renderSavedAccounts(){
   wrap.querySelectorAll('.savedAccAvWrap').forEach(el=>{
     el.addEventListener('click',(e)=>{
       if(e.target.closest('.savedAccX'))return;
+      if(savedAccEditMode)return;
       openSavedAccountLogin(el.closest('.savedAcc').dataset.u);
     });
   });
@@ -747,12 +783,30 @@ function burstAndRemoveSavedAccount(username){
     document.body.appendChild(piece);
     setTimeout(()=>piece.remove(),600);
   }
+  av.style.animation='none';
   av.style.transform='scale(0)';
   av.style.opacity='0';
   if(nameEl)nameEl.style.opacity='0';
   setTimeout(()=>{ removeSavedAccount(username); },220);
 }
+async function refreshSavedAccountAvatars(){
+  let list=loadSavedAccounts();
+  if(!list.length) return;
+  try{
+    const {data}=await sb.from('profiles').select('username,avatar_url').in('username',list.map(a=>a.username));
+    if(!data) return;
+    let map={};
+    data.forEach(p=>{ map[p.username.toLowerCase()]=p.avatar_url||null; });
+    let changed=false;
+    list.forEach(a=>{
+      let fresh=map[a.username.toLowerCase()];
+      if(fresh!==undefined && fresh!==a.avatar_url){ a.avatar_url=fresh; changed=true; }
+    });
+    if(changed){ persistSavedAccounts(list); renderSavedAccounts(); }
+  }catch(e){}
+}
 renderSavedAccounts();
+refreshSavedAccountAvatars();
 
 /* ---------- dark mode ---------- */
 function toggleDark(){setDark(document.getElementById('app').getAttribute('data-theme')!=='dark');}
