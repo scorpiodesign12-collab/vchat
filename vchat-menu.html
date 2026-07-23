@@ -861,8 +861,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </div>
 
         <div class="label" style="margin-top:20px;">Кастомизация</div>
-        <div class="hint" style="margin-bottom:10px;">Акцентный цвет</div>
-        <div class="colors" id="accentColors"></div>
+        <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
+          <button id="accentToggleBtn" onclick="toggleAccentPanel()" style="display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;padding:0;cursor:pointer;color:var(--fg);text-align:left;">
+            <div class="pIconWrap" style="background:#D81B60;"><span style="font-size:16px;line-height:1;">🎨</span></div>
+            <span style="flex:1;font-size:15px;font-weight:700;">Акцентный цвет</span>
+            <span id="accentChevron" style="width:18px;height:18px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </button>
+          <div id="accentPanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+            <div class="colors" id="accentColors"></div>
+          </div>
+        </div>
 
         <div class="label" style="margin-top:20px;">Рингтон звонка</div>
         <div class="pGroup" style="background:var(--card);border-radius:16px;padding:14px 16px;">
@@ -957,10 +965,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <div class="pIconWrap" style="background:#ff3b30;" data-icon="logout"></div>
             <div class="pItemBody"><div class="pItemLabel" style="color:#ff3b30;font-weight:600;">Выйти из аккаунта</div></div>
           </div>
+          <div class="pItem" style="cursor:pointer;border-top:1px solid var(--line);" onclick="openDeleteAccountModal()">
+            <div class="pIconWrap" style="background:#8e0000;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </div>
+            <div class="pItemBody"><div class="pItemLabel" style="color:#8e0000;font-weight:600;">Удалить аккаунт</div><div class="pItemValue">Безвозвратно, вместе со всеми чатами</div></div>
+          </div>
         </div>
 
         <div style="margin-top:28px;text-align:center;">
-          <div style="font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.02em;">Версия 0.1.2</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.02em;">Версия 1.1.5</div>
           <div style="font-size:11.5px;color:var(--muted);margin-top:6px;opacity:.6;">Nikita Vinarchuk by Vchat</div>
         </div>
 
@@ -1078,6 +1092,23 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div class="pSecLabel" style="text-align:center;margin-top:22px;">Выберите реакцию по умолчанию</div>
     <div class="qrEmojiGrid" id="qrEmojiGrid"></div>
     <button class="tbtn" style="width:100%;margin-top:18px;" onclick="saveQuickReactionPicked()">Сохранить</button>
+  </div>
+</div>
+
+<!-- ===== удаление аккаунта ===== -->
+<div class="pEditPane" id="deleteAccountPane">
+  <div class="pEditTopbar" style="position:relative;justify-content:center;">
+    <div class="peTitle">Удаление аккаунта</div>
+    <button class="peCloseX" onclick="closeDeleteAccountModal()" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="pEditBody" style="max-width:420px;width:100%;margin:0 auto;">
+    <div class="hint" style="text-align:center;margin:6px 4px 18px;color:#ff3b30;">Это действие необратимо. Аккаунт, все чаты, звонки и файлы будут удалены навсегда.</div>
+    <div class="pSecLabel" style="margin-top:4px;">Введите пароль для подтверждения</div>
+    <input type="password" id="deleteAccountPassword" placeholder="Пароль" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:15px;margin-top:8px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')confirmDeleteAccount()">
+    <div class="hint" id="deleteAccountError" style="color:#ff3b30;margin-top:10px;display:none;"></div>
+    <button class="tbtn" style="width:100%;margin-top:18px;background:#ff3b30;color:#fff;" id="deleteAccountConfirmBtn" onclick="confirmDeleteAccount()">Удалить аккаунт навсегда</button>
   </div>
 </div>
 
@@ -1283,6 +1314,78 @@ function openSubscriptionInfo(){
 }
 
 /* ---------- свой рингтон на входящие звонки (только VChat Plus) ---------- */
+/* ---------- удаление аккаунта ---------- */
+function openDeleteAccountModal(){
+  const pass=document.getElementById('deleteAccountPassword');
+  if(pass) pass.value='';
+  const err=document.getElementById('deleteAccountError');
+  if(err) err.style.display='none';
+  const btn=document.getElementById('deleteAccountConfirmBtn');
+  if(btn){ btn.disabled=false; btn.textContent='Удалить аккаунт навсегда'; }
+  document.getElementById('deleteAccountPane').classList.add('open');
+}
+function closeDeleteAccountModal(){
+  document.getElementById('deleteAccountPane').classList.remove('open');
+}
+async function confirmDeleteAccount(){
+  const passEl=document.getElementById('deleteAccountPassword');
+  const err=document.getElementById('deleteAccountError');
+  const btn=document.getElementById('deleteAccountConfirmBtn');
+  const pass=passEl?passEl.value:'';
+  err.style.display='none';
+  if(!pass){ err.textContent='Введите пароль'; err.style.display='block'; return; }
+  if(!vchatUser) return;
+  btn.disabled=true; btn.textContent='Проверка пароля...';
+  try{
+    const {data:sessData}=await sb.auth.getSession();
+    const email=sessData&&sessData.session&&sessData.session.user?sessData.session.user.email:null;
+    if(!email){
+      err.textContent='Не удалось определить email аккаунта';
+      err.style.display='block';
+      btn.disabled=false; btn.textContent='Удалить аккаунт навсегда';
+      return;
+    }
+    const {error:authErr}=await sb.auth.signInWithPassword({email:email,password:pass});
+    if(authErr){
+      err.textContent='Неверный пароль';
+      err.style.display='block';
+      btn.disabled=false; btn.textContent='Удалить аккаунт навсегда';
+      return;
+    }
+    btn.textContent='Удаление аккаунта...';
+    const {data:freshData}=await sb.auth.getSession();
+    const token=freshData&&freshData.session?freshData.session.access_token:null;
+    const resp=await fetch(STORAGE_DIRECT_URL+'/functions/v1/delete-own-account',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+(token||'')
+      }
+    });
+    let result={};
+    try{ result=await resp.json(); }catch(e){}
+    if(!resp.ok){
+      err.textContent=result.error||'Не удалось удалить аккаунт. Попробуйте позже.';
+      err.style.display='block';
+      btn.disabled=false; btn.textContent='Удалить аккаунт навсегда';
+      return;
+    }
+    try{ await sb.auth.signOut(); }catch(e){}
+    try{ localStorage.clear(); }catch(e){}
+    window.location.href='index.html';
+  }catch(e){
+    err.textContent='Ошибка сети. Попробуйте ещё раз.';
+    err.style.display='block';
+    btn.disabled=false; btn.textContent='Удалить аккаунт навсегда';
+  }
+}
+function toggleAccentPanel(){
+  let panel=document.getElementById('accentPanel');
+  let chevron=document.getElementById('accentChevron');
+  let open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  chevron.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+}
 function toggleRingtonePanel(){
   let panel=document.getElementById('ringtonePanel');
   let chevron=document.getElementById('ringtoneChevron');
