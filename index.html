@@ -84,10 +84,18 @@ h2{font-size:25px;margin:8px 0 2px;font-weight:700;letter-spacing:-.02em;color:v
 .key svg{width:18px;height:18px;}
 .avatarRow{display:flex;align-items:center;gap:16px;z-index:1;margin-top:6px;}
 .savedAccounts{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:4px 0 20px;z-index:1;max-width:100%;overflow-x:auto;padding:2px;}
-.savedAcc{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;width:62px;flex-shrink:0;}
+.savedAcc{display:flex;flex-direction:column;align-items:center;gap:6px;width:62px;flex-shrink:0;}
 .savedAcc:active .savedAccAv{transform:scale(.92);}
-.savedAccAv{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line);transition:transform .12s;}
-.savedAccName{font-size:11px;color:var(--muted);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.savedAccAvWrap{position:relative;cursor:pointer;}
+.savedAccAv{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line);transition:transform .18s ease, opacity .18s ease;}
+.savedAccName{font-size:11px;color:var(--muted);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .15s ease;}
+.savedAccX{position:absolute;top:-3px;right:-3px;width:19px;height:19px;border-radius:50%;background:var(--card2);border:2px solid var(--bg);color:var(--muted);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+.savedAccX:active{transform:scale(.88);}
+.savedAccShard{position:fixed;width:7px;height:7px;border-radius:2px;pointer-events:none;z-index:9999;animation:savedAccShardFly .55s ease-out forwards;}
+@keyframes savedAccShardFly{
+  0%{transform:translate(0,0) scale(1) rotate(0deg);opacity:1;}
+  100%{transform:translate(var(--tx),var(--ty)) scale(.2) rotate(220deg);opacity:0;}
+}
 .avatarBig{width:64px;height:64px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;background-size:cover;background-position:center;}
 .colors{display:flex;gap:12px;margin-top:14px;z-index:1;flex-wrap:wrap;justify-content:center;}
 .clr{width:36px;height:36px;border-radius:50%;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;transition:transform .15s;}
@@ -694,23 +702,55 @@ function renderSavedAccounts(){
   if(!list.length){ wrap.style.display='none'; wrap.innerHTML=''; return; }
   wrap.style.display='flex';
   wrap.innerHTML=list.map(a=>`<div class="savedAcc" data-u="${a.username}">
-      <div class="savedAccAv" style="background:${savedAccColor(a.username)};">${savedAccInitials(a.dispname)}</div>
+      <div class="savedAccAvWrap">
+        <div class="savedAccAv" style="background:${savedAccColor(a.username)};">${savedAccInitials(a.dispname)}</div>
+        <button type="button" class="savedAccX" data-u="${a.username}" aria-label="Убрать аккаунт">✕</button>
+      </div>
       <div class="savedAccName">${a.username}</div>
     </div>`).join('');
-  wrap.querySelectorAll('.savedAcc').forEach(el=>{
-    let username=el.dataset.u;
-    let pressTimer=null, longPressed=false;
-    el.addEventListener('pointerdown',()=>{
-      longPressed=false;
-      pressTimer=setTimeout(()=>{ longPressed=true; confirmRemoveSavedAccount(username); },550);
+  wrap.querySelectorAll('.savedAccAvWrap').forEach(el=>{
+    el.addEventListener('click',(e)=>{
+      if(e.target.closest('.savedAccX'))return;
+      openSavedAccountLogin(el.closest('.savedAcc').dataset.u);
     });
-    el.addEventListener('pointerup',()=>{
-      if(pressTimer)clearTimeout(pressTimer);
-      if(!longPressed)openSavedAccountLogin(username);
-    });
-    el.addEventListener('pointerleave',()=>{ if(pressTimer)clearTimeout(pressTimer); });
-    el.addEventListener('pointercancel',()=>{ if(pressTimer)clearTimeout(pressTimer); });
   });
+  wrap.querySelectorAll('.savedAccX').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      burstAndRemoveSavedAccount(btn.dataset.u);
+    });
+  });
+}
+
+/* маленький крестик над аватаркой — при нажатии аватарка "разлетается" на частицы и убирается из списка (сохраняется на устройстве) */
+function burstAndRemoveSavedAccount(username){
+  let card=document.querySelector(`.savedAcc[data-u="${CSS.escape(username)}"]`);
+  if(!card){ removeSavedAccount(username); return; }
+  let av=card.querySelector('.savedAccAv');
+  let nameEl=card.querySelector('.savedAccName');
+  let xBtn=card.querySelector('.savedAccX');
+  if(xBtn)xBtn.style.display='none';
+  let rect=av.getBoundingClientRect();
+  let cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  let color=getComputedStyle(av).backgroundColor;
+  const N=14;
+  for(let i=0;i<N;i++){
+    let piece=document.createElement('div');
+    piece.className='savedAccShard';
+    piece.style.background=color;
+    let angle=(i/N)*Math.PI*2+Math.random()*0.4;
+    let dist=34+Math.random()*34;
+    piece.style.setProperty('--tx',(Math.cos(angle)*dist).toFixed(1)+'px');
+    piece.style.setProperty('--ty',(Math.sin(angle)*dist).toFixed(1)+'px');
+    piece.style.left=(cx-4)+'px';
+    piece.style.top=(cy-4)+'px';
+    document.body.appendChild(piece);
+    setTimeout(()=>piece.remove(),600);
+  }
+  av.style.transform='scale(0)';
+  av.style.opacity='0';
+  if(nameEl)nameEl.style.opacity='0';
+  setTimeout(()=>{ removeSavedAccount(username); },220);
 }
 renderSavedAccounts();
 
@@ -1012,14 +1052,27 @@ async function vchatUsernameTaken(username){
 
 async function vchatSignUp(username, dispname, pin, bio){
   try{
-    const {data,error}=await sb.auth.signUp({
-      email: vchatEmailFor(username),
-      password: vchatPassFor(pin)
-    });
-    if(error){ console.error(error); return {ok:false, message:error.message||String(error)}; }
-    const userId=data.user ? data.user.id : (data.session?data.session.user.id:null);
+    const email=vchatEmailFor(username);
+    const password=vchatPassFor(pin);
+    let userId=null;
+    const {data,error}=await sb.auth.signUp({email,password});
+    if(error){
+      let msg=error.message||String(error);
+      if(/already registered/i.test(msg)){
+        /* скорее всего "осиротевший" аккаунт: auth-пользователь уже создан прошлой неудачной попыткой
+           (например, оборвалось на шаге записи профиля), а строки в profiles нет.
+           Пробуем войти тем же паролем и доделать профиль, вместо жёсткого отказа. */
+        const {data:loginData, error:loginErr}=await sb.auth.signInWithPassword({email,password});
+        if(loginErr){ return {ok:false, message:'Этот юзернейм уже занят'}; }
+        userId=loginData.user?loginData.user.id:(loginData.session?loginData.session.user.id:null);
+      }else{
+        return {ok:false, message:msg};
+      }
+    }else{
+      userId=data.user?data.user.id:(data.session?data.session.user.id:null);
+    }
     if(!userId) return {ok:false, message:'Не удалось получить ID пользователя после регистрации'};
-    const {error:profErr}=await sb.from('profiles').insert({
+    const {error:profErr}=await sb.from('profiles').upsert({
       id:userId, username:username, display_name:dispname, bio:(bio||'')
     });
     if(profErr){ console.error(profErr); return {ok:false, message:profErr.message||String(profErr)}; }
