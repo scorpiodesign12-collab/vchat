@@ -2233,6 +2233,11 @@ async function confirmDeleteAccount(){
       console.error('delete-own-account failed:', resp.status, json);
       throw new Error((json&&(json.error||json.details))||`Ошибка сервера (${resp.status})`);
     }
+    // важно: чистим локальную сессию Supabase — иначе index.html увидит ещё
+    // "живой" (хоть и от уже удалённого юзера) токен и перекинет обратно в меню,
+    // а там начнётся мигание туда-сюда. scope:'local' — чтобы не дёргать сеть
+    // (сам аккаунт уже удалён, серверный логаут всё равно смысла не имеет).
+    try{ await sb.auth.signOut({ scope:'local' }); }catch(e){}
     try{ localStorage.removeItem('vchat_last_account'); }catch(e){}
     window.location.href='index.html?goto=login';
   }catch(e){
