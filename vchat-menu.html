@@ -2238,6 +2238,12 @@ async function confirmDeleteAccount(){
     // а там начнётся мигание туда-сюда. scope:'local' — чтобы не дёргать сеть
     // (сам аккаунт уже удалён, серверный логаут всё равно смысла не имеет).
     try{ await sb.auth.signOut({ scope:'local' }); }catch(e){}
+    // убираем карточку удалённого аккаунта из списка "последних входов" на экране логина
+    try{
+      const uname=(vchatUser&&vchatUser.username||'').toLowerCase();
+      const list=JSON.parse(localStorage.getItem('vchat_saved_accounts')||'[]').filter(a=>(a.username||'').toLowerCase()!==uname);
+      localStorage.setItem('vchat_saved_accounts', JSON.stringify(list));
+    }catch(e){}
     try{ localStorage.removeItem('vchat_last_account'); }catch(e){}
     window.location.href='index.html?goto=login';
   }catch(e){
