@@ -416,7 +416,10 @@ textarea.input{resize:none;height:74px;}
 
 <!-- 7. Done -->
 <div class="screen" id="s7">
-  <div class="center"><div class="logo" style="width:200px;height:200px;">{{LOGO}}</div><div class="sub">Аккаунт создан</div></div>
+  <div class="center">
+    <div class="onbVideoWrap" style="width:180px;height:180px;"><video autoplay loop muted playsinline data-vidbase="айфон"><source src="айфон.webm" type="video/webm"><source class="mp4src" src="айфон_light.mp4" type="video/mp4"></video></div>
+    <div class="sub">Аккаунт создан</div>
+  </div>
   <button class="btn btn-primary" onclick="finishOnboarding()">Готово</button>
 </div>
 
@@ -952,8 +955,12 @@ function backspaceLogin(){pwdLogin=pwdLogin.slice(0,-1);renderDotsLogin();}
 renderDotsLogin();
 
 /* ---------- finish onboarding: реальная регистрация в Supabase ---------- */
+let onboardingInProgress=false;
 async function finishOnboarding(){
+  if(onboardingInProgress)return;
+  onboardingInProgress=true;
   let btn=document.querySelector('#s7 .btn-primary');
+  if(btn)btn.disabled=true;
   let bioEl=document.getElementById('bio');
   let regBio=bioEl?bioEl.value.trim():'';
   nav('sCreating');
@@ -964,7 +971,8 @@ async function finishOnboarding(){
     window.location.href='vchat-menu.html';
   }else{
     nav('s7');
-    if(btn)btn.textContent='Готово';
+    if(btn){btn.textContent='Готово';btn.disabled=false;}
+    onboardingInProgress=false;
     alert('Не получилось создать аккаунт: '+(result.message||'неизвестная ошибка'));
   }
 }
