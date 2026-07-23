@@ -2230,7 +2230,8 @@ async function confirmDeleteAccount(){
     let json=null;
     try{ json=await resp.json(); }catch(e){}
     if(!resp.ok || !(json&&json.success)){
-      throw new Error((json&&json.error)||`Ошибка сервера (${resp.status})`);
+      console.error('delete-own-account failed:', resp.status, json);
+      throw new Error((json&&(json.error||json.details))||`Ошибка сервера (${resp.status})`);
     }
     try{ localStorage.removeItem('vchat_last_account'); }catch(e){}
     window.location.href='index.html?goto=login';
