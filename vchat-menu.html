@@ -228,6 +228,11 @@ body{display:flex;}
 .sendbar textarea{flex:1;background:var(--card);border:1px solid transparent;border-radius:14px;padding:11px 14px;font-size:15px;color:var(--fg);outline:none;font-family:inherit;resize:none;min-height:44px;max-height:140px;line-height:1.45;overflow-y:auto;scrollbar-width:none;}
 .sendbar textarea::-webkit-scrollbar{display:none;}
 .sendbar textarea:focus{border-color:var(--accent);}
+.sendbar.dmHidden{display:none !important;}
+.dmClosedBar{display:none;align-items:center;gap:10px;padding:12px 4px 18px;flex-shrink:0;}
+.dmClosedBar.show{display:flex;}
+.dmClosedBarIcon{display:flex;flex-shrink:0;color:var(--muted);}
+.dmClosedBarText{font-size:13px;color:var(--muted);line-height:1.4;}
 .sendBtn{background:var(--btn);color:var(--btn-fg);border:none;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
 .sendBtn svg{width:18px;height:18px;}
 .attachBtn{background:transparent;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:50%;transition:.15s;}
@@ -667,7 +672,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
           </button>
         </div>
         <!-- Sendbar -->
-        <div class="sendbar">
+        <div class="sendbar" id="cwSendbar">
           <div class="sendRow">
             <button class="attachBtn" onclick="triggerAttach()" title="Прикрепить файл">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -677,6 +682,11 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
+        </div>
+        <!-- Личные сообщения закрыты -->
+        <div class="dmClosedBar" id="cwDmClosedBanner">
+          <span class="dmClosedBarIcon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <span class="dmClosedBarText">Данный человек закрыл личные сообщения</span>
         </div>
         <input type="file" id="fileInput" style="display:none" accept=".pdf,.txt,.doc,.docx" onchange="handleFile(this)">
         <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleImageFile(this)">
@@ -1174,6 +1184,23 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         </label>
       </div>
     </div>
+
+    <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;margin-top:14px;" id="privacyDmGroup">
+      <div class="pItem" style="cursor:default;border-bottom:none;">
+        <div class="pIconWrap" style="background:#FF3B30;" data-icon="lock"></div>
+        <div class="pItemBody">
+          <div class="pItemLabel">Личные сообщения</div>
+          <div class="pItemValue" id="privacyDmSub">Любой пользователь может вам написать</div>
+        </div>
+        <label class="toggleSwitch">
+          <input type="checkbox" id="privacyDmClosedInput" onchange="togglePrivacyDmClosedSetting(this.checked)">
+          <span class="toggleSlider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="hint" id="privacyDmLockedHint" style="display:none;margin-top:10px;">
+      🔒 Закрытие личных сообщений — функция <b>VChat Plus</b>. <a href="https://t.me/vchatsocial" target="_blank" rel="noopener" style="color:var(--accent2);font-weight:600;">Оформить подписку</a>
+    </div>
   </div>
 </div>
 
@@ -1434,11 +1461,55 @@ function togglePrivacyOnlineSetting(checked){
 function togglePrivacyLastSeenSetting(checked){
   try{ localStorage.setItem(PRIVACY_LASTSEEN_KEY, checked?'1':'0'); }catch(e){}
 }
+/* кэш "закрыты ли ЛС": username(нижний регистр) -> true|false */
+let dmClosedCache={};
+function isDmClosed(username){
+  if(!username)return false;
+  return !!dmClosedCache[username.toLowerCase()];
+}
+function cacheDmClosed(username,val){
+  if(!username)return;
+  dmClosedCache[username.toLowerCase()]=!!val;
+}
+async function togglePrivacyDmClosedSetting(checked){
+  if(!vchatUser)return;
+  const input=document.getElementById('privacyDmClosedInput');
+  const sub=document.getElementById('privacyDmSub');
+  try{
+    const {error}=await sb.from('profiles').update({dm_closed:checked}).eq('id',vchatUser.id);
+    if(error){
+      showToast('Не удалось сохранить настройку');
+      if(input)input.checked=!checked;
+      return;
+    }
+    cacheDmClosed(vchatUser.username,checked);
+    if(sub) sub.textContent=checked?'Личные сообщения закрыты':'Любой пользователь может вам написать';
+    showToast(checked?'Личные сообщения закрыты':'Личные сообщения открыты');
+  }catch(e){
+    showToast('Ошибка сети');
+    if(input)input.checked=!checked;
+  }
+}
 function initPrivacySettings(){
   const onlineInput=document.getElementById('privacyOnlineInput');
   if(onlineInput) onlineInput.checked=isPrivacyOnlineEnabled();
   const lastSeenInput=document.getElementById('privacyLastSeenInput');
   if(lastSeenInput) lastSeenInput.checked=isPrivacyLastSeenEnabled();
+
+  const dmInput=document.getElementById('privacyDmClosedInput');
+  const dmGroup=document.getElementById('privacyDmGroup');
+  const dmLockedHint=document.getElementById('privacyDmLockedHint');
+  const mySub=vchatUser?isSubActive(vchatUser.username):false;
+  if(dmInput) dmInput.checked=vchatUser?isDmClosed(vchatUser.username):false;
+  if(mySub){
+    if(dmGroup){dmGroup.style.opacity='1';dmGroup.style.pointerEvents='auto';}
+    if(dmInput) dmInput.disabled=false;
+    if(dmLockedHint) dmLockedHint.style.display='none';
+  }else{
+    if(dmGroup){dmGroup.style.opacity='.5';dmGroup.style.pointerEvents='none';}
+    if(dmInput) dmInput.disabled=true;
+    if(dmLockedHint) dmLockedHint.style.display='block';
+  }
 }
 function openPrivacyEdit(){
   initPrivacySettings();
@@ -2538,7 +2609,16 @@ function openChat(name){
   updatePinnedBar();
   setupMsgReactionTaps();
   loadReactionsForChat(name);
+  applyDmClosedUiState(name);
   try{ history.pushState({vchatChatOpen:true}, ''); }catch(e){}
+}
+function applyDmClosedUiState(name){
+  const sendbar=document.getElementById('cwSendbar');
+  const banner=document.getElementById('cwDmClosedBanner');
+  if(!sendbar||!banner)return;
+  const closed=name!=='Избранное' && isDmClosed(name) && isSubActive(name);
+  sendbar.classList.toggle('dmHidden',closed);
+  banner.classList.toggle('show',closed);
 }
 function backToChats(fromPopState){
   document.getElementById('chatDetailPane').classList.remove('open','chatActive');
@@ -3331,6 +3411,7 @@ async function vchatInit(){
   profileData.avatarUrl=profile.avatar_url||null;
   profileData.bannerUrl=profile.banner_url||null;
   cacheSub(vchatUser.username, profile.subscription_until);
+  cacheDmClosed(vchatUser.username, profile.dm_closed);
   renderProfileView();
   initSubBanner();
   initRingtoneSettings();
@@ -3407,11 +3488,12 @@ async function vchatOpenFromUrl(){
   let username=Object.keys(chatMeta).find(n=>chatMeta[n].uid===uid);
   let dispname=p.get('openname')||'Пользователь';
   if(!username){
-    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until,avatar_url').eq('id',uid).single();
+    const {data:prof}=await sb.from('profiles').select('username,display_name,subscription_until,avatar_url,dm_closed').eq('id',uid).single();
     if(!prof)return;
     username=prof.username;
     dispname=prof.display_name||prof.username;
     cacheSub(username, prof.subscription_until);
+    cacheDmClosed(username, prof.dm_closed);
     if(!chatMeta[username]){
       chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname,avatarUrl:prof.avatar_url||null};
       chats[username]=[];
@@ -3434,7 +3516,7 @@ async function vchatLoadConversations(){
   });
   partnerIds.delete(vchatUser.id);
   if(!partnerIds.size)return;
-  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url').in('id',Array.from(partnerIds));
+  const {data:profiles}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url,dm_closed').in('id',Array.from(partnerIds));
   if(!profiles)return;
   let idToProfile={};
   profiles.forEach(p=>idToProfile[p.id]=p);
@@ -3444,6 +3526,7 @@ async function vchatLoadConversations(){
     if(!p)return;
     let username=p.username, dispname=p.display_name||p.username;
     cacheSub(username, p.subscription_until);
+    cacheDmClosed(username, p.dm_closed);
     if(!chatMeta[username]){
       chatMeta[username]={color:randomAvatarColor(),initials:initials(dispname),last:'',uid:uid,unread:0,dispname:dispname,avatarUrl:p.avatar_url||null};
     }else{
@@ -3491,19 +3574,20 @@ function onUserSearchInput(q){
   wrap.classList.add('loading');
   vchatSearchTimer=setTimeout(async ()=>{
     if(!vchatUser){return;}
-    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    const {data}=await sb.from('profiles').select('id,username,display_name,subscription_until,avatar_url,dm_closed').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
     wrap.classList.remove('loading');
     if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
-    data.forEach(u=>cacheSub(u.username,u.subscription_until));
+    data.forEach(u=>{cacheSub(u.username,u.subscription_until);cacheDmClosed(u.username,u.dm_closed);});
     box.innerHTML=data.map(u=>{
       let dn=u.display_name||u.username;
       const subActive=isSubActive(u.username);
       const showImg=subActive&&u.avatar_url;
       const avInner=showImg?('<img src="'+escHtml(u.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'):dn[0].toUpperCase();
       const avStyle=showImg?'':'background:#555;color:#fff;';
+      const dmLockIcon=(subActive&&u.dm_closed)?'<span style="display:inline-flex;margin-left:5px;color:var(--muted);vertical-align:-2px;" title="Личные сообщения закрыты"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>':'';
       return `<div class="row" onclick="selectUser('${u.username}','${u.id}','${dn.replace(/'/g,"\\'")}','${encodeURIComponent(u.avatar_url||'')}')">
         <div class="av" style="${avStyle}">${avInner}</div>
-        <div class="rowtext"><b>${escHtml(dn)}${verifiedBadgeHtml(u.username)}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
+        <div class="rowtext"><b>${escHtml(dn)}${verifiedBadgeHtml(u.username)}${dmLockIcon}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
       </div>`;
     }).join('');
   },350);
@@ -3560,6 +3644,11 @@ async function sendMsg(){
   // "Избранное" — локальные заметки, на сервер не уходят
   if(chatName==='Избранное'||!meta||!meta.uid||!vchatUser){
     localSendMsg();
+    return;
+  }
+
+  if(isDmClosed(chatName) && isSubActive(chatName)){
+    showToast('Данный человек закрыл личные сообщения');
     return;
   }
 
