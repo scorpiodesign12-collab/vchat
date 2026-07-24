@@ -852,6 +852,17 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <span id="a11yChevron" style="width:18px;height:18px;display:inline-flex;flex-shrink:0;transition:transform .2s;color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
           </button>
           <div id="a11yPanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+            <!-- ===== демо-ролик (внешняя ссылка, НЕ встроен в файл) =====
+                 Замени src ниже на прямую ссылку на твой .webm с GitHub.
+                 Проще всего: залей файл в репозиторий, открой его на GitHub,
+                 нажми "Raw" и скопируй адрес из строки браузера — обычно вида
+                 https://raw.githubusercontent.com/ПОЛЬЗОВАТЕЛЬ/РЕПОЗИТОРИЙ/main/ищет.webm
+            -->
+            <div style="display:flex;flex-direction:column;align-items:center;margin:0 0 16px;">
+              <div style="width:170px;height:170px;border-radius:24px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3);">
+                <video id="a11yDemoVideo" src="ССЫЛКА_НА_ТВОЙ_ФАЙЛ_НА_GITHUB/ищет.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+              </div>
+            </div>
             <div class="hint" style="margin:0 0 12px;">Увеличивает весь текст, кнопки и сообщения в переписке — удобно для тех, кому обычный размер мелковат.</div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <span style="font-size:13px;color:var(--muted);">Масштаб интерфейса</span>
