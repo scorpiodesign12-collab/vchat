@@ -239,7 +239,8 @@ body{display:flex;}
 
 /* message wrapper / swipe / time */
 .msgWrap{position:relative;max-width:100%;display:flex;flex-direction:column;touch-action:manipulation;}
-.reactionBurst{position:fixed;font-size:60px;pointer-events:none;z-index:500;transform:translate(-50%,-50%) scale(.2);opacity:0;animation:reactionBurstAnim .7s cubic-bezier(.34,1.56,.64,1) forwards;}
+.reactionBurst{position:fixed;width:72px;height:72px;pointer-events:none;z-index:500;transform:translate(-50%,-50%) scale(.2);opacity:0;animation:reactionBurstAnim .7s cubic-bezier(.34,1.56,.64,1) forwards;}
+.reactionBurst video{width:100%;height:100%;object-fit:contain;pointer-events:none;}
 @keyframes reactionBurstAnim{
   0%{transform:translate(-50%,-50%) scale(.2);opacity:0;}
   35%{transform:translate(-50%,-50%) scale(1.25);opacity:1;}
@@ -252,14 +253,16 @@ body{display:flex;}
 .reactionPill{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1.5px solid var(--card);border-radius:11px;padding:1px 7px 1px 2px;font-size:13px;line-height:1.5;box-shadow:0 1px 4px rgba(0,0,0,.18);}
 .reactionPillAv{width:16px;height:16px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;color:#fff;background:#8a8a8a;}
 .reactionPillAv img{width:100%;height:100%;object-fit:cover;}
+.reactionPillVideo{width:18px;height:18px;object-fit:contain;border-radius:4px;display:block;pointer-events:none;}
 .qrPreviewWrap{background:var(--card2);border-radius:16px;padding:18px 14px 30px;margin-top:4px;display:flex;flex-direction:column;align-items:center;}
 .qrPreviewBubble{background:var(--card);border-radius:16px;padding:10px 14px;font-size:14.5px;width:fit-content;max-width:80%;box-shadow:0 1px 3px rgba(0,0,0,.08);color:var(--fg);text-align:center;}
 #quickReactionEditPane .pEditBody{max-width:420px;width:100%;margin:0 auto;}
-.qrEmojiGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;max-height:280px;overflow-y:auto;padding:4px 2px;scrollbar-width:none;}
+.qrEmojiGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:12px;max-height:340px;overflow-y:auto;padding:4px 2px;scrollbar-width:none;}
 .qrEmojiGrid::-webkit-scrollbar{display:none;}
-.qrEmojiBtn{font-size:21px;background:none;border:none;border-radius:12px;padding:7px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;line-height:1;}
+.qrEmojiBtn{background:none;border:none;border-radius:12px;padding:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;aspect-ratio:1;}
 .qrEmojiBtn:hover{background:var(--card2);}
 .qrEmojiBtn.selected{background:var(--accent,#2C7EFF);box-shadow:0 0 0 2px var(--accent,#2C7EFF) inset;}
+.qrReactionVideo{width:100%;height:100%;object-fit:contain;border-radius:8px;pointer-events:none;}
 .daySep{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12.5px;font-weight:600;}
 .daySep::before,.daySep::after{content:'';flex:1;height:1px;background:var(--line);}
 .daySep span{white-space:nowrap;}
@@ -948,7 +951,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
               <svg viewBox="0 0 24 24" fill="#fff" style="width:16px;height:16px;"><path d="M12 21s-6.7-4.35-9.3-8.1C1.02 10.2 1.9 6.7 4.9 5.4c2-.86 4.1-.2 5.6 1.4L12 8.3l1.5-1.5c1.5-1.6 3.6-2.26 5.6-1.4 3 1.3 3.88 4.8 2.2 7.5C18.7 16.65 12 21 12 21z"/></svg>
             </div>
             <div class="pItemBody"><div class="pItemLabel">Быстрая реакция</div><div class="pItemValue">Двойное нажатие по сообщению</div></div>
-            <span id="quickReactionPreviewEmoji" style="font-size:19px;margin-right:2px;">❤️</span>
+            <video id="quickReactionPreviewEmoji" style="width:22px;height:22px;object-fit:contain;margin-right:2px;" autoplay loop muted playsinline></video>
             <span class="rowchev" data-icon="chevron" style="color:var(--muted);"></span>
           </div>
         </div>
@@ -1109,7 +1112,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div style="position:relative;display:inline-block;max-width:80%;">
         <div class="qrPreviewBubble" style="max-width:none;">Привет! Как дела у тебя? Выбери реакцию на сообщение 👋</div>
         <div class="msgReactions" style="position:absolute;left:8px;bottom:-11px;margin:0;">
-          <span class="reactionPill"><span class="reactionPillAv" id="qrPreviewAv">Я</span><span id="qrPreviewEmoji">❤️</span></span>
+          <span class="reactionPill"><span class="reactionPillAv" id="qrPreviewAv">Я</span><video class="reactionPillVideo" id="qrPreviewEmoji" autoplay loop muted playsinline></video></span>
         </div>
       </div>
     </div>
@@ -1498,12 +1501,14 @@ function toggleFeedTabSetting(checked){
   applyFeedTabVisibility();
 }
 
-/* ---------- реакция двойным тапом по сообщению ---------- */
+/* ---------- реакция двойным тапом по сообщению (видео-реакции) ---------- */
 const QUICK_REACTION_KEY='vchat_quick_reaction';
+const REACTION_BASE_URL='https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/';
+const QUICK_REACTION_VIDEOS=['злится.webm','заигрывает.webm','дьявол.webm','гавно.webm','вырвит.webm','поцелуй.webm','сердце.webm','сердцерозовое.webm','огонь.webm','крутой.webm'];
+function reactionSrc(name){ return REACTION_BASE_URL+encodeURIComponent(name); }
 function getQuickReaction(){
-  try{ return localStorage.getItem(QUICK_REACTION_KEY)||'❤️'; }catch(e){ return '❤️'; }
+  try{ return localStorage.getItem(QUICK_REACTION_KEY)||'сердце.webm'; }catch(e){ return 'сердце.webm'; }
 }
-const QUICK_REACTION_EMOJIS=['❤️','👍','👎','🔥','🥳','😁','🤔','🥰','😱','🎉','😢','🙏','👏','💯','😍','😂','😊','🤯','😴','😭','🤗','😎','🥺','😡','👀','💔','✨','🙌','😅','😇','🤩','😋','🥹','🫡','🤝','💪','🙈','😜','🤤','🎂','🍾','☕','🌹','⚡','🎁','🏆','💤','🤫','😏','🥴'];
 let qrPicked=getQuickReaction();
 function openQuickReactionEdit(){
   qrPicked=getQuickReaction();
@@ -1517,19 +1522,17 @@ function closeQuickReactionEdit(){
 function buildQuickReactionGrid(){
   const grid=document.getElementById('qrEmojiGrid');
   if(!grid)return;
-  grid.innerHTML=QUICK_REACTION_EMOJIS.map(e=>`<button type="button" class="qrEmojiBtn${e===qrPicked?' selected':''}" onclick="pickQuickReaction('${e}',this)">${e}</button>`).join('');
-  emojifyEl(grid);
-  waitForTwemoji(()=>emojifyEl(grid));
+  grid.innerHTML=QUICK_REACTION_VIDEOS.map(v=>`<button type="button" class="qrEmojiBtn${v===qrPicked?' selected':''}" onclick="pickQuickReaction('${v}',this)"><video class="qrReactionVideo" src="${reactionSrc(v)}" autoplay loop muted playsinline></video></button>`).join('');
 }
-function pickQuickReaction(emoji,btnEl){
-  qrPicked=emoji;
+function pickQuickReaction(video,btnEl){
+  qrPicked=video;
   document.querySelectorAll('.qrEmojiBtn').forEach(b=>b.classList.remove('selected'));
   if(btnEl) btnEl.classList.add('selected');
   updateQuickReactionPreview();
 }
 function updateQuickReactionPreview(){
   const emojiEl=document.getElementById('qrPreviewEmoji');
-  if(emojiEl){ emojiEl.textContent=qrPicked; emojifyEl(emojiEl); waitForTwemoji(()=>emojifyEl(emojiEl)); }
+  if(emojiEl){ emojiEl.src=reactionSrc(qrPicked); }
   const avEl=document.getElementById('qrPreviewAv');
   if(avEl){
     if(profileData.avatarUrl && vchatUser && isSubActive(vchatUser.username)){
@@ -1550,7 +1553,7 @@ function saveQuickReactionPicked(){
 }
 function updateQuickReactionSettingsPreview(){
   const el=document.getElementById('quickReactionPreviewEmoji');
-  if(el){ el.textContent=getQuickReaction(); emojifyEl(el); waitForTwemoji(()=>emojifyEl(el)); }
+  if(el){ el.src=reactionSrc(getQuickReaction()); }
 }
 
 /* ---------- эмодзи: рендер только нативными эмодзи устройства ---------- */
@@ -1578,11 +1581,11 @@ async function loadReactionsForChat(name){
   }catch(e){ console.error(e); }
 }
 
-function showReactionBurst(wrapEl,emoji){
+function showReactionBurst(wrapEl,video){
   let rect=wrapEl.getBoundingClientRect();
   let burst=document.createElement('div');
   burst.className='reactionBurst';
-  burst.textContent=emoji;
+  burst.innerHTML=`<video src="${reactionSrc(video)}" autoplay muted playsinline></video>`;
   burst.style.left=(rect.left+rect.width/2)+'px';
   burst.style.top=(rect.top+rect.height/2)+'px';
   document.body.appendChild(burst);
@@ -2583,7 +2586,7 @@ function reactionAvatarHtml(userId){
 function renderReactionPills(m){
   let arr=msgReactions[m.id];
   if(!arr||!arr.length) return '';
-  return `<div class="msgReactions">${arr.map(r=>`<span class="reactionPill">${reactionAvatarHtml(r.user_id)}${escHtml(r.emoji)}</span>`).join('')}</div>`;
+  return `<div class="msgReactions">${arr.map(r=>`<span class="reactionPill">${reactionAvatarHtml(r.user_id)}<video class="reactionPillVideo" src="${reactionSrc(r.emoji)}" autoplay loop muted playsinline></video></span>`).join('')}</div>`;
 }
 
 function renderReplyQuote(m){
