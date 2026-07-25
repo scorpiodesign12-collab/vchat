@@ -1648,13 +1648,13 @@ async function triggerMsgReaction(id,wrapEl){
   let mine=(msgReactions[id]||[]).find(r=>r.user_id===vchatUser.id);
   if(mine && mine.emoji===emoji){
     msgReactions[id]=(msgReactions[id]||[]).filter(r=>r.user_id!==vchatUser.id);
-    renderChat(null,false);
+    if(!updateMsgReactionsDom(id)) renderChat(null,false);
     try{ await sb.from('message_reactions').delete().eq('message_id',id).eq('user_id',vchatUser.id); }catch(e){ console.error(e); }
     return;
   }
   msgReactions[id]=(msgReactions[id]||[]).filter(r=>r.user_id!==vchatUser.id);
   msgReactions[id].push({user_id:vchatUser.id, emoji:emoji});
-  renderChat(null,false);
+  if(!updateMsgReactionsDom(id)) renderChat(null,false);
   try{
     await sb.from('message_reactions').upsert({message_id:id,user_id:vchatUser.id,emoji:emoji},{onConflict:'message_id,user_id'});
   }catch(e){ console.error(e); }
@@ -1698,7 +1698,7 @@ function vchatSubscribeReactions(){
         msgReactions[mid]=arr;
       }
       if(curChat && chats[curChat] && chats[curChat].some(m=>m.id===mid)){
-        renderChat(null,false);
+        if(!updateMsgReactionsDom(mid)) renderChat(null,false);
       }
     }).subscribe();
 }
@@ -2645,6 +2645,25 @@ function renderReactionPills(m){
   if(!arr||!arr.length) return '';
   return `<div class="msgReactions">${arr.map(r=>`<span class="reactionPill">${reactionAvatarHtml(r.user_id)}<video class="reactionPillVideo" src="${reactionSrc(r.emoji)}" autoplay loop muted playsinline></video></span>`).join('')}</div>`;
 }
+function updateMsgReactionsDom(id){
+  let wrap=document.querySelector('#cwMsgs .msgWrap[data-id="'+id+'"]');
+  if(!wrap) return false;
+  let m=findMsgById(id);
+  if(!m) return false;
+  let html=renderReactionPills(m);
+  let existing=wrap.querySelector('.msgReactions');
+  let tmp=document.createElement('div');
+  if(existing){
+    if(html){ tmp.innerHTML=html; wrap.replaceChild(tmp.firstElementChild, existing); }
+    else{ existing.remove(); }
+  }else if(html){
+    tmp.innerHTML=html;
+    let timeEl=wrap.querySelector('.msgTime');
+    if(timeEl) wrap.insertBefore(tmp.firstElementChild, timeEl);
+    else wrap.appendChild(tmp.firstElementChild);
+  }
+  return true;
+}
 
 function renderReplyQuote(m){
   if(!m.replyTo)return '';
@@ -2735,7 +2754,7 @@ function withDaySeparators(list){
   return out;
 }
 // сюда потом вставить прямую ссылку на .webm (например Raw-ссылку с GitHub) — квадрат по центру пустого чата сразу покажет ролик
-const CHAT_EMPTY_WEBM_URL='https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/нельзя.webm';
+const CHAT_EMPTY_WEBM_URL='';
 function chatEmptyStateHtml(){
   const media=CHAT_EMPTY_WEBM_URL?('<video src="'+CHAT_EMPTY_WEBM_URL+'" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>'):'';
   return `<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:260px;">
