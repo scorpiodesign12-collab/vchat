@@ -621,7 +621,69 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 #tabFeed{align-items:center;}
 #tabFeed .header{width:100%;}
 #tabGifts{align-items:center;}
-#tabGifts .header{width:100%;}
+#tabGifts .header{width:100%;position:relative;}
+
+/* ---------- монеты + каталог подарков ---------- */
+.coinsPill{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:5px;background:var(--card);border-radius:20px;padding:6px 12px 6px 8px;font-size:13.5px;font-weight:700;color:var(--fg);}
+.coinsPill .coinIcon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.giftFilterRow{display:flex;justify-content:center;gap:8px;padding:2px 0 14px;width:100%;}
+.giftFilterBtn{padding:8px 15px;border-radius:14px;border:none;background:var(--card);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
+.giftFilterBtn.on{background:var(--btn);color:var(--btn-fg);}
+.giftCatalogGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;padding-bottom:20px;overflow-y:auto;}
+.giftCatalogCard{position:relative;border-radius:22px;overflow:hidden;cursor:pointer;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.giftCatalogCard:active{transform:scale(.96);}
+.giftCatalogCard.sold{opacity:.45;cursor:not-allowed;}
+.giftCatalogCard video{width:68%;height:68%;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18));}
+.giftCatalogPrice{position:absolute;left:8px;bottom:8px;z-index:2;background:rgba(0,0,0,.32);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:12px;display:flex;align-items:center;gap:3px;}
+.giftCatalogLimit{position:absolute;right:8px;top:8px;z-index:2;background:rgba(0,0,0,.32);color:#fff;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:10px;}
+
+/* окно "подарить конкретный подарок" (маленькое окошко внутри вкладки Подарки) */
+#giftItemPane{background:#fff;overflow:hidden;}
+#giftItemPane .pEditBody{max-width:420px;width:100%;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;flex:1;}
+.giftItemPane .peTitle{color:#111;}
+.giftItemPane .peCloseX{background:#f0f0f0;color:#111;}
+.giftItemSquare{position:relative;z-index:2;width:150px;height:150px;border-radius:32px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.12);margin:0 auto;display:flex;align-items:center;justify-content:center;}
+.giftItemSquare video{width:74%;height:74%;object-fit:contain;}
+.giftItemName{text-align:center;font-size:17px;font-weight:700;color:#111;margin-top:14px;}
+.giftItemMeta{text-align:center;font-size:13px;color:#888;margin-top:4px;}
+#giftItemSearchBox,#giftItemResults{position:relative;z-index:2;}
+#giftItemPane .searchBox{background:#f0f0f0;}
+#giftItemPane .searchBox input{color:#111;}
+#giftItemPane .searchBox input::placeholder{color:#999;}
+#giftItemPane .uSearchIcon,#giftItemPane .uClearBtn{color:#888;}
+#giftItemPane .row{border-bottom-color:#eee;}
+#giftItemPane .row:hover{background:#f7f7f7;}
+#giftItemPane .rowtext b{color:#111;}
+#giftItemPane .rowPreview{color:#888;font-size:12.5px;}
+#giftItemPane .uEmpty{color:#999;}
+.giftItemSelectedRow{position:relative;z-index:2;margin-top:14px;display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:14px;padding:10px 12px;}
+.giftItemSubmitBtn:disabled{cursor:not-allowed;}
+
+/* сообщение-подарок в чате (серый текст + квадратик) */
+.msg.gift{display:flex;align-items:center;gap:11px;padding:11px 14px;}
+.giftMsgThumb{width:52px;height:52px;border-radius:16px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.giftMsgThumb video{width:80%;height:80%;object-fit:contain;}
+.giftMsgTextWrap{color:var(--muted);font-size:12.5px;line-height:1.55;}
+.giftMsgTextWrap b{color:var(--fg);font-weight:700;}
+.msg.gift{cursor:pointer;}
+
+/* сетка полученных подарков в профиле (мини-размер) */
+.profileGiftsGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 6px 2px;}
+.profileGiftItem{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:1/1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.profileGiftItem video{width:72%;height:72%;object-fit:contain;}
+.profileGiftsEmptyNote{padding:10px 6px;font-size:13px;color:var(--muted);}
+
+/* модалка полной информации о подарке */
+.giftInfoOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+.giftInfoOverlay.show{display:flex;}
+.giftInfoCard{background:var(--bg);border-radius:24px;padding:26px 22px 24px;width:100%;max-width:320px;text-align:center;position:relative;}
+.giftInfoClose{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:var(--card);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);}
+.giftInfoClose svg{width:14px;height:14px;}
+.giftInfoSquare{width:120px;height:120px;border-radius:28px;margin:6px auto 14px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.giftInfoSquare video{width:74%;height:74%;object-fit:contain;}
+.giftInfoName{font-size:16.5px;font-weight:700;color:var(--fg);}
+.giftInfoRow{margin-top:14px;text-align:left;background:var(--card);border-radius:14px;padding:12px 14px;font-size:13.5px;color:var(--fg);line-height:2;}
+.giftInfoRow b{font-weight:700;}
 </style>
 </head>
 <body>
@@ -801,11 +863,15 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     </div>
 
     <div class="tab" id="tabGifts">
-      <div class="header"><span>Подарки</span></div>
-      <div class="comingSoon" id="giftsEmpty">
-        <div class="comingSoonIcon" data-icon="gift"></div>
-        <div class="comingSoonText">Пока что вам никто не подарил подарок</div>
+      <div class="header"><span>Подарки</span>
+        <div class="coinsPill" id="coinsPill"><span class="coinIcon">🪙</span><span id="coinsVal">0</span></div>
       </div>
+      <div class="giftFilterRow">
+        <button class="giftFilterBtn on" onclick="setGiftFilter('default',this)">Все</button>
+        <button class="giftFilterBtn" onclick="setGiftFilter('asc',this)">Сначала дешёвые</button>
+        <button class="giftFilterBtn" onclick="setGiftFilter('desc',this)">Сначала дорогие</button>
+      </div>
+      <div class="giftCatalogGrid" id="giftCatalogGrid"></div>
     </div>
 
     <div class="tab" id="tabProfile">
@@ -866,11 +932,9 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
         <div class="pSection">
           <div class="pSecLabel">Подарки</div>
-          <div class="pGroup" id="pGiftsGroup">
-            <div class="pItem" style="cursor:default;">
-              <div class="pIconWrap" style="background:#D81B60;" data-icon="gift"></div>
-              <div class="pItemBody"><div class="pItemLabel">Пока что вам никто не подарил подарок</div></div>
-            </div>
+          <div class="pGroup" id="pGiftsGroup" style="display:block;">
+            <div class="profileGiftsEmptyNote" id="pGiftsEmptyNote">Пока что вам никто не подарил подарок</div>
+            <div class="profileGiftsGrid" id="pGiftsGrid" style="display:none;"></div>
           </div>
         </div>
 
@@ -1130,6 +1194,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   </div>
   <div class="profileCardCopied" id="profileCardCopied">Скопировано</div>
   <div class="profileCardBio" id="profileCardBio" style="display:none;"></div>
+  <div class="profileGiftsGrid" id="profileCardGiftsGrid" style="display:none;width:100%;"></div>
 </div>
 
 <!-- ===== создание папки чатов ===== -->
@@ -1327,6 +1392,48 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div class="uResults" id="giftResults" style="position:relative;z-index:2;"></div>
     <div class="giftSelectedRow" id="giftSelectedRow" style="display:none;"></div>
     <button class="tbtn giftSubmitBtn" id="giftSubmitBtn" disabled style="width:100%;margin-top:20px;background:#D81B60;color:#fff;opacity:.4;position:relative;z-index:2;" onclick="submitGiftSubscription()">Подарить</button>
+  </div>
+</div>
+
+<!-- ===== маленькое окошко "подарить" внутри вкладки Подарки ===== -->
+<div class="pEditPane giftItemPane" id="giftItemPane">
+  <div class="pEditTopbar">
+    <button class="peCloseX" style="position:static;" onclick="closeGiftItem()" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="peTitle">Подарить</div>
+    <span style="width:32px;"></span>
+  </div>
+  <div class="pEditBody">
+    <div class="giftItemSquare" id="giftItemSquare">
+      <video id="giftItemVideo" autoplay loop muted playsinline></video>
+    </div>
+    <div class="giftItemName" id="giftItemName"></div>
+    <div class="giftItemMeta" id="giftItemMeta"></div>
+    <div class="pSecLabel" style="margin-top:22px;color:#111;position:relative;z-index:2;">Кому подарить</div>
+    <div class="searchWrap" style="padding:0;position:relative;z-index:2;">
+      <div class="searchBox" id="giftItemSearchBox">
+        <svg class="uSearchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="uSpinner"></div>
+        <input id="giftItemSearchInput" placeholder="Поиск по юзернейму..." oninput="onGiftItemSearchInput(this.value)">
+        <button class="uClearBtn" id="giftItemClearBtn" onclick="clearGiftItemSearch()" title="Очистить">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="uResults" id="giftItemResults" style="position:relative;z-index:2;"></div>
+    <div class="giftItemSelectedRow" id="giftItemSelectedRow" style="display:none;"></div>
+    <button class="tbtn giftItemSubmitBtn" id="giftItemSubmitBtn" disabled style="width:100%;margin-top:20px;background:#D81B60;color:#fff;opacity:.4;position:relative;z-index:2;" onclick="submitItemGift()">Подарить</button>
+  </div>
+</div>
+
+<!-- ===== модалка с полной информацией о подарке ===== -->
+<div class="giftInfoOverlay" id="giftInfoOverlay" onclick="if(event.target===this)closeGiftInfo()">
+  <div class="giftInfoCard">
+    <button class="giftInfoClose" onclick="closeGiftInfo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="giftInfoSquare" id="giftInfoSquare"><video id="giftInfoVideo" autoplay loop muted playsinline></video></div>
+    <div class="giftInfoName" id="giftInfoName"></div>
+    <div class="giftInfoRow" id="giftInfoRow"></div>
   </div>
 </div>
 
@@ -1636,6 +1743,248 @@ function submitGiftSubscription(){
   window.open('https://t.me/nikdzzn?text='+text,'_blank');
   clearGiftSelected();
 }
+
+/* ================= система подарков (монеты + каталог + мишки) ================= */
+const GIFTS_CATALOG=[
+  {key:'mishka1',name:'Мишка 1',price:90,limit:3,color:'#E69459',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B01.webm'},
+  {key:'mishka2',name:'Мишка 2',price:90,limit:3,color:'#B2DDFF',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B02.webm'},
+  {key:'mishka3',name:'Мишка 3',price:90,limit:3,color:'#FDDCE7',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B03.webm'},
+  {key:'mishka4',name:'Мишка 4',price:90,limit:3,color:'#2E9DF4',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B04.webm'}
+];
+let vchatCoins=0;
+let vchatIsInfiniteCoins=false;
+let giftCounts={}; // gift_key -> сколько уже подарено всего
+let giftFilterMode='default';
+let giftPickedTargetKey=null;
+let giftItemPickedUser=null; // {id,username,dispname}
+
+function giftByKey(key){ return GIFTS_CATALOG.find(g=>g.key===key); }
+
+async function initGiftsSystem(profile){
+  vchatIsInfiniteCoins = !!(vchatUser && vchatUser.username && vchatUser.username.toLowerCase()==='nikk');
+  if(vchatIsInfiniteCoins){
+    vchatCoins=999999;
+  }else{
+    vchatCoins = (profile && typeof profile.coins==='number') ? profile.coins : 30;
+    const today=new Date().toISOString().slice(0,10);
+    const lastClaim = profile ? profile.last_coin_claim : null;
+    if(lastClaim!==today){
+      vchatCoins += 30;
+      try{
+        await sb.from('profiles').update({coins:vchatCoins,last_coin_claim:today}).eq('id',vchatUser.id);
+      }catch(e){ console.error('coin claim update error',e); }
+    }
+  }
+  renderCoinsUI();
+  await loadGiftCounts();
+  renderGiftCatalog();
+  await loadUserGifts(vchatUser.id,'pGiftsGrid','pGiftsEmptyNote');
+}
+function renderCoinsUI(){
+  const el=document.getElementById('coinsVal');
+  if(!el)return;
+  el.textContent = vchatIsInfiniteCoins ? '∞' : vchatCoins;
+}
+async function loadGiftCounts(){
+  giftCounts={};
+  try{
+    const {data}=await sb.from('sent_gifts').select('gift_key');
+    (data||[]).forEach(r=>{ giftCounts[r.gift_key]=(giftCounts[r.gift_key]||0)+1; });
+  }catch(e){ console.error('loadGiftCounts error',e); }
+}
+function setGiftFilter(mode,btn){
+  giftFilterMode=mode;
+  document.querySelectorAll('.giftFilterBtn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  renderGiftCatalog();
+}
+function renderGiftCatalog(){
+  const grid=document.getElementById('giftCatalogGrid');
+  if(!grid)return;
+  let list=[...GIFTS_CATALOG];
+  if(giftFilterMode==='asc') list.sort((a,b)=>a.price-b.price);
+  else if(giftFilterMode==='desc') list.sort((a,b)=>b.price-a.price);
+  grid.innerHTML=list.map(g=>{
+    const sent=giftCounts[g.key]||0;
+    const left=g.limit-sent;
+    const soldOut=left<=0;
+    return `<div class="giftCatalogCard${soldOut?' sold':''}" style="background:${g.color};" onclick="${soldOut?'':'openGiftItem(\''+g.key+'\')'}">
+      <video src="${g.video}" autoplay loop muted playsinline></video>
+      <div class="giftCatalogPrice">🪙 ${g.price}</div>
+      <div class="giftCatalogLimit">${soldOut?'Раскуплено':left+'/'+g.limit}</div>
+    </div>`;
+  }).join('');
+}
+function openGiftItem(key){
+  const g=giftByKey(key);
+  if(!g)return;
+  giftPickedTargetKey=key;
+  giftItemPickedUser=null;
+  document.getElementById('giftItemVideo').src=g.video;
+  document.getElementById('giftItemSquare').style.background=g.color;
+  document.getElementById('giftItemName').textContent=g.name;
+  const sent=giftCounts[g.key]||0;
+  document.getElementById('giftItemMeta').textContent='🪙 '+g.price+' монет · осталось '+(g.limit-sent)+'/'+g.limit;
+  document.getElementById('giftItemSearchInput').value='';
+  document.getElementById('giftItemResults').innerHTML='';
+  document.getElementById('giftItemClearBtn').classList.remove('show');
+  const row=document.getElementById('giftItemSelectedRow');
+  row.style.display='none'; row.innerHTML='';
+  updateGiftItemSubmitState();
+  document.getElementById('giftItemPane').classList.add('open');
+}
+function closeGiftItem(){
+  document.getElementById('giftItemPane').classList.remove('open');
+}
+let giftItemSearchTimer=null;
+function onGiftItemSearchInput(q){
+  let box=document.getElementById('giftItemResults');
+  let wrap=document.getElementById('giftItemSearchBox');
+  let clearBtn=document.getElementById('giftItemClearBtn');
+  clearTimeout(giftItemSearchTimer);
+  q=q.trim();
+  clearBtn.classList.toggle('show',!!q);
+  if(!q){wrap.classList.remove('loading');box.innerHTML='';return;}
+  wrap.classList.add('loading');
+  giftItemSearchTimer=setTimeout(async ()=>{
+    if(!vchatUser)return;
+    const {data}=await sb.from('profiles').select('id,username,display_name,avatar_url').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    wrap.classList.remove('loading');
+    if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
+    box.innerHTML=data.map(u=>{
+      let dn=u.display_name||u.username;
+      return `<div class="row" onclick='selectItemGiftUser(${JSON.stringify({id:u.id,username:u.username,dispname:dn}).replace(/'/g,"&#39;")})'>
+        <div class="av" style="background:#555;color:#fff;">${dn[0].toUpperCase()}</div>
+        <div class="rowtext"><b>${escHtml(dn)}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
+      </div>`;
+    }).join('');
+  },350);
+}
+function clearGiftItemSearch(){
+  document.getElementById('giftItemSearchInput').value='';
+  document.getElementById('giftItemResults').innerHTML='';
+  document.getElementById('giftItemClearBtn').classList.remove('show');
+}
+function selectItemGiftUser(u){
+  giftItemPickedUser=u;
+  document.getElementById('giftItemSearchInput').value='';
+  document.getElementById('giftItemResults').innerHTML='';
+  document.getElementById('giftItemClearBtn').classList.remove('show');
+  const row=document.getElementById('giftItemSelectedRow');
+  row.style.display='flex';
+  row.innerHTML=`<div class="av" style="width:34px;height:34px;font-size:14px;background:#555;color:#fff;">${escHtml(u.dispname[0].toUpperCase())}</div>
+    <div class="rowtext" style="flex:1;"><b>${escHtml(u.dispname)}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
+    <button class="uClearBtn show" onclick="clearGiftItemSelected()" title="Убрать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+  updateGiftItemSubmitState();
+}
+function clearGiftItemSelected(){
+  giftItemPickedUser=null;
+  const row=document.getElementById('giftItemSelectedRow');
+  row.style.display='none'; row.innerHTML='';
+  updateGiftItemSubmitState();
+}
+function updateGiftItemSubmitState(){
+  const btn=document.getElementById('giftItemSubmitBtn');
+  const ready=!!giftPickedTargetKey&&!!giftItemPickedUser;
+  btn.disabled=!ready;
+  btn.style.opacity=ready?'1':'.4';
+}
+async function submitItemGift(){
+  if(!giftPickedTargetKey||!giftItemPickedUser||!vchatUser)return;
+  const g=giftByKey(giftPickedTargetKey);
+  if(!g)return;
+  const sent=giftCounts[g.key]||0;
+  if(sent>=g.limit){ showToast('Этот подарок уже раскуплен'); return; }
+  if(!vchatIsInfiniteCoins && vchatCoins<g.price){ showToast('Недостаточно монет'); return; }
+  const btn=document.getElementById('giftItemSubmitBtn');
+  btn.disabled=true;
+  try{
+    // проверяем что этот получатель ещё не получал именно этот подарок
+    const {data:already}=await sb.from('sent_gifts').select('id').eq('gift_key',g.key).eq('recipient_id',giftItemPickedUser.id).limit(1);
+    if(already&&already.length){ showToast('Этот пользователь уже получал этот подарок'); btn.disabled=false; return; }
+
+    const {error:insErr}=await sb.from('sent_gifts').insert({
+      gift_key:g.key, gift_name:g.name, price:g.price,
+      sender_id:vchatUser.id, sender_username:vchatUser.username,
+      recipient_id:giftItemPickedUser.id, recipient_username:giftItemPickedUser.username
+    });
+    if(insErr){ console.error(insErr); showToast('Не удалось отправить подарок'); btn.disabled=false; return; }
+
+    if(!vchatIsInfiniteCoins){
+      vchatCoins-=g.price;
+      await sb.from('profiles').update({coins:vchatCoins}).eq('id',vchatUser.id);
+      renderCoinsUI();
+    }
+    giftCounts[g.key]=sent+1;
+    renderGiftCatalog();
+
+    const content=JSON.stringify({key:g.key,name:g.name,price:g.price,video:g.video,color:g.color,fromUsername:vchatUser.username});
+    const {data:row,error:msgErr}=await sb.from('messages').insert({
+      sender_id:vchatUser.id, receiver_id:giftItemPickedUser.id, content:content, type:'gift'
+    }).select().single();
+    if(!msgErr&&row){
+      let chatName=Object.keys(chatMeta).find(n=>chatMeta[n].uid===giftItemPickedUser.id);
+      if(chatName){
+        chats[chatName].push(dbRowToLocal(row));
+        chatMeta[chatName].last='🎁 Подарок';
+        bumpChatOrder(chatName);
+        if(curChat===chatName)renderChat();
+        renderChatRows();
+      }
+    }
+    showToast('Подарок отправлен!');
+    closeGiftItem();
+  }catch(e){ console.error(e); showToast('Ошибка отправки подарка'); btn.disabled=false; }
+}
+
+/* ---------- отображение полученных подарков (профиль / карточка собеседника) ---------- */
+async function loadUserGifts(userId,gridId,emptyNoteId){
+  const grid=document.getElementById(gridId);
+  const emptyNote=emptyNoteId?document.getElementById(emptyNoteId):null;
+  if(!grid)return;
+  try{
+    const {data}=await sb.from('sent_gifts').select('*').eq('recipient_id',userId).order('created_at',{ascending:false});
+    if(!data||!data.length){
+      grid.style.display='none'; grid.innerHTML='';
+      if(emptyNote)emptyNote.style.display='block';
+      return;
+    }
+    if(emptyNote)emptyNote.style.display='none';
+    grid.style.display='grid';
+    grid.innerHTML=data.map(r=>{
+      const g=giftByKey(r.gift_key);
+      const color=g?g.color:'#eee';
+      const video=g?g.video:'';
+      return `<div class="profileGiftItem" style="background:${color};" onclick='openGiftInfo(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+        <video src="${video}" autoplay loop muted playsinline></video>
+      </div>`;
+    }).join('');
+  }catch(e){ console.error('loadUserGifts error',e); }
+}
+function giftInfoTimeStr(iso){
+  const d=new Date(iso);
+  return d.getDate().toString().padStart(2,'0')+'.'+(d.getMonth()+1).toString().padStart(2,'0')+'.'+d.getFullYear()+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+function openGiftInfo(r){
+  const g=giftByKey(r.gift_key);
+  document.getElementById('giftInfoSquare').style.background=g?g.color:'#eee';
+  document.getElementById('giftInfoVideo').src=g?g.video:'';
+  document.getElementById('giftInfoName').textContent=r.gift_name;
+  document.getElementById('giftInfoRow').innerHTML=`<div><b>Стоимость:</b> ${r.price} монет</div><div><b>От кого:</b> @${escHtml(r.sender_username)}</div><div><b>Время:</b> ${giftInfoTimeStr(r.created_at)}</div>`;
+  document.getElementById('giftInfoOverlay').classList.add('show');
+}
+function openGiftInfoFromMsg(m){
+  const g=giftByKey(m.giftKey);
+  document.getElementById('giftInfoSquare').style.background=m.color||(g?g.color:'#eee');
+  document.getElementById('giftInfoVideo').src=m.video||(g?g.video:'');
+  document.getElementById('giftInfoName').textContent=m.giftName;
+  document.getElementById('giftInfoRow').innerHTML=`<div><b>Стоимость:</b> ${m.price} монет</div><div><b>От кого:</b> @${escHtml(m.fromUsername)}</div><div><b>Время:</b> ${escHtml(m.time)}</div>`;
+  document.getElementById('giftInfoOverlay').classList.add('show');
+}
+function closeGiftInfo(){
+  document.getElementById('giftInfoOverlay').classList.remove('show');
+}
+/* ================= /система подарков ================= */
 
 /* ---------- свёрнутый список акцентных цветов ---------- */
 function toggleAccentPanel(){
@@ -3114,6 +3463,19 @@ function renderChat(highlight, forceBottom){
         ${renderTimeRow(m)}
       </div>`;
     }
+    if(m.type==='gift'){
+      return `<div class="msgWrap ${m.from}${pinnedCls}" data-id="${m.id}">
+        <div class="msgInner">
+          <span class="swipeArrow">${ICONS.chevron}</span>
+          <div class="msg gift ${m.from}" onclick='openGiftInfoFromMsg(${JSON.stringify(m).replace(/'/g,"&#39;")})'>
+            <div class="giftMsgThumb" style="background:${escHtml(m.color)};"><video src="${escHtml(m.video)}" autoplay loop muted playsinline></video></div>
+            <div class="giftMsgTextWrap">${m.from==='out'?'Вы подарили подарок':'Вам подарили подарок'}<br><b>Стоимость:</b> ${m.price} монет<br><b>От кого:</b> @${escHtml(m.fromUsername)}<br><b>Время:</b> ${m.time}</div>
+          </div>
+        </div>
+        ${renderReactionPills(m)}
+        ${renderTimeRow(m)}
+      </div>`;
+    }
     let txt=escHtml(m.text);
     if(highlight&&highlight.length>1){
       let re=new RegExp('('+highlight.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
@@ -3317,6 +3679,12 @@ function openProfileCard(){
   bioBox.textContent='';
   bannerImg.style.display='none';
   bannerImg.src='';
+  document.getElementById('profileCardGiftsGrid').style.display='none';
+  document.getElementById('profileCardGiftsGrid').innerHTML='';
+  if(uid) loadUserGifts(uid,'profileCardGiftsGrid',null).then(()=>{
+    const g=document.getElementById('profileCardGiftsGrid');
+    if(g.innerHTML.trim()) g.style.display='grid';
+  });
 
   let shown=false;
   function reveal(){
@@ -3375,7 +3743,7 @@ function attachSwipeHandlers(){
     const wrap=inner.closest('.msgWrap');
     const id=parseInt(wrap.dataset.id,10);
     const srcMsg=findMsgById(id);
-    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'||srcMsg.type==='image'))return; // нельзя отвечать свайпом на звонки, файлы и фото
+    if(srcMsg&&(srcMsg.type==='call'||srcMsg.type==='file'||srcMsg.type==='image'||srcMsg.type==='gift'))return; // нельзя отвечать свайпом на звонки, файлы, фото и подарки
     let startX=0,curX=0,dragging=false;
     const arrow=inner.querySelector('.swipeArrow');
     const isOut=wrap.classList.contains('out');
@@ -3689,6 +4057,7 @@ function previewForRow(m){
   if(m.type==='file') return '📎 '+(m.file_name||'Файл');
   if(m.type==='image') return '📷 Фото';
   if(m.type==='call') return '📞 Звонок';
+  if(m.type==='gift') return '🎁 Подарок';
   return m.content||'';
 }
 function dbRowToLocal(m){
@@ -3705,6 +4074,11 @@ function dbRowToLocal(m){
     let info={duration:0,status:'ended'};
     try{ info=Object.assign(info,JSON.parse(m.content||'{}')); }catch(e){}
     return {id:m.id,from:from,type:'call',duration:info.duration||0,status:info.status||'ended',time:time,createdAt:m.created_at};
+  }
+  if(m.type==='gift'){
+    let info={};
+    try{ info=JSON.parse(m.content||'{}'); }catch(e){}
+    return {id:m.id,from:from,type:'gift',giftKey:info.key||'',giftName:info.name||'Подарок',price:info.price||0,video:info.video||'',color:info.color||'#eee',fromUsername:info.fromUsername||'',time:time,createdAt:m.created_at};
   }
   return {id:m.id,from:from,type:'text',text:m.content||'',time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
 }
@@ -3730,6 +4104,7 @@ async function vchatInit(){
     const adminBtn = document.getElementById('adminPanelBtn');
     if(adminBtn) adminBtn.style.display='flex';
   }
+  initGiftsSystem(profile);
   await vchatLoadConversations();
   await vchatLoadFolders();
   vchatHeartbeat();
