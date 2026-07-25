@@ -2078,13 +2078,25 @@ function updateGiftInfoSellBtn(){
     btn.style.display='none';
   }
 }
+function giftHeadTextColor(hex){
+  if(!hex||hex[0]!=='#')return {main:'#fff',sub:'rgba(255,255,255,.65)'};
+  let h=hex.replace('#','');
+  if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
+  const lum=(0.299*r+0.587*g+0.114*b)/255;
+  return lum>0.62?{main:'#181818',sub:'rgba(24,24,24,.6)'}:{main:'#fff',sub:'rgba(255,255,255,.65)'};
+}
 function openGiftInfo(r){
   giftInfoCurrentRow=r;
   const g=giftByKey(r.gift_key);
-  document.getElementById('giftInfoHead').style.background=g?g.color:'#333';
+  const bg=g?g.color:'#333';
+  document.getElementById('giftInfoHead').style.background=bg;
   document.getElementById('giftInfoVideo').src=g?g.video:'';
-  document.getElementById('giftInfoName').textContent=r.gift_name;
-  document.getElementById('giftInfoSerial').textContent='№'+r.id;
+  const nameEl=document.getElementById('giftInfoName'), serEl=document.getElementById('giftInfoSerial');
+  const tc=giftHeadTextColor(bg);
+  nameEl.style.color=tc.main; serEl.style.color=tc.sub;
+  nameEl.textContent=g?g.name:r.gift_name;
+  serEl.textContent='№'+r.id;
   document.getElementById('giftInfoRow').innerHTML=`
     <div class="giftInfoRowItem"><span>Стоимость</span><span>${r.price} монет</span></div>
     <div class="giftInfoRowItem"><span>От кого</span><span>@${escHtml(r.sender_username)}</span></div>
@@ -2095,10 +2107,14 @@ function openGiftInfo(r){
 function openGiftInfoFromMsg(m){
   giftInfoCurrentRow=null; // из сообщения в чате продажа недоступна
   const g=giftByKey(m.giftKey);
-  document.getElementById('giftInfoHead').style.background=m.color||(g?g.color:'#333');
+  const bg=m.color||(g?g.color:'#333');
+  document.getElementById('giftInfoHead').style.background=bg;
   document.getElementById('giftInfoVideo').src=m.video||(g?g.video:'');
-  document.getElementById('giftInfoName').textContent=m.giftName;
-  document.getElementById('giftInfoSerial').textContent='№'+m.id;
+  const nameEl=document.getElementById('giftInfoName'), serEl=document.getElementById('giftInfoSerial');
+  const tc=giftHeadTextColor(bg);
+  nameEl.style.color=tc.main; serEl.style.color=tc.sub;
+  nameEl.textContent=g?g.name:m.giftName;
+  serEl.textContent='№'+m.id;
   document.getElementById('giftInfoRow').innerHTML=`
     <div class="giftInfoRowItem"><span>Стоимость</span><span>${m.price} монет</span></div>
     <div class="giftInfoRowItem"><span>От кого</span><span>@${escHtml(m.fromUsername)}</span></div>
@@ -2118,8 +2134,13 @@ async function sellCurrentGift(){
   const btn=document.getElementById('giftInfoSellBtn');
   btn.disabled=true;
   try{
-    const {error:delErr}=await sb.from('sent_gifts').delete().eq('id',r.id);
+    const {data:delData,error:delErr}=await sb.from('sent_gifts').delete().eq('id',r.id).select('id');
     if(delErr){ console.error(delErr); showToast('Не удалось продать подарок'); btn.disabled=false; return; }
+    if(!delData||!delData.length){
+      console.error('sellCurrentGift: 0 rows deleted, вероятно блокирует RLS-политика Supabase на таблице sent_gifts');
+      showToast('Не удалось продать подарок: нет прав на удаление (проверьте RLS-политику sent_gifts)');
+      btn.disabled=false; return;
+    }
 
     if(!vchatIsInfiniteCoins){
       vchatCoins+=payout;
@@ -2144,8 +2165,13 @@ async function deleteCurrentGift(){
   if(delBtn)delBtn.disabled=true;
   if(sellBtn)sellBtn.disabled=true;
   try{
-    const {error:delErr}=await sb.from('sent_gifts').delete().eq('id',r.id);
+    const {data:delData,error:delErr}=await sb.from('sent_gifts').delete().eq('id',r.id).select('id');
     if(delErr){ console.error(delErr); showToast('Не удалось удалить подарок'); if(delBtn)delBtn.disabled=false; if(sellBtn)sellBtn.disabled=false; return; }
+    if(!delData||!delData.length){
+      console.error('deleteCurrentGift: 0 rows deleted, вероятно блокирует RLS-политика Supabase на таблице sent_gifts');
+      showToast('Не удалось удалить: нет прав на удаление (проверьте RLS-политику sent_gifts)');
+      if(delBtn)delBtn.disabled=false; if(sellBtn)sellBtn.disabled=false; return;
+    }
 
     giftCounts[r.gift_key]=Math.max(0,(giftCounts[r.gift_key]||1)-1);
     renderGiftCatalog();
