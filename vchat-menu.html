@@ -533,6 +533,15 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .pEditTopbar .peTitle{font-size:15.5px;font-weight:700;color:var(--fg);}
 .pEditTopbar .peSave{color:var(--accent2,#2C7EFF);font-weight:700;}
 .pEditBody{flex:1;overflow-y:auto;padding:6px 18px 24px;}
+#privacyEditPane .pEditBody,#visibilityEditPane .pEditBody{max-width:420px;width:100%;margin:0 auto;box-sizing:border-box;}
+.pRadioDot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;transition:.15s;}
+.pRadioDot svg{width:12px;height:12px;display:none;}
+.pRadioDot.on{border-color:#2C7EFF;background:#2C7EFF;}
+.pRadioDot.on svg{display:block;}
+.pCheckSq{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;transition:.15s;}
+.pCheckSq svg{width:13px;height:13px;display:none;}
+.pCheckSq.on{border-color:#2C7EFF;background:#2C7EFF;}
+.pCheckSq.on svg{display:block;}
 .pEditAvWrap{display:flex;justify-content:center;margin:8px 0 22px;position:relative;width:96px;margin-left:auto;margin-right:auto;}
 .peGroup{background:var(--card);border-radius:16px;overflow:hidden;}
 .peRow{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);gap:10px;}
@@ -1165,23 +1174,20 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     </button>
   </div>
   <div class="pEditBody">
+    <div style="display:flex;justify-content:center;margin:2px 0 18px;">
+      <div id="privacyHeaderMedia" style="width:104px;height:104px;border-radius:24px;background:var(--card);border:1.5px dashed var(--line);overflow:hidden;flex-shrink:0;"></div>
+    </div>
     <div class="hint" style="margin:0 0 16px;">Эти настройки управляют тем, что видят другие пользователи в вашем профиле.</div>
     <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
-      <div class="pItem" style="cursor:default;">
+      <div class="pItem" style="cursor:pointer;" onclick="openVisibilityEdit('online')">
         <div class="pIconWrap" style="background:#34C759;" data-icon="status"></div>
-        <div class="pItemBody"><div class="pItemLabel">Статус «в сети»</div></div>
-        <label class="toggleSwitch">
-          <input type="checkbox" id="privacyOnlineInput" onchange="togglePrivacyOnlineSetting(this.checked)">
-          <span class="toggleSlider"></span>
-        </label>
+        <div class="pItemBody"><div class="pItemLabel">Статус «в сети»</div><div class="pItemValue" id="privacyOnlineSub">Все</div></div>
+        <span data-icon="chevron" style="width:16px;height:16px;flex-shrink:0;color:var(--muted);"></span>
       </div>
-      <div class="pItem" style="cursor:default;border-bottom:none;">
+      <div class="pItem" style="cursor:pointer;border-bottom:none;" onclick="openVisibilityEdit('lastseen')">
         <div class="pIconWrap" style="background:#7B61FF;" data-icon="clock"></div>
-        <div class="pItemBody"><div class="pItemLabel">Время последнего захода</div></div>
-        <label class="toggleSwitch">
-          <input type="checkbox" id="privacyLastSeenInput" onchange="togglePrivacyLastSeenSetting(this.checked)">
-          <span class="toggleSlider"></span>
-        </label>
+        <div class="pItemBody"><div class="pItemLabel">Время последнего захода</div><div class="pItemValue" id="privacyLastSeenSub">Все</div></div>
+        <span data-icon="chevron" style="width:16px;height:16px;flex-shrink:0;color:var(--muted);"></span>
       </div>
     </div>
 
@@ -1200,6 +1206,42 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     </div>
     <div class="hint" id="privacyDmLockedHint" style="display:none;margin-top:10px;">
       🔒 Закрытие личных сообщений — функция <b>VChat Plus</b>. <a href="https://t.me/vchatsocial" target="_blank" rel="noopener" style="color:var(--accent2);font-weight:600;">Оформить подписку</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== кто видит: статус "в сети" / время захода (общая панель) ===== -->
+<div class="pEditPane" id="visibilityEditPane">
+  <div class="pEditTopbar" style="position:relative;justify-content:center;">
+    <button class="peCloseX" onclick="closeVisibilityEdit()" style="left:14px;right:auto;" aria-label="Назад">
+      <span data-icon="back" style="width:16px;height:16px;display:inline-flex;"></span>
+    </button>
+    <div class="peTitle" id="visibilityEditTitle">Кто видит</div>
+  </div>
+  <div class="pEditBody">
+    <div class="pGroup" style="background:var(--card);border-radius:16px;overflow:hidden;">
+      <div class="pItem" style="cursor:pointer;" onclick="setVisibilityMode('all')">
+        <div class="pItemBody"><div class="pItemLabel">Все</div><div class="pItemValue">Видят все пользователи</div></div>
+        <div class="pRadioDot" id="visModeDot_all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+      <div class="pItem" style="cursor:pointer;" onclick="setVisibilityMode('none')">
+        <div class="pItemBody"><div class="pItemLabel">Никто</div><div class="pItemValue">Скрыто от всех</div></div>
+        <div class="pRadioDot" id="visModeDot_none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+      <div class="pItem" style="cursor:pointer;border-bottom:none;" onclick="setVisibilityMode('selected')">
+        <div class="pItemBody"><div class="pItemLabel">Разрешить кому-то</div><div class="pItemValue">Только те, кого вы выберете</div></div>
+        <div class="pRadioDot" id="visModeDot_selected"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+    </div>
+
+    <div id="visibilityUserPickerWrap" style="display:none;margin-top:14px;">
+      <div class="hint" style="margin:0 0 10px;">Выбранные пользователи видят это всегда, даже если для остальных выключено.</div>
+      <div id="visibilitySelectedList" class="pGroup" style="border-radius:16px;overflow:hidden;margin-bottom:12px;"></div>
+      <div class="searchBox">
+        <span data-icon="search" style="width:16px;height:16px;flex-shrink:0;color:var(--muted);"></span>
+        <input type="text" id="visibilityUserSearch" placeholder="Поиск пользователя" oninput="onVisUserSearchInput(this.value)" style="flex:1;border:none;background:none;outline:none;color:var(--fg);font-size:14.5px;">
+      </div>
+      <div id="visibilityUserList" style="margin-top:6px;"></div>
     </div>
   </div>
 </div>
@@ -1446,21 +1488,130 @@ async function removeRingtone(){
   showToast('Рингтон удалён');
 }
 
-/* ---------- конфиденциальность ---------- */
-const PRIVACY_ONLINE_KEY='vchat_privacy_online';
-const PRIVACY_LASTSEEN_KEY='vchat_privacy_lastseen';
-function isPrivacyOnlineEnabled(){
-  try{ let v=localStorage.getItem(PRIVACY_ONLINE_KEY); return v===null?true:v==='1'; }catch(e){ return true; }
+/* ---------- конфиденциальность: квадрат-плейсхолдер под будущее видео ---------- */
+// сюда потом вставить прямую ссылку на .webm (например Raw-ссылку с GitHub) — квадрат в настройках "Конфиденциальность" сразу покажет ролик
+const PRIVACY_HEADER_WEBM_URL='https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/нельзя.webm';
+function renderPrivacyHeaderMedia(){
+  const box=document.getElementById('privacyHeaderMedia');
+  if(!box)return;
+  box.innerHTML=PRIVACY_HEADER_WEBM_URL?('<video src="'+PRIVACY_HEADER_WEBM_URL+'" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>'):'';
 }
-function isPrivacyLastSeenEnabled(){
-  try{ let v=localStorage.getItem(PRIVACY_LASTSEEN_KEY); return v===null?true:v==='1'; }catch(e){ return true; }
+
+/* ---------- конфиденциальность: кто видит статус "в сети" / время захода ---------- */
+let visEditKind=null; // 'online' | 'lastseen'
+let visSelectedIds=[];
+let visUserSearchTimer=null;
+let visNameCache={};
+function visLabel(kind){ return kind==='online' ? 'Статус «в сети»' : 'Время последнего захода'; }
+function visModeText(mode,count){
+  if(mode==='none') return 'Никто';
+  if(mode==='selected') return 'Выбранные'+(count?' ('+count+')':'');
+  return 'Все';
 }
-function togglePrivacyOnlineSetting(checked){
-  try{ localStorage.setItem(PRIVACY_ONLINE_KEY, checked?'1':'0'); }catch(e){}
+function refreshPrivacySubLabels(){
+  if(!vchatUser)return;
+  const oSub=document.getElementById('privacyOnlineSub');
+  if(oSub) oSub.textContent=visModeText(vchatUser.online_visibility,(vchatUser.online_allowed||[]).length);
+  const lSub=document.getElementById('privacyLastSeenSub');
+  if(lSub) lSub.textContent=visModeText(vchatUser.lastseen_visibility,(vchatUser.lastseen_allowed||[]).length);
 }
-function togglePrivacyLastSeenSetting(checked){
-  try{ localStorage.setItem(PRIVACY_LASTSEEN_KEY, checked?'1':'0'); }catch(e){}
+async function hydrateVisNames(ids){
+  const need=ids.filter(id=>!visNameCache[id]);
+  if(!need.length)return;
+  try{
+    const {data}=await sb.from('profiles').select('id,username,display_name').in('id',need);
+    if(data) data.forEach(u=>{visNameCache[u.id]={name:u.display_name||u.username,username:u.username};});
+  }catch(e){}
 }
+function setVisModeUI(mode){
+  ['all','none','selected'].forEach(m=>{
+    const el=document.getElementById('visModeDot_'+m);
+    if(el) el.classList.toggle('on',m===mode);
+  });
+  const wrap=document.getElementById('visibilityUserPickerWrap');
+  if(wrap) wrap.style.display=(mode==='selected')?'block':'none';
+}
+async function openVisibilityEdit(kind){
+  if(!vchatUser)return;
+  visEditKind=kind;
+  const mode=kind==='online'?vchatUser.online_visibility:vchatUser.lastseen_visibility;
+  visSelectedIds=(kind==='online'?vchatUser.online_allowed:vchatUser.lastseen_allowed)||[];
+  document.getElementById('visibilityEditTitle').textContent=visLabel(kind);
+  document.getElementById('visibilityUserSearch').value='';
+  document.getElementById('visibilityUserList').innerHTML='';
+  setVisModeUI(mode);
+  await hydrateVisNames(visSelectedIds);
+  renderVisSelectedList();
+  document.getElementById('visibilityEditPane').classList.add('open');
+}
+function closeVisibilityEdit(){
+  document.getElementById('visibilityEditPane').classList.remove('open');
+  visEditKind=null;
+}
+async function setVisibilityMode(mode){
+  if(!vchatUser||!visEditKind)return;
+  setVisModeUI(mode);
+  await saveVisibilitySetting(mode, visSelectedIds);
+}
+async function saveVisibilitySetting(mode, allowedIds){
+  const kind=visEditKind;
+  if(!kind)return;
+  const col=kind==='online'?'online_visibility':'lastseen_visibility';
+  const colA=kind==='online'?'online_allowed':'lastseen_allowed';
+  try{
+    const payload={}; payload[col]=mode; payload[colA]=allowedIds||[];
+    const {error}=await sb.from('profiles').update(payload).eq('id',vchatUser.id);
+    if(error){ showToast('Не удалось сохранить настройку'); return; }
+    if(kind==='online'){ vchatUser.online_visibility=mode; vchatUser.online_allowed=allowedIds||[]; }
+    else{ vchatUser.lastseen_visibility=mode; vchatUser.lastseen_allowed=allowedIds||[]; }
+    refreshPrivacySubLabels();
+  }catch(e){ showToast('Ошибка сети'); }
+}
+function renderVisSelectedList(){
+  const wrap=document.getElementById('visibilitySelectedList');
+  if(!wrap)return;
+  if(!visSelectedIds.length){ wrap.innerHTML='<div class="uEmpty">Никто не выбран</div>'; return; }
+  wrap.innerHTML=visSelectedIds.map(id=>{
+    const u=visNameCache[id];
+    const name=u?u.name:'Пользователь';
+    return `<div class="row" style="cursor:default;">
+      <div class="av" style="background:#555;color:#fff;">${escHtml(name[0]?name[0].toUpperCase():'?')}</div>
+      <div class="rowtext"><b>${escHtml(name)}</b>${u?('<div>@'+escHtml(u.username)+'</div>'):''}</div>
+      <button onclick="toggleVisUser('${id}',null,null)" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;font-size:16px;">✕</button>
+    </div>`;
+  }).join('');
+}
+function onVisUserSearchInput(q){
+  const box=document.getElementById('visibilityUserList');
+  clearTimeout(visUserSearchTimer);
+  q=q.trim();
+  if(!q){box.innerHTML='';return;}
+  visUserSearchTimer=setTimeout(async()=>{
+    if(!vchatUser)return;
+    const {data}=await sb.from('profiles').select('id,username,display_name').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    if(!data||!data.length){ box.innerHTML='<div class="uEmpty">Никого не найдено</div>'; return; }
+    box.innerHTML=data.map(u=>{
+      const dn=u.display_name||u.username;
+      visNameCache[u.id]={name:dn,username:u.username};
+      const on=visSelectedIds.includes(u.id);
+      return `<div class="row" onclick="toggleVisUser('${u.id}','${dn.replace(/'/g,"\\'")}','${u.username.replace(/'/g,"\\'")}')">
+        <div class="av" style="background:#555;color:#fff;">${escHtml(dn[0].toUpperCase())}</div>
+        <div class="rowtext"><b>${escHtml(dn)}</b><div>@${escHtml(u.username)}</div></div>
+        <div class="pCheckSq${on?' on':''}" id="visCheck_${u.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>`;
+    }).join('');
+  },300);
+}
+async function toggleVisUser(id,name,username){
+  if(name){ visNameCache[id]={name,username}; }
+  const idx=visSelectedIds.indexOf(id);
+  if(idx>=0) visSelectedIds.splice(idx,1); else visSelectedIds.push(id);
+  const chk=document.getElementById('visCheck_'+id);
+  if(chk) chk.classList.toggle('on',visSelectedIds.includes(id));
+  renderVisSelectedList();
+  await saveVisibilitySetting('selected', visSelectedIds);
+}
+
 /* кэш "закрыты ли ЛС": username(нижний регистр) -> true|false */
 let dmClosedCache={};
 function isDmClosed(username){
@@ -1491,10 +1642,8 @@ async function togglePrivacyDmClosedSetting(checked){
   }
 }
 function initPrivacySettings(){
-  const onlineInput=document.getElementById('privacyOnlineInput');
-  if(onlineInput) onlineInput.checked=isPrivacyOnlineEnabled();
-  const lastSeenInput=document.getElementById('privacyLastSeenInput');
-  if(lastSeenInput) lastSeenInput.checked=isPrivacyLastSeenEnabled();
+  refreshPrivacySubLabels();
+  renderPrivacyHeaderMedia();
 
   const dmInput=document.getElementById('privacyDmClosedInput');
   const dmGroup=document.getElementById('privacyDmGroup');
@@ -3403,7 +3552,9 @@ async function vchatInit(){
   if(!user){ window.location.href='index.html'; return; }
   let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
   if(!profile){ window.location.href='index.html'; return; }
-  vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username, ringtone_url:profile.ringtone_url||null};
+  vchatUser={id:user.id, username:profile.username, display_name:profile.display_name||profile.username, ringtone_url:profile.ringtone_url||null,
+    online_visibility:profile.online_visibility||'all', online_allowed:profile.online_allowed||[],
+    lastseen_visibility:profile.lastseen_visibility||'all', lastseen_allowed:profile.lastseen_allowed||[]};
   loadPinnedChats();
   profileData.name=vchatUser.display_name;
   profileData.nick=vchatUser.username;
