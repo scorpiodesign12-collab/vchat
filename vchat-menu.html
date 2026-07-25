@@ -2746,7 +2746,8 @@ function renderChat(highlight, forceBottom){
   let w=document.getElementById('cwMsgs');
   if(!chats[curChat]){w.innerHTML='';chatUnseenCount=0;updateScrollDownBtn();return;}
   if(!chats[curChat].length){
-    w.innerHTML=chatEmptyStateHtml();
+    const dmIsClosed = curChat!=='Избранное' && isDmClosed(curChat) && isSubActive(curChat);
+    w.innerHTML = dmIsClosed ? chatEmptyStateHtml() : '';
     chatUnseenCount=0;updateScrollDownBtn();return;
   }
   let wasAtBottom = forceBottom || isChatAtBottom(w);
