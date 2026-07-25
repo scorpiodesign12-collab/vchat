@@ -562,6 +562,42 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .subBannerBtn{display:inline-block;margin-top:12px;padding:11px 22px;border-radius:14px;background:#D81B60;color:#fff;font-size:14px;font-weight:700;text-decoration:none;}
 .subBannerBtn:active{opacity:.85;}
 
+/* ---------- экран информации о подписке (розовый фон, падающие звёзды) ---------- */
+.subInfoPane{background:linear-gradient(160deg,#3a0d24 0%,#8a1256 55%,#d81b60 100%);overflow:hidden;}
+.subInfoPane .peTitle{color:#fff;}
+.subInfoPane .peCloseX{background:rgba(255,255,255,.16);color:#fff;}
+.subStarsBg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;}
+.subStar{position:absolute;top:-8px;border-radius:50%;background:#fff;opacity:0;box-shadow:0 0 6px rgba(255,255,255,.8);animation:subStarFall linear infinite;}
+@keyframes subStarFall{
+  0%{transform:translateY(-10px) translateX(0);opacity:0;}
+  8%{opacity:.95;}
+  92%{opacity:.5;}
+  100%{transform:translateY(115vh) translateX(var(--drift,20px));opacity:0;}
+}
+.subInfoSquare{position:relative;z-index:2;width:176px;height:176px;border-radius:38px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25);}
+.subInfoLogo{width:70px;color:#fff;}
+.subInfoLogo svg{width:100%;height:auto;display:block;}
+.subInfoPlusText{font-size:19px;font-weight:800;letter-spacing:.16em;color:#fff;margin-left:.16em;}
+.subInfoDivider{position:relative;z-index:2;width:100%;max-width:260px;height:1px;background:rgba(255,255,255,.28);margin:28px 0 18px;}
+.subInfoFrom{position:relative;z-index:2;font-size:14.5px;font-weight:700;color:#fff;text-align:center;}
+.subInfoUntil{position:relative;z-index:2;font-size:13px;color:rgba(255,255,255,.78);margin-top:6px;text-align:center;max-width:260px;}
+
+/* ---------- экран "подарить подписку" (белый фон, серый дождь) ---------- */
+.giftSubPane{background:#fff;overflow:hidden;}
+.giftSubPane .peTitle{color:#111;}
+.giftSubPane .peCloseX{background:#f0f0f0;color:#111;}
+.giftRainBg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;}
+.giftDrop{position:absolute;top:-40px;width:2px;height:30px;background:linear-gradient(#ccc,rgba(204,204,204,0));animation:giftRainFall linear infinite;}
+@keyframes giftRainFall{0%{transform:translateY(-40px);}100%{transform:translateY(115vh);}}
+.giftSquare{position:relative;z-index:2;width:150px;height:150px;border-radius:32px;background:#ececec;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.12);}
+.giftSquare video{width:100%;height:100%;object-fit:cover;display:block;}
+.giftDurationRow{position:relative;z-index:2;display:flex;gap:8px;margin-top:10px;}
+.giftDurBtn{flex:1;padding:11px 4px;border-radius:13px;border:1.5px solid #e3e3e3;background:#fafafa;color:#333;font-size:13.5px;font-weight:700;cursor:pointer;}
+.giftDurBtn.on{background:#D81B60;border-color:#D81B60;color:#fff;}
+.giftSelectedRow{position:relative;z-index:2;margin-top:14px;display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:14px;padding:10px 12px;}
+.giftSubmitBtn:disabled{cursor:not-allowed;}
+#giftSearchBox,#giftResults{position:relative;z-index:2;}
+
 /* friends coming-soon */
 .comingSoon{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;text-align:center;width:100%;}
 .comingSoonIcon{width:74px;height:74px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;color:var(--muted);}
@@ -1190,6 +1226,71 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   </div>
 </div>
 
+<!-- ===== информация о подписке VChat Plus ===== -->
+<div class="pEditPane subInfoPane" id="subInfoPane">
+  <div class="subStarsBg" id="subStarsBg"></div>
+  <div class="pEditTopbar">
+    <button class="peCloseX" style="position:static;" onclick="closeSubscriptionInfo()" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="peTitle">VChat Plus</div>
+    <button class="peCloseX" style="position:static;" onclick="openGiftSubscription()" aria-label="Подарить подписку" title="Подарить подписку">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="pEditBody" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;">
+    <div class="subInfoSquare">
+      <div class="subInfoLogo" id="subInfoLogo"></div>
+      <div class="subInfoPlusText">ПЛЮС</div>
+    </div>
+    <div class="subInfoDivider"></div>
+    <div class="subInfoFrom" id="subInfoFrom">—</div>
+    <div class="subInfoUntil" id="subInfoUntil"></div>
+    <a class="subBannerBtn" id="subInfoBuyBtn" href="https://t.me/vchatsocial" target="_blank" rel="noopener" style="display:none;margin-top:22px;position:relative;z-index:2;">Оформить подписку</a>
+  </div>
+</div>
+
+<!-- ===== подарить подписку ===== -->
+<div class="pEditPane giftSubPane" id="giftSubPane">
+  <div class="giftRainBg" id="giftRainBg"></div>
+  <div class="pEditTopbar">
+    <button class="peCloseX" style="position:static;" onclick="closeGiftSubscription()" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="peTitle">Подарить подписку</div>
+    <span style="width:32px;"></span>
+  </div>
+  <div class="pEditBody">
+    <div style="display:flex;justify-content:center;margin:4px 0 20px;position:relative;z-index:2;">
+      <div class="giftSquare" id="giftSquare">
+        <video id="giftSquareVideo" autoplay loop muted playsinline>
+          <source src="https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA.webm" type="video/webm">
+        </video>
+      </div>
+    </div>
+    <div class="pSecLabel" style="text-align:center;color:#111;position:relative;z-index:2;">Срок подписки</div>
+    <div class="giftDurationRow" id="giftDurationRow">
+      <button class="giftDurBtn" data-days="3" onclick="pickGiftDuration(3,this)">3 дня</button>
+      <button class="giftDurBtn" data-days="15" onclick="pickGiftDuration(15,this)">15 дней</button>
+      <button class="giftDurBtn" data-days="30" onclick="pickGiftDuration(30,this)">Месяц</button>
+    </div>
+    <div class="pSecLabel" style="margin-top:22px;color:#111;position:relative;z-index:2;">Кому подарить</div>
+    <div class="searchWrap" style="padding:0;position:relative;z-index:2;">
+      <div class="searchBox" id="giftSearchBox">
+        <svg class="uSearchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="uSpinner"></div>
+        <input id="giftSearchInput" placeholder="Поиск по юзернейму..." oninput="onGiftSearchInput(this.value)">
+        <button class="uClearBtn" id="giftClearBtn" onclick="clearGiftSearch()" title="Очистить">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="uResults" id="giftResults" style="position:relative;z-index:2;"></div>
+    <div class="giftSelectedRow" id="giftSelectedRow" style="display:none;"></div>
+    <button class="tbtn giftSubmitBtn" id="giftSubmitBtn" disabled style="width:100%;margin-top:20px;background:#D81B60;color:#fff;opacity:.4;position:relative;z-index:2;" onclick="submitGiftSubscription()">Подарить</button>
+  </div>
+</div>
+
 <!-- ===== встроенный экран звонка ===== -->
 <div id="callScreen">
   <button class="minimizeBtn" id="minimizeBtn" onclick="vcMinimizeCall()" title="Свернуть">
@@ -1354,12 +1455,145 @@ function renderSubscriptionSettingsRow(){
     statusEl.textContent='Не активна';
   }
 }
-function openSubscriptionInfo(){
-  if(vchatUser && isSubActive(vchatUser.username)){
-    showToast('Подписка VChat Plus активна');
-  }else{
-    window.open('https://t.me/vchatsocial','_blank');
+function buildSubStarsBg(){
+  const wrap=document.getElementById('subStarsBg');
+  if(!wrap||wrap.dataset.built)return;
+  wrap.dataset.built='1';
+  let html='';
+  for(let i=0;i<44;i++){
+    const left=(Math.random()*100).toFixed(1);
+    const size=(1+Math.random()*2.6).toFixed(1);
+    const dur=(6+Math.random()*9).toFixed(1);
+    const delay=(-(Math.random()*15)).toFixed(1);
+    const drift=(Math.random()*46-23).toFixed(0)+'px';
+    html+=`<span class="subStar" style="left:${left}%;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:${delay}s;--drift:${drift};"></span>`;
   }
+  wrap.innerHTML=html;
+}
+function openSubscriptionInfo(){
+  buildSubStarsBg();
+  const logoEl=document.getElementById('subInfoLogo');
+  if(logoEl)logoEl.innerHTML=SUB_LOGO_DARK;
+  const fromEl=document.getElementById('subInfoFrom');
+  const untilEl=document.getElementById('subInfoUntil');
+  const buyBtn=document.getElementById('subInfoBuyBtn');
+  const active=vchatUser?isSubActive(vchatUser.username):false;
+  const until=vchatUser?subscriptionCache[vchatUser.username.toLowerCase()]:null;
+  if(active){
+    buyBtn.style.display='none';
+    const giftedBy=vchatUser&&vchatUser.gifted_by?vchatUser.gifted_by:null;
+    fromEl.textContent=giftedBy?('Подарок от @'+giftedBy):'VChat Plus активен';
+    if(until){
+      const d=new Date(until);
+      const foreverThreshold=new Date();foreverThreshold.setFullYear(foreverThreshold.getFullYear()+50);
+      if(d.getTime()>foreverThreshold.getTime()){
+        untilEl.textContent='Срок: навсегда';
+      }else{
+        const dd=String(d.getDate()).padStart(2,'0');
+        const mm=String(d.getMonth()+1).padStart(2,'0');
+        untilEl.textContent='Действует до '+dd+'.'+mm+'.'+d.getFullYear();
+      }
+    }else{
+      untilEl.textContent='';
+    }
+  }else{
+    fromEl.textContent='Подписка не активна';
+    untilEl.textContent='Оформи VChat Plus, чтобы получить доступ ко всем функциям';
+    buyBtn.style.display='inline-block';
+  }
+  document.getElementById('subInfoPane').classList.add('open');
+}
+function closeSubscriptionInfo(){
+  document.getElementById('subInfoPane').classList.remove('open');
+}
+
+/* ---------- подарить подписку ---------- */
+function buildGiftRainBg(){
+  const wrap=document.getElementById('giftRainBg');
+  if(!wrap||wrap.dataset.built)return;
+  wrap.dataset.built='1';
+  let html='';
+  for(let i=0;i<55;i++){
+    const left=(Math.random()*100).toFixed(1);
+    const dur=(1+Math.random()*1.7).toFixed(2);
+    const delay=(-(Math.random()*3)).toFixed(2);
+    html+=`<span class="giftDrop" style="left:${left}%;animation-duration:${dur}s;animation-delay:${delay}s;"></span>`;
+  }
+  wrap.innerHTML=html;
+}
+let giftPickedDays=null;
+let giftPickedUser=null;
+function openGiftSubscription(){
+  buildGiftRainBg();
+  document.getElementById('giftSubPane').classList.add('open');
+}
+function closeGiftSubscription(){
+  document.getElementById('giftSubPane').classList.remove('open');
+}
+function pickGiftDuration(days,btn){
+  giftPickedDays=days;
+  document.querySelectorAll('.giftDurBtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  updateGiftSubmitState();
+}
+let giftSearchTimer=null;
+function onGiftSearchInput(q){
+  let box=document.getElementById('giftResults');
+  let wrap=document.getElementById('giftSearchBox');
+  let clearBtn=document.getElementById('giftClearBtn');
+  clearTimeout(giftSearchTimer);
+  q=q.trim();
+  clearBtn.classList.toggle('show',!!q);
+  if(!q){wrap.classList.remove('loading');box.innerHTML='';return;}
+  wrap.classList.add('loading');
+  giftSearchTimer=setTimeout(async ()=>{
+    if(!vchatUser)return;
+    const {data}=await sb.from('profiles').select('id,username,display_name,avatar_url').ilike('username','%'+q+'%').neq('id',vchatUser.id).limit(20);
+    wrap.classList.remove('loading');
+    if(!data||!data.length){box.innerHTML='<div class="uEmpty">Никого не найдено</div>';return;}
+    box.innerHTML=data.map(u=>{
+      let dn=u.display_name||u.username;
+      return `<div class="row" onclick="selectGiftUser('${u.username}','${dn.replace(/'/g,"\\'")}')">
+        <div class="av" style="background:#555;color:#fff;">${dn[0].toUpperCase()}</div>
+        <div class="rowtext"><b>${escHtml(dn)}</b><div class="rowPreview">@${escHtml(u.username)}</div></div>
+      </div>`;
+    }).join('');
+  },350);
+}
+function clearGiftSearch(){
+  document.getElementById('giftSearchInput').value='';
+  document.getElementById('giftResults').innerHTML='';
+  document.getElementById('giftClearBtn').classList.remove('show');
+}
+function selectGiftUser(username,dispname){
+  giftPickedUser=username;
+  document.getElementById('giftSearchInput').value='';
+  document.getElementById('giftResults').innerHTML='';
+  document.getElementById('giftClearBtn').classList.remove('show');
+  const row=document.getElementById('giftSelectedRow');
+  row.style.display='flex';
+  row.innerHTML=`<div class="av" style="width:34px;height:34px;font-size:14px;background:#555;color:#fff;">${escHtml(dispname[0].toUpperCase())}</div>
+    <div class="rowtext" style="flex:1;"><b>${escHtml(dispname)}</b><div class="rowPreview">@${escHtml(username)}</div></div>
+    <button class="uClearBtn show" onclick="clearGiftSelected()" title="Убрать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+  updateGiftSubmitState();
+}
+function clearGiftSelected(){
+  giftPickedUser=null;
+  const row=document.getElementById('giftSelectedRow');
+  row.style.display='none';row.innerHTML='';
+  updateGiftSubmitState();
+}
+function updateGiftSubmitState(){
+  const btn=document.getElementById('giftSubmitBtn');
+  const ready=!!giftPickedDays&&!!giftPickedUser;
+  btn.disabled=!ready;
+  btn.style.opacity=ready?'1':'.4';
+}
+function submitGiftSubscription(){
+  if(!giftPickedDays||!giftPickedUser)return;
+  const durText=giftPickedDays===30?'месяц':(giftPickedDays===15?'15 дней':'3 дня');
+  const text=encodeURIComponent('Хочу подарить VChat Plus пользователю @'+giftPickedUser+' на '+durText);
+  window.open('https://t.me/nikdzzn?text='+text,'_blank');
 }
 
 /* ---------- свёрнутый список акцентных цветов ---------- */
