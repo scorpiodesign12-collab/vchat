@@ -418,9 +418,9 @@ body{display:flex;}
   .chatDetailPane:not(.chatActive) .replyPreview{display:none !important;}
   .chatDetailPane.chatActive .emptyDetail{display:none !important;}
   .chatDetailPane:not(.chatActive) .emptyDetail{display:flex;}
-  #tabFriends,#tabProfile,#tabSettings,#tabFeed{padding:0 22px;max-width:540px;}
-  #tabFriends,#tabProfile,#tabSettings,#tabFeed{margin-left:auto;margin-right:auto;}
-  #tabFriends .header,#tabProfile .header,#tabSettings .header,#tabFeed .header{justify-content:flex-start;}
+  #tabFriends,#tabProfile,#tabSettings,#tabFeed,#tabGifts{padding:0 22px;max-width:540px;}
+  #tabFriends,#tabProfile,#tabSettings,#tabFeed,#tabGifts{margin-left:auto;margin-right:auto;}
+  #tabFriends .header,#tabProfile .header,#tabSettings .header,#tabFeed .header,#tabGifts .header{justify-content:flex-start;}
   .header{padding:18px 20px 8px;}}
 .attachToast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card2);color:var(--fg);padding:9px 18px;border-radius:12px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99;}
 .attachToast.show{opacity:1;}
@@ -596,6 +596,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .giftDurBtn.on{background:#D81B60;border-color:#D81B60;color:#fff;}
 .giftSelectedRow{position:relative;z-index:2;margin-top:14px;display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:14px;padding:10px 12px;}
 .giftSubmitBtn:disabled{cursor:not-allowed;}
+.giftSubmitBtn{flex:none!important;}
 #giftSearchBox,#giftResults{position:relative;z-index:2;}
 #giftSubPane .searchBox{background:#f0f0f0;}
 #giftSubPane .searchBox input{color:#111;}
@@ -619,6 +620,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 #tabFriends .header{width:100%;}
 #tabFeed{align-items:center;}
 #tabFeed .header{width:100%;}
+#tabGifts{align-items:center;}
+#tabGifts .header{width:100%;}
 </style>
 </head>
 <body>
@@ -629,6 +632,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <button class="iconbtn on" onclick="showTab('Chats')" id="rChats"><span class="icon" data-icon="chats"></span><span class="railDot" id="rChatsDot"></span></button>
     <button class="iconbtn" onclick="showTab('Friends');initNewsTab();" id="rFriends" data-icon="friends"></button>
     <button class="iconbtn" onclick="showTab('Feed');initFeedTab();" id="rFeed" data-icon="feed"></button>
+    <button class="iconbtn" onclick="showTab('Gifts')" id="rGifts" data-icon="gift"></button>
     <div class="spacer"></div>
     <button class="iconbtn" onclick="showTab('Profile')" id="rProfile" data-icon="profile"></button>
     <button class="iconbtn" onclick="showTab('Settings')" id="rSettings" data-icon="settings"></button>
@@ -796,6 +800,14 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       </div>
     </div>
 
+    <div class="tab" id="tabGifts">
+      <div class="header"><span>Подарки</span></div>
+      <div class="comingSoon" id="giftsEmpty">
+        <div class="comingSoonIcon" data-icon="gift"></div>
+        <div class="comingSoonText">Пока что вам никто не подарил подарок</div>
+      </div>
+    </div>
+
     <div class="tab" id="tabProfile">
       <div class="header"><span>Профиль</span></div>
       <div class="pScroll">
@@ -848,6 +860,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <div class="pItem" id="pMediaEditRow" style="cursor:pointer;" onclick="openProfileMediaEdit()">
               <div class="pIconWrap" style="background:#D81B60;" data-icon="camera"></div>
               <div class="pItemBody"><div class="pItemLabel">Оформление профиля</div><div class="pItemValue" style="color:var(--muted);">Баннер и фото — VChat Plus</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pSection">
+          <div class="pSecLabel">Подарки</div>
+          <div class="pGroup" id="pGiftsGroup">
+            <div class="pItem" style="cursor:default;">
+              <div class="pIconWrap" style="background:#D81B60;" data-icon="gift"></div>
+              <div class="pItemBody"><div class="pItemLabel">Пока что вам никто не подарил подарок</div></div>
             </div>
           </div>
         </div>
@@ -990,11 +1012,19 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
               <span class="toggleSlider"></span>
             </label>
           </div>
-          <div class="pItem" style="cursor:default;border-bottom:none;">
+          <div class="pItem" style="cursor:default;">
             <div class="pIconWrap" style="background:#34c759;" data-icon="feed"></div>
             <div class="pItemBody"><div class="pItemLabel">Лента</div></div>
             <label class="toggleSwitch">
               <input type="checkbox" id="feedToggleInput" onchange="toggleFeedTabSetting(this.checked)">
+              <span class="toggleSlider"></span>
+            </label>
+          </div>
+          <div class="pItem" style="cursor:default;border-bottom:none;">
+            <div class="pIconWrap" style="background:#D81B60;" data-icon="gift"></div>
+            <div class="pItemBody"><div class="pItemLabel">Подарки</div></div>
+            <label class="toggleSwitch">
+              <input type="checkbox" id="giftsToggleInput" onchange="toggleGiftsTabSetting(this.checked)">
               <span class="toggleSlider"></span>
             </label>
           </div>
@@ -1068,6 +1098,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <button class="navbtn on" onclick="showTab('Chats')" id="nChats"><span class="icon" data-icon="chats"></span>Чаты<span class="navDot" id="nChatsDot"></span></button>
     <button class="navbtn" onclick="showTab('Friends');initNewsTab();" id="nFriends"><span class="icon" data-icon="friends"></span>Новости</button>
     <button class="navbtn" onclick="showTab('Feed');initFeedTab();" id="nFeed"><span class="icon" data-icon="feed"></span>Лента</button>
+    <button class="navbtn" onclick="showTab('Gifts')" id="nGifts"><span class="icon" data-icon="gift"></span>Подарки</button>
     <button class="navbtn" onclick="showTab('Profile')" id="nProfile"><span class="icon" data-icon="profile"></span>Профиль</button>
     <button class="navbtn" onclick="showTab('Settings')" id="nSettings"><span class="icon" data-icon="settings"></span>Настройки</button>
   </div>
@@ -1412,7 +1443,8 @@ logout:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 verified:`<svg viewBox="0 0 24 24"><path fill="#2C7EFF" d="M12 2l2.39 1.7 2.9-.3 1.13 2.66 2.66 1.13-.3 2.9L22.48 12l-1.7 2.39.3 2.9-2.66 1.13-1.13 2.66-2.9-.3L12 22.48l-2.39-1.7-2.9.3-1.13-2.66-2.66-1.13.3-2.9L1.52 12l1.7-2.39-.3-2.9 2.66-1.13L6.71 3.92l2.9.3z"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 lock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/><line x1="12" y1="14.5" x2="12" y2="17"/></svg>`,
 trash:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
-palette:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg>`
+palette:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg>`,
+gift:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><rect x="4" y="12" width="16" height="9" rx="1.4"/><line x1="12" y1="8" x2="12" y2="21"/><path d="M12 8c-1.5-3.5-5-4-6-2.2-1 1.8.3 3.2 2 3.2"/><path d="M12 8c1.5-3.5 5-4 6-2.2 1 1.8-.3 3.2-2 3.2"/></svg>`
 };
 const LOGO_SVG=`<svg viewBox="0 0 757 594"><path fill="currentColor" d="M144.149 288.366C173.497 341.032 44.8848 145.047 44.8848 145.047L250.319 175.265C283.983 176.991 273.625 176.991 290.888 157.997L414.322 0L435.901 128.099C441.08 157.997 435.901 153.68 465.249 145.047L757 50.0756L296.93 341.032C269.309 357.436 305.562 359.163 315.057 359.163C324.552 359.163 520.491 366.07 478.196 298.727C435.901 231.384 597.314 459.314 597.314 459.314L386.7 423.511C350.447 419.599 360.805 410.102 340.089 436.003L223.561 594L194.213 449.817C187.308 415.282 194.213 418.735 166.592 425.642C138.97 432.549 55.5306 459.026 0 475.718L328.513 257.285C377.205 229.657 374.616 231.384 315.057 233.974C255.498 236.564 114.802 235.701 144.149 288.366Z"/></svg>`;
 
@@ -1790,6 +1822,32 @@ function applyFeedTabVisibility(){
 function toggleFeedTabSetting(checked){
   try{ localStorage.setItem(FEED_TAB_STORAGE_KEY, checked?'1':'0'); }catch(e){}
   applyFeedTabVisibility();
+}
+
+/* ---------- переключатель вкладки "Подарки" в настройках ---------- */
+const GIFTS_TAB_STORAGE_KEY='vchat_gifts_enabled';
+function isGiftsTabEnabled(){
+  try{
+    let v=localStorage.getItem(GIFTS_TAB_STORAGE_KEY);
+    return v===null ? true : v==='1';
+  }catch(e){ return true; }
+}
+function applyGiftsTabVisibility(){
+  const enabled=isGiftsTabEnabled();
+  ['rGifts','nGifts'].forEach(id=>{
+    let el=document.getElementById(id);
+    if(el) el.style.display = enabled ? '' : 'none';
+  });
+  if(!enabled){
+    let tf=document.getElementById('tabGifts');
+    if(tf && tf.classList.contains('on')) showTab('Chats');
+  }
+  let toggleInput=document.getElementById('giftsToggleInput');
+  if(toggleInput) toggleInput.checked=enabled;
+}
+function toggleGiftsTabSetting(checked){
+  try{ localStorage.setItem(GIFTS_TAB_STORAGE_KEY, checked?'1':'0'); }catch(e){}
+  applyGiftsTabVisibility();
 }
 
 /* ---------- реакция двойным тапом по сообщению (видео-реакции) ---------- */
@@ -3588,6 +3646,7 @@ try{ savedTheme = localStorage.getItem('vchat_theme')||'light'; }catch(e){}
 setDark(savedTheme==='dark');
 applyNewsTabVisibility();
 applyFeedTabVisibility();
+applyGiftsTabVisibility();
 updateQuickReactionSettingsPreview();
 initA11yScale();
 
