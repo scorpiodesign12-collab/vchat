@@ -624,8 +624,9 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 #tabGifts .header{width:100%;position:relative;}
 
 /* ---------- монеты + каталог подарков ---------- */
-.coinsPill{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:5px;background:var(--card);border-radius:20px;padding:6px 12px 6px 8px;font-size:13.5px;font-weight:700;color:var(--fg);}
-.coinsPill .coinIcon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.coinsPill{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;background:var(--card);border-radius:20px;padding:6px 13px 6px 8px;font-size:13.5px;font-weight:700;color:var(--fg);}
+.coinsPill .coinIcon{width:19px;height:19px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.coinsPill .coinIcon svg{width:100%;height:100%;}
 .giftFilterRow{display:flex;justify-content:center;gap:8px;padding:2px 0 14px;width:100%;}
 .giftFilterBtn{padding:8px 15px;border-radius:14px;border:none;background:var(--card);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
 .giftFilterBtn.on{background:var(--btn);color:var(--btn-fg);}
@@ -642,8 +643,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 #giftItemPane .pEditBody{max-width:420px;width:100%;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;flex:1;}
 .giftItemPane .peTitle{color:#111;}
 .giftItemPane .peCloseX{background:#f0f0f0;color:#111;}
-.giftItemSquare{position:relative;z-index:2;width:150px;height:150px;border-radius:32px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.12);margin:0 auto;display:flex;align-items:center;justify-content:center;}
-.giftItemSquare video{width:74%;height:74%;object-fit:contain;}
+.giftItemSquare{position:relative;z-index:2;width:150px;height:150px;border-radius:32px;overflow:hidden;background:transparent;margin:0 auto;display:flex;align-items:center;justify-content:center;}
+.giftItemSquare video{width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.18));}
 .giftItemName{text-align:center;font-size:17px;font-weight:700;color:#111;margin-top:14px;}
 .giftItemMeta{text-align:center;font-size:13px;color:#888;margin-top:4px;}
 #giftItemSearchBox,#giftItemResults{position:relative;z-index:2;}
@@ -658,6 +659,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 #giftItemPane .uEmpty{color:#999;}
 .giftItemSelectedRow{position:relative;z-index:2;margin-top:14px;display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:14px;padding:10px 12px;}
 .giftItemSubmitBtn:disabled{cursor:not-allowed;}
+.giftItemSubmitBtn{flex:none!important;}
 
 /* сообщение-подарок в чате (серый текст + квадратик) */
 .msg.gift{display:flex;align-items:center;gap:11px;padding:11px 14px;}
@@ -674,16 +676,22 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .profileGiftsEmptyNote{padding:10px 6px;font-size:13px;color:var(--muted);}
 
 /* модалка полной информации о подарке */
-.giftInfoOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+.giftInfoOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
 .giftInfoOverlay.show{display:flex;}
-.giftInfoCard{background:var(--bg);border-radius:24px;padding:26px 22px 24px;width:100%;max-width:320px;text-align:center;position:relative;}
-.giftInfoClose{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:var(--card);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);}
+.giftInfoCard{background:#17181c;border-radius:20px;width:100%;max-width:320px;text-align:center;position:relative;overflow:hidden;}
+.giftInfoClose{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;z-index:3;}
 .giftInfoClose svg{width:14px;height:14px;}
-.giftInfoSquare{width:120px;height:120px;border-radius:28px;margin:6px auto 14px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.giftInfoSquare video{width:74%;height:74%;object-fit:contain;}
-.giftInfoName{font-size:16.5px;font-weight:700;color:var(--fg);}
-.giftInfoRow{margin-top:14px;text-align:left;background:var(--card);border-radius:14px;padding:12px 14px;font-size:13.5px;color:var(--fg);line-height:2;}
-.giftInfoRow b{font-weight:700;}
+.giftInfoHead{position:relative;padding:34px 20px 18px;overflow:hidden;}
+.giftInfoHeadBg{position:absolute;inset:0;opacity:.28;background-image:radial-gradient(rgba(255,255,255,.5) 1px, transparent 1.5px);background-size:16px 16px;}
+.giftInfoSquare{position:relative;z-index:2;width:120px;height:120px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.giftInfoSquare video{width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));}
+.giftInfoName{position:relative;z-index:2;font-size:17px;font-weight:700;color:#fff;}
+.giftInfoSerial{position:relative;z-index:2;font-size:13px;color:rgba(255,255,255,.65);margin-top:2px;}
+.giftInfoRow{text-align:left;background:#1f2025;padding:2px 0;}
+.giftInfoRowItem{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;font-size:13.5px;border-top:1px solid rgba(255,255,255,.06);}
+.giftInfoRowItem span:first-child{color:rgba(255,255,255,.55);}
+.giftInfoRowItem span:last-child{color:#fff;font-weight:600;text-align:right;}
+.giftInfoOkBtn{display:block;width:calc(100% - 32px);margin:16px auto 20px;padding:13px;border:none;border-radius:13px;background:#2C7EFF;color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -864,7 +872,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
     <div class="tab" id="tabGifts">
       <div class="header"><span>Подарки</span>
-        <div class="coinsPill" id="coinsPill"><span class="coinIcon">🪙</span><span id="coinsVal">0</span></div>
+        <div class="coinsPill" id="coinsPill"><span class="coinIcon"><svg viewBox="0 0 24 24"><defs><linearGradient id="coinGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFE68A"/><stop offset="100%" stop-color="#F4B400"/></linearGradient></defs><circle cx="12" cy="12" r="10" fill="url(#coinGrad)" stroke="#D89000" stroke-width="1"/><ellipse cx="9.5" cy="8.5" rx="3.2" ry="2" fill="#fff" opacity=".35"/><circle cx="12" cy="12" r="6.7" fill="none" stroke="#D89000" stroke-width="1" opacity=".55"/></svg></span><span id="coinsVal">0</span></div>
       </div>
       <div class="giftFilterRow">
         <button class="giftFilterBtn on" onclick="setGiftFilter('default',this)">Все</button>
@@ -1423,7 +1431,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     </div>
     <div class="uResults" id="giftItemResults" style="position:relative;z-index:2;"></div>
     <div class="giftItemSelectedRow" id="giftItemSelectedRow" style="display:none;"></div>
-    <button class="tbtn giftItemSubmitBtn" id="giftItemSubmitBtn" disabled style="width:100%;margin-top:20px;background:#D81B60;color:#fff;opacity:.4;position:relative;z-index:2;" onclick="submitItemGift()">Подарить</button>
+    <button class="tbtn giftItemSubmitBtn" id="giftItemSubmitBtn" disabled style="width:100%;margin-top:20px;background:#fff;color:#111;border:1.5px solid #e3e3e3;opacity:.4;position:relative;z-index:2;" onclick="submitItemGift()">Подарить</button>
   </div>
 </div>
 
@@ -1431,9 +1439,14 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 <div class="giftInfoOverlay" id="giftInfoOverlay" onclick="if(event.target===this)closeGiftInfo()">
   <div class="giftInfoCard">
     <button class="giftInfoClose" onclick="closeGiftInfo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <div class="giftInfoSquare" id="giftInfoSquare"><video id="giftInfoVideo" autoplay loop muted playsinline></video></div>
-    <div class="giftInfoName" id="giftInfoName"></div>
+    <div class="giftInfoHead" id="giftInfoHead">
+      <div class="giftInfoHeadBg"></div>
+      <div class="giftInfoSquare" id="giftInfoSquare"><video id="giftInfoVideo" autoplay loop muted playsinline></video></div>
+      <div class="giftInfoName" id="giftInfoName"></div>
+      <div class="giftInfoSerial" id="giftInfoSerial"></div>
+    </div>
     <div class="giftInfoRow" id="giftInfoRow"></div>
+    <button class="giftInfoOkBtn" onclick="closeGiftInfo()">ОК</button>
   </div>
 </div>
 
@@ -1746,10 +1759,10 @@ function submitGiftSubscription(){
 
 /* ================= система подарков (монеты + каталог + мишки) ================= */
 const GIFTS_CATALOG=[
-  {key:'mishka1',name:'Мишка 1',price:90,limit:3,color:'#E69459',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B01.webm'},
-  {key:'mishka2',name:'Мишка 2',price:90,limit:3,color:'#B2DDFF',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B02.webm'},
-  {key:'mishka3',name:'Мишка 3',price:90,limit:3,color:'#FDDCE7',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B03.webm'},
-  {key:'mishka4',name:'Мишка 4',price:90,limit:3,color:'#2E9DF4',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B04.webm'}
+  {key:'mishka1',name:'Builder',price:90,limit:3,color:'#E69459',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B01.webm'},
+  {key:'mishka2',name:'Love story',price:90,limit:3,color:'#B2DDFF',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B02.webm'},
+  {key:'mishka3',name:'Love you',price:90,limit:3,color:'#FDDCE7',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B03.webm'},
+  {key:'mishka4',name:'Football player',price:90,limit:3,color:'#2E9DF4',video:'https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B04.webm'}
 ];
 let vchatCoins=0;
 let vchatIsInfiniteCoins=false;
@@ -1821,7 +1834,6 @@ function openGiftItem(key){
   giftPickedTargetKey=key;
   giftItemPickedUser=null;
   document.getElementById('giftItemVideo').src=g.video;
-  document.getElementById('giftItemSquare').style.background=g.color;
   document.getElementById('giftItemName').textContent=g.name;
   const sent=giftCounts[g.key]||0;
   document.getElementById('giftItemMeta').textContent='🪙 '+g.price+' монет · осталось '+(g.limit-sent)+'/'+g.limit;
@@ -1891,6 +1903,7 @@ function updateGiftItemSubmitState(){
 }
 async function submitItemGift(){
   if(!giftPickedTargetKey||!giftItemPickedUser||!vchatUser)return;
+  if(giftItemPickedUser.id===vchatUser.id){ showToast('Нельзя подарить подарок самому себе'); return; }
   const g=giftByKey(giftPickedTargetKey);
   if(!g)return;
   const sent=giftCounts[g.key]||0;
@@ -1967,18 +1980,26 @@ function giftInfoTimeStr(iso){
 }
 function openGiftInfo(r){
   const g=giftByKey(r.gift_key);
-  document.getElementById('giftInfoSquare').style.background=g?g.color:'#eee';
+  document.getElementById('giftInfoHead').style.background=g?g.color:'#333';
   document.getElementById('giftInfoVideo').src=g?g.video:'';
   document.getElementById('giftInfoName').textContent=r.gift_name;
-  document.getElementById('giftInfoRow').innerHTML=`<div><b>Стоимость:</b> ${r.price} монет</div><div><b>От кого:</b> @${escHtml(r.sender_username)}</div><div><b>Время:</b> ${giftInfoTimeStr(r.created_at)}</div>`;
+  document.getElementById('giftInfoSerial').textContent='№'+r.id;
+  document.getElementById('giftInfoRow').innerHTML=`
+    <div class="giftInfoRowItem"><span>Стоимость</span><span>${r.price} монет</span></div>
+    <div class="giftInfoRowItem"><span>От кого</span><span>@${escHtml(r.sender_username)}</span></div>
+    <div class="giftInfoRowItem"><span>Время</span><span>${giftInfoTimeStr(r.created_at)}</span></div>`;
   document.getElementById('giftInfoOverlay').classList.add('show');
 }
 function openGiftInfoFromMsg(m){
   const g=giftByKey(m.giftKey);
-  document.getElementById('giftInfoSquare').style.background=m.color||(g?g.color:'#eee');
+  document.getElementById('giftInfoHead').style.background=m.color||(g?g.color:'#333');
   document.getElementById('giftInfoVideo').src=m.video||(g?g.video:'');
   document.getElementById('giftInfoName').textContent=m.giftName;
-  document.getElementById('giftInfoRow').innerHTML=`<div><b>Стоимость:</b> ${m.price} монет</div><div><b>От кого:</b> @${escHtml(m.fromUsername)}</div><div><b>Время:</b> ${escHtml(m.time)}</div>`;
+  document.getElementById('giftInfoSerial').textContent='№'+m.id;
+  document.getElementById('giftInfoRow').innerHTML=`
+    <div class="giftInfoRowItem"><span>Стоимость</span><span>${m.price} монет</span></div>
+    <div class="giftInfoRowItem"><span>От кого</span><span>@${escHtml(m.fromUsername)}</span></div>
+    <div class="giftInfoRowItem"><span>Время</span><span>${escHtml(m.time)}</span></div>`;
   document.getElementById('giftInfoOverlay').classList.add('show');
 }
 function closeGiftInfo(){
