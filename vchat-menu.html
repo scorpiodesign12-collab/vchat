@@ -2214,7 +2214,8 @@ function updateGiftInfoSellBtn(){
     const payout=giftInfoCurrentRow.price-fee;
     document.getElementById('giftInfoSellAmount').textContent=payout;
     btn.style.display='flex';
-    if(delBtn)delBtn.style.display='flex';
+    btn.disabled=false;
+    if(delBtn){ delBtn.style.display='flex'; delBtn.disabled=false; }
   }else{
     if(delBtn)delBtn.style.display='none';
     btn.style.display='none';
