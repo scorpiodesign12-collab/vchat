@@ -631,8 +631,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .giftFilterBtn{padding:8px 15px;border-radius:14px;border:none;background:var(--card);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
 .giftFilterBtn.on{background:var(--btn);color:var(--btn-fg);}
 .giftCatalogGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;padding-bottom:20px;overflow-y:auto;}
-.giftCatalogCard{position:relative;border-radius:22px;overflow:hidden;cursor:pointer;width:100%;transition:.15s;}
-.giftCatalogCard::before{content:'';display:block;padding-top:100%;}
+.giftCatalogCard{position:relative;border-radius:22px;overflow:hidden;cursor:pointer;width:100%;aspect-ratio:1/1;transition:.15s;}
 .giftCatalogCard:active{transform:scale(.96);}
 .giftCatalogCard.sold{opacity:.45;cursor:not-allowed;}
 .giftCatalogCard video{position:absolute;top:50%;left:50%;width:68%;height:68%;transform:translate(-50%,-50%);object-fit:contain;z-index:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18));}
@@ -677,8 +676,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 /* сетка полученных подарков в профиле (мини-размер) */
 .profileGiftsGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 6px 2px;}
-.profileGiftItem{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;}
-.profileGiftItem::before{content:'';display:block;padding-top:100%;}
+.profileGiftItem{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:1/1;}
 .profileGiftItem video{position:absolute;top:50%;left:50%;width:72%;height:72%;transform:translate(-50%,-50%);object-fit:contain;}
 .profileGiftsEmptyNote{padding:10px 6px;font-size:13px;color:var(--muted);}
 
@@ -1554,29 +1552,61 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 </div>
 <script>
-/* ===== менеджер видео-анимаций подарков/реакций: играют только те видео, что реально видны на экране,
-   остальные ставятся на паузу — снимает лишнюю нагрузку на CPU/GPU и убирает лаги ===== */
+/* ===== менеджер видео-анимаций подарков/реакций: одновременно реально проигрывается
+   не больше N видео (самые видимые на экране), остальные ставятся на паузу —
+   это и снимает лаги, т.к. декодировать десяток видео разом не по силам даже мощному телефону ===== */
 (function(){
+  var MAX_PLAYING=4; // сколько видео-анимаций может декодироваться одновременно
   var io=null;
+  var playing=new Set(); // видео, которые сейчас реально play()
+  var visible=new Map(); // видео -> intersectionRatio (для приоритезации)
+
+  function tryPromote(){
+    if(playing.size>=MAX_PLAYING)return;
+    // сортируем видимые-но-не-играющие по тому, насколько они видны, и запускаем лучшие
+    var candidates=[];
+    visible.forEach(function(ratio,v){ if(!playing.has(v))candidates.push([v,ratio]); });
+    candidates.sort(function(a,b){ return b[1]-a[1]; });
+    for(var i=0;i<candidates.length && playing.size<MAX_PLAYING;i++){
+      playOne(candidates[i][0]);
+    }
+  }
+  function playOne(v){
+    if(playing.has(v))return;
+    playing.add(v);
+    if(v.readyState>=2){ v.play().catch(function(){ playing.delete(v); }); }
+    else{
+      var onData=function(){ v.removeEventListener('loadeddata',onData); if(v.isConnected && playing.has(v))v.play().catch(function(){ playing.delete(v); }); };
+      v.addEventListener('loadeddata',onData,{once:true});
+    }
+  }
+  function pauseOne(v){
+    playing.delete(v);
+    if(!v.paused)v.pause();
+    tryPromote();
+  }
   function ensureObserver(){
     if(io)return io;
     io=new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         var v=entry.target;
         if(entry.isIntersecting){
-          if(v.paused && v.readyState>=2){ v.play().catch(function(){}); }
-          else if(v.paused){ v.addEventListener('loadeddata',function once(){ v.removeEventListener('loadeddata',once); if(v.isConnected)v.play().catch(function(){}); },{once:true}); }
+          visible.set(v,entry.intersectionRatio);
         }else{
-          if(!v.paused)v.pause();
+          visible.delete(v);
+          if(playing.has(v))pauseOne(v);
         }
       });
-    },{root:null,rootMargin:'50px',threshold:0.01});
+      tryPromote();
+    },{root:null,rootMargin:'0px',threshold:[0,0.25,0.5,0.75,1]});
     return io;
   }
   function manage(v){
     if(v.__vchatManaged)return;
     v.__vchatManaged=true;
     v.preload='metadata';
+    v.removeAttribute('autoplay'); // играть будем сами, через шедулер
+    if(!v.paused)v.pause();
     ensureObserver().observe(v);
   }
   function scan(root){
@@ -1592,9 +1622,13 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       });
       m.removedNodes.forEach(function(n){
         if(n.nodeType!==1)return;
-        if(n.tagName==='VIDEO' && io)io.unobserve(n);
+        if(n.tagName==='VIDEO'){
+          if(io)io.unobserve(n);
+          visible.delete(n); playing.delete(n);
+        }
       });
     });
+    tryPromote();
   });
   document.addEventListener('DOMContentLoaded',function(){
     scan(document.body);
