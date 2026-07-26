@@ -1585,6 +1585,20 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     if(!v.paused)v.pause();
     tryPromote();
   }
+  function ensureFirstFrame(v){
+    // даже если видео не выбрано в число "играющих", у него всё равно должен быть
+    // отрисован хотя бы первый кадр — иначе видно чёрный квадрат вместо превью подарка
+    if(v.__frameShown)return;
+    v.__frameShown=true;
+    var show=function(){
+      v.removeEventListener('loadeddata',show);
+      v.play().then(function(){
+        if(!playing.has(v))v.pause();
+      }).catch(function(){});
+    };
+    if(v.readyState>=2)show();
+    else v.addEventListener('loadeddata',show);
+  }
   function ensureObserver(){
     if(io)return io;
     io=new IntersectionObserver(function(entries){
@@ -1592,6 +1606,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
         var v=entry.target;
         if(entry.isIntersecting){
           visible.set(v,entry.intersectionRatio);
+          ensureFirstFrame(v);
         }else{
           visible.delete(v);
           if(playing.has(v))pauseOne(v);
@@ -1604,7 +1619,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   function manage(v){
     if(v.__vchatManaged)return;
     v.__vchatManaged=true;
-    v.preload='metadata';
+    v.preload='auto'; // грузим данные сразу, чтобы был кадр для превью, декодируем только когда видно/играет
     v.removeAttribute('autoplay'); // играть будем сами, через шедулер
     if(!v.paused)v.pause();
     ensureObserver().observe(v);
@@ -3643,7 +3658,7 @@ function withDaySeparators(list){
   return out;
 }
 // сюда потом вставить прямую ссылку на .webm (например Raw-ссылку с GitHub) — квадрат по центру пустого чата сразу покажет ролик
-const CHAT_EMPTY_WEBM_URL='';
+const CHAT_EMPTY_WEBM_URL='https://github.com/scorpiodesign12-collab/vchat/raw/refs/heads/main/%D0%BD%D0%B5%D0%BB%D1%8C%D0%B7%D1%8F.webm';
 function chatEmptyStateHtml(){
   const media=CHAT_EMPTY_WEBM_URL?('<video src="'+CHAT_EMPTY_WEBM_URL+'" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>'):'';
   return `<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:260px;">
