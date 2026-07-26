@@ -13,6 +13,22 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VChat">
 <meta name="theme-color" content="#1c1c1e">
+<script>
+/* iOS/Safari (WebKit) не умеют показывать альфа-канал (прозрачность) в WebM-видео —
+   вместо прозрачных участков они закрашивают их чёрным. Ставим класс заранее,
+   чтобы CSS ниже мог применить обходной приём (mix-blend-mode) именно для этих браузеров,
+   а на Android/Chrome, где прозрачность и так работает правильно, ничего не трогать. */
+(function(){
+  try{
+    var ua=navigator.userAgent||'';
+    var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+    var isDesktopSafari = /Safari/.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/.test(ua);
+    if(isIOS || isDesktopSafari){
+      document.documentElement.classList.add('noVideoAlpha');
+    }
+  }catch(e){}
+})();
+</script>
 <style>
 :root{
   --bg:#fff; --fg:#111114; --card:#f1f1f4; --card2:#e8e8ec; --muted:#94949c; --line:#ececef;
@@ -59,7 +75,7 @@ body{display:flex;}
 .tbtn.on{background:var(--btn);color:var(--btn-fg);}
 .spacer{flex:1;}
 /* LAYOUT */
-#mainapp{display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top,20px);box-sizing:border-box;}
+#mainapp{display:flex;flex-direction:column;height:100%;padding-top:max(26px, env(safe-area-inset-top,26px));box-sizing:border-box;}
 .iconbtn{width:36px;height:36px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);transition:.15s;position:relative;}
 .railDot{position:absolute;top:2px;right:5px;width:9px;height:9px;border-radius:50%;background:#2C7EFF;border:2px solid var(--bg);display:none;}
 .railDot.show{display:block;}
@@ -181,7 +197,7 @@ body{display:flex;}
 .pinnedBarText{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
 /* chat detail pane */
 .chatDetailPane{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;position:relative;}
-.chatDetailPane.open{display:flex;position:absolute;inset:0;background:var(--bg);z-index:5;padding:env(safe-area-inset-top,20px) 14px env(safe-area-inset-bottom,0px);box-sizing:border-box;}
+.chatDetailPane.open{display:flex;position:absolute;inset:0;background:var(--bg);z-index:5;padding:max(26px, env(safe-area-inset-top,26px)) 14px env(safe-area-inset-bottom,0px);box-sizing:border-box;}
 .cwHeader{display:flex;align-items:center;gap:10px;padding:14px 0 8px;flex-shrink:0;}
 .cwHeader b{font-size:16px;color:var(--fg);flex:1;}
 /* chatwin: hidden scrollbar */
@@ -355,7 +371,7 @@ body{display:flex;}
 .profileCardBio{margin-top:14px;padding:12px 13px;background:var(--card);border-radius:14px;font-size:13.5px;line-height:1.5;color:var(--fg);white-space:pre-line;width:100%;text-align:left;}
 
 /* ---------- звонок (встроенный экран, не отдельная страница) ---------- */
-#callScreen{display:none;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;z-index:500;overflow:hidden;background:var(--bg);flex-direction:column;align-items:center;justify-content:space-between;padding:calc(60px + env(safe-area-inset-top,0px)) 28px calc(50px + env(safe-area-inset-bottom,0px));box-sizing:border-box;text-align:center;}
+#callScreen{display:none;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;z-index:500;overflow:hidden;background:var(--bg);flex-direction:column;align-items:center;justify-content:space-between;padding:calc(60px + max(0px, env(safe-area-inset-top,0px))) 28px calc(50px + env(safe-area-inset-bottom,0px));box-sizing:border-box;text-align:center;}
 .topInfo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:30px;}
 .callStatus{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:.02em;}
 .callStatus.connected{color:#34c759;}
@@ -552,7 +568,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 
 /* profile edit screen (overlay, telegram-style) */
 .pEditPane{display:none;flex-direction:column;flex:1;min-height:0;}
-.pEditPane.open{display:flex;position:absolute;inset:0;background:var(--bg);z-index:6;padding-top:env(safe-area-inset-top,20px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;}
+.pEditPane.open{display:flex;position:absolute;inset:0;background:var(--bg);z-index:6;padding-top:max(26px, env(safe-area-inset-top,26px));padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;}
 .pEditTopbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;flex-shrink:0;}
 .pEditTopbar .peBtn{background:none;border:none;font-size:15.5px;cursor:pointer;padding:4px 2px;}
 .pEditTopbar .peCancel{color:var(--muted);}
@@ -722,6 +738,24 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .giftInfoHeadBg{position:absolute;inset:0;opacity:.28;background-image:radial-gradient(rgba(255,255,255,.5) 1px, transparent 1.5px);background-size:16px 16px;}
 .giftInfoSquare{position:relative;z-index:2;width:120px;height:120px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .giftInfoSquare video{width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));}
+/* iOS/Safari не умеет в альфа-канал WebM — там, где видео должно быть "прозрачным" на цветной
+   подложке, вместо этого получается чёрный квадрат. screen-блендинг убирает чёрный фон видео,
+   смешивая его с цветом карточки под ним (не идеально с яркими цветами, но без чёрного блока). */
+html.noVideoAlpha .giftCatalogCard video,
+html.noVideoAlpha .giftMsgThumb video,
+html.noVideoAlpha .giftInfoSquare video,
+html.noVideoAlpha .giftItemSquare video,
+html.noVideoAlpha .reactionPillVideo,
+html.noVideoAlpha .qrReactionVideo,
+html.noVideoAlpha .reactionBurst video,
+html.noVideoAlpha #quickReactionPreviewEmoji,
+html.noVideoAlpha #qrPreviewEmoji{
+  mix-blend-mode:screen;
+}
+html.noVideoAlpha .giftCatalogCard,
+html.noVideoAlpha .giftMsgThumb{
+  isolation:isolate;
+}
 .giftInfoName{position:relative;z-index:2;font-size:17px;font-weight:700;color:#fff;}
 .giftInfoSerial{position:relative;z-index:2;font-size:13px;color:rgba(255,255,255,.65);margin-top:2px;}
 .giftInfoRow{text-align:left;background:#1f2025;padding:2px 0;}
@@ -1095,7 +1129,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <!-- демо-ролик подключён напрямую с GitHub (репозиторий vchat), файл не встроен в этот HTML -->
             <div style="display:flex;flex-direction:column;align-items:center;margin:0 0 16px;">
               <div style="width:170px;height:170px;border-radius:24px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3);">
-                <video id="a11yDemoVideo" src="https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%B8%D1%89%D0%B5%D1%82.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                <video id="a11yDemoVideo" src="https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%B8%D1%89%D0%B5%D1%82.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
               </div>
             </div>
             <div class="hint" style="margin:0 0 12px;">Увеличивает весь текст, кнопки и сообщения в переписке — удобно для тех, кому обычный размер мелковат.</div>
@@ -1122,7 +1156,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <!-- демо-ролик подключён напрямую с GitHub (репозиторий vchat), файл не встроен в этот HTML -->
             <div style="display:flex;flex-direction:column;align-items:center;margin:0 0 16px;">
               <div style="width:170px;height:170px;border-radius:24px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;">
-                <video id="accentDemoVideo" src="https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%B6%D0%B2%D0%B0%D1%87%D0%BA%D0%B0.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                <video id="accentDemoVideo" src="https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%B6%D0%B2%D0%B0%D1%87%D0%BA%D0%B0.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
               </div>
             </div>
             <div class="hint" style="margin:0 0 12px;">Цвет твоих отправленных сообщений в чатах — выбери, каким он будет.</div>
@@ -1141,7 +1175,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
             <!-- демо-ролик подключён напрямую с GitHub (репозиторий vchat), файл не встроен в этот HTML -->
             <div style="display:flex;flex-direction:column;align-items:center;margin:0 0 16px;">
               <div style="width:170px;height:170px;border-radius:24px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;">
-                <video id="ringtoneDemoVideo" src="https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%B7%D0%B2%D0%BE%D0%BD%D0%B8%D1%82.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                <video id="ringtoneDemoVideo" src="https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%B7%D0%B2%D0%BE%D0%BD%D0%B8%D1%82.webm" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
               </div>
             </div>
             <div id="ringtoneLockedBox" style="display:none;">
@@ -1379,7 +1413,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
   </div>
   <div class="pEditBody">
     <div style="display:flex;flex-direction:column;align-items:center;margin:6px 0 18px;">
-      <div class="daLogoSquare"><video id="daLogoVideo" autoplay loop muted playsinline><source src="https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BF%D1%80%D0%B5%D1%81%D1%81%D1%84%D1%84.webm" type="video/webm"></video><div id="daLogoFallback" class="daLogoFallback"></div></div>
+      <div class="daLogoSquare"><video id="daLogoVideo" autoplay loop muted playsinline><source src="https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BF%D1%80%D0%B5%D1%81%D1%81%D1%84%D1%84.webm" type="video/webm"></video><div id="daLogoFallback" class="daLogoFallback"></div></div>
       <div style="font-size:13px;color:var(--muted);margin-top:8px;" id="daUsername">—</div>
     </div>
     <div style="background:rgba(255,59,48,.12);border-radius:12px;padding:12px 14px;color:#ff3b30;font-size:13px;line-height:1.4;text-align:center;">Это действие необратимо. Аккаунт, все чаты, звонки и файлы будут удалены навсегда.</div>
@@ -1463,7 +1497,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     <div style="display:flex;justify-content:center;margin:4px 0 20px;position:relative;z-index:2;">
       <div class="giftSquare" id="giftSquare">
         <video id="giftSquareVideo" autoplay loop muted playsinline>
-          <source src="https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA.webm" type="video/webm">
+          <source src="https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA.webm" type="video/webm">
         </video>
       </div>
     </div>
@@ -1995,15 +2029,15 @@ function submitGiftSubscription(){
 
 /* ================= система подарков (монеты + каталог + мишки) ================= */
 const GIFTS_CATALOG=[
-  {key:'mishka1',name:'Builder',price:90,limit:3,color:'#E69459',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B01.webm'},
-  {key:'mishka2',name:'Love story',price:90,limit:3,color:'#B2DDFF',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B02.webm'},
-  {key:'mishka3',name:'Love you',price:90,limit:3,color:'#FDDCE7',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B03.webm'},
-  {key:'mishka4',name:'Football player',price:90,limit:3,color:'#2E9DF4',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B04.webm'},
-  {key:'legendarka1',name:'Homelander',price:5000,limit:2,color:'#BA1D00',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B01.webm'},
-  {key:'legendarka2',name:'Lego Statue',price:8000,limit:4,color:'#9EEE97',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B02.webm'},
-  {key:'legendarka3',name:'Expensive',price:9000,limit:2,color:'#DADCE0',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B03.webm'},
-  {key:'legendarka4',name:'Black Statue',price:11000,limit:3,color:'#5F5F79',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B04.webm'},
-  {key:'legendarka5',name:'Apple CEO',price:7000,limit:3,color:'#FFC59C',video:'https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B05.webm'}
+  {key:'mishka1',name:'Builder',price:90,limit:3,color:'#E69459',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B01.webm'},
+  {key:'mishka2',name:'Love story',price:90,limit:3,color:'#B2DDFF',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B02.webm'},
+  {key:'mishka3',name:'Love you',price:90,limit:3,color:'#FDDCE7',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B03.webm'},
+  {key:'mishka4',name:'Football player',price:90,limit:3,color:'#2E9DF4',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BC%D0%B8%D1%88%D0%BA%D0%B04.webm'},
+  {key:'legendarka1',name:'Homelander',price:5000,limit:2,color:'#BA1D00',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B01.webm'},
+  {key:'legendarka2',name:'Lego Statue',price:8000,limit:4,color:'#9EEE97',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B02.webm'},
+  {key:'legendarka3',name:'Expensive',price:9000,limit:2,color:'#DADCE0',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B03.webm'},
+  {key:'legendarka4',name:'Black Statue',price:11000,limit:3,color:'#5F5F79',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B04.webm'},
+  {key:'legendarka5',name:'Apple CEO',price:7000,limit:3,color:'#FFC59C',video:'https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BA%D0%B05.webm'}
 ];
 let vchatCoins=0;
 let vchatIsInfiniteCoins=false;
@@ -2445,7 +2479,7 @@ async function removeRingtone(){
 
 /* ---------- конфиденциальность: квадрат-плейсхолдер под будущее видео ---------- */
 // сюда потом вставить прямую ссылку на .webm (например Raw-ссылку с GitHub) — квадрат в настройках "Конфиденциальность" сразу покажет ролик
-const PRIVACY_HEADER_WEBM_URL='https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/нельзя.webm';
+const PRIVACY_HEADER_WEBM_URL='https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/нельзя.webm';
 function renderPrivacyHeaderMedia(){
   const box=document.getElementById('privacyHeaderMedia');
   if(!box)return;
@@ -2588,7 +2622,7 @@ function toggleGiftsTabSetting(checked){
 
 /* ---------- реакция двойным тапом по сообщению (видео-реакции) ---------- */
 const QUICK_REACTION_KEY='vchat_quick_reaction';
-const REACTION_BASE_URL='https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/';
+const REACTION_BASE_URL='https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/';
 const QUICK_REACTION_VIDEOS=['злится.webm','заигрывает.webm','дьявол.webm','гавно.webm','вырвит.webm','поцелуй.webm','сердце.webm','сердцерозовое.webm','огонь.webm','крутой.webm'];
 function reactionSrc(name){ return REACTION_BASE_URL+encodeURIComponent(name); }
 function getQuickReaction(){
@@ -3858,7 +3892,7 @@ function withDaySeparators(list){
   return out;
 }
 // сюда потом вставить прямую ссылку на .webm (например Raw-ссылку с GitHub) — квадрат по центру пустого чата сразу покажет ролик
-const CHAT_EMPTY_WEBM_URL='https://cdn.jsdelivr.net/gh/scorpiodesign12-collab/vchat@main/%D0%BD%D0%B5%D0%BB%D1%8C%D0%B7%D1%8F.webm';
+const CHAT_EMPTY_WEBM_URL='https://raw.githubusercontent.com/scorpiodesign12-collab/vchat/main/%D0%BD%D0%B5%D0%BB%D1%8C%D0%B7%D1%8F.webm';
 function chatEmptyStateHtml(){
   const media=CHAT_EMPTY_WEBM_URL?('<video src="'+CHAT_EMPTY_WEBM_URL+'" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>'):'';
   return `<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:260px;">
@@ -5477,25 +5511,47 @@ if(navigator.permissions && navigator.permissions.query){
 
 /* ===== Потяни вниз в любом месте экрана — обновление приложения ===== */
 (function(){
-  var THRESHOLD=78;       // сколько пикселей нужно потянуть, чтобы сработало обновление
+  var THRESHOLD=70;       // сколько пикселей нужно потянуть, чтобы сработало обновление
   var indicator=null;
   function ensureIndicator(){
     if(indicator)return indicator;
     indicator=document.createElement('div');
     indicator.id='pullRefreshIndicator';
-    indicator.style.cssText='position:fixed;left:50%;top:env(safe-area-inset-top,0px);'+
+    indicator.style.cssText='position:fixed;left:50%;top:0;'+
+      'margin-top:max(8px, env(safe-area-inset-top,0px));'+
       'transform:translate(-50%,-120%);width:36px;height:36px;border-radius:50%;'+
       'background:var(--card);border:1px solid var(--line);display:flex;align-items:center;'+
-      'justify-content:center;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.2);'+
-      'transition:transform .15s;pointer-events:none;';
+      'justify-content:center;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,.25);'+
+      'transition:transform .15s;pointer-events:none;opacity:0;';
     indicator.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fg);"><polyline points="6 9 12 15 18 9"/></svg>';
     document.body.appendChild(indicator);
     return indicator;
   }
+  function setIndicatorDist(dist,rotated){
+    var ind=ensureIndicator();
+    ind.style.transition='none';
+    ind.style.transform='translate(-50%,'+(dist-34)+'px) rotate('+(rotated?180:0)+'deg)';
+    ind.style.opacity=String(Math.min(dist/THRESHOLD,1));
+  }
+  function resetIndicator(){
+    var ind=ensureIndicator();
+    ind.style.transition='transform .18s,opacity .18s';
+    ind.style.transform='translate(-50%,-120%)';
+    ind.style.opacity='0';
+  }
+  function showSpinner(){
+    var ind=ensureIndicator();
+    ind.style.transition='transform .15s';
+    ind.style.transform='translate(-50%,16px)';
+    ind.style.opacity='1';
+    ind.innerHTML='<div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--muted);border-top-color:var(--fg);animation:pullRefreshSpin .6s linear infinite;"></div>';
+  }
   function topmostScrollableIsAtTop(el){
     // ищем от точки касания вверх по дереву ближайший реально скроллящийся контейнер
     var node=el;
-    while(node && node!==document.body){
+    var hops=0;
+    while(node && node!==document.body && hops<40){
+      hops++;
       if(node.scrollHeight>node.clientHeight+2){
         var st=getComputedStyle(node).overflowY;
         if(st==='auto'||st==='scroll'){
@@ -5506,40 +5562,38 @@ if(navigator.permissions && navigator.permissions.query){
     }
     return true; // не нашли скроллящийся контейнер — считаем, что мы "наверху"
   }
-  var startY=0,pulling=false,active=false,lastTarget=null;
+  var startY=0,startX=0,curDist=0,pulling=false,active=false;
   document.addEventListener('touchstart',function(e){
-    if(e.touches.length!==1)return;
-    lastTarget=e.target;
+    if(!e.touches||e.touches.length!==1)return;
     startY=e.touches[0].clientY;
+    startX=e.touches[0].clientX;
     active=topmostScrollableIsAtTop(e.target);
     pulling=false;
-  },{passive:true});
+    curDist=0;
+  },{passive:true,capture:true});
   document.addEventListener('touchmove',function(e){
-    if(!active||e.touches.length!==1)return;
+    if(!active||!e.touches||e.touches.length!==1)return;
     var dy=e.touches[0].clientY-startY;
-    if(dy>0){
+    var dx=Math.abs(e.touches[0].clientX-startX);
+    if(dy>8 && dy>dx){
       pulling=true;
-      var ind=ensureIndicator();
-      var dist=Math.min(dy*0.5,THRESHOLD+20);
-      ind.style.transform='translate(-50%,'+(dist-30)+'px) rotate('+(dist>=THRESHOLD?180:0)+'deg)';
-      ind.style.opacity=Math.min(dist/THRESHOLD,1);
+      curDist=Math.min(dy*0.5,THRESHOLD+24);
+      setIndicatorDist(curDist,curDist>=THRESHOLD);
     }
-  },{passive:true});
-  document.addEventListener('touchend',function(){
+  },{passive:true,capture:true});
+  function finishPull(){
     if(pulling){
-      var ind=ensureIndicator();
-      var dy=(ind.style.transform.match(/,\s*(-?\d+\.?\d*)px/)||[])[1];
-      var pulledEnough = dy && (parseFloat(dy)+30) >= THRESHOLD;
-      if(pulledEnough){
-        ind.style.transform='translate(-50%,10px)';
-        ind.innerHTML='<div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--muted);border-top-color:var(--fg);animation:pullRefreshSpin .6s linear infinite;"></div>';
+      if(curDist>=THRESHOLD){
+        showSpinner();
         setTimeout(function(){ location.reload(); },250);
       }else{
-        ind.style.transform='translate(-50%,-120%)';
+        resetIndicator();
       }
     }
-    pulling=false; active=false;
-  },{passive:true});
+    pulling=false; active=false; curDist=0;
+  }
+  document.addEventListener('touchend',finishPull,{passive:true,capture:true});
+  document.addEventListener('touchcancel',finishPull,{passive:true,capture:true});
   var st=document.createElement('style');
   st.textContent='@keyframes pullRefreshSpin{to{transform:rotate(360deg);}}';
   document.head.appendChild(st);
