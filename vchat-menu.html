@@ -299,6 +299,8 @@ body{display:flex;}
 .reactionPillAv{width:16px;height:16px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;color:#fff;background:#8a8a8a;}
 .reactionPillAv img{width:100%;height:100%;object-fit:cover;}
 .reactionPillVideo{width:18px;height:18px;object-fit:contain;border-radius:4px;display:block;pointer-events:none;}
+.reactionIconBox{display:inline-flex;width:18px;height:18px;border-radius:4px;overflow:hidden;flex-shrink:0;}
+.reactionIconBox .reactionPillVideo{border-radius:0;}
 .qrPreviewWrap{background:var(--card2);border-radius:16px;padding:18px 14px 30px;margin-top:4px;display:flex;flex-direction:column;align-items:center;}
 .qrPreviewBubble{background:var(--card);border-radius:16px;padding:10px 14px;font-size:14.5px;width:fit-content;max-width:80%;box-shadow:0 1px 3px rgba(0,0,0,.08);color:var(--fg);text-align:center;}
 #quickReactionEditPane .pEditBody{max-width:420px;width:100%;margin:0 auto;}
@@ -753,8 +755,22 @@ html.noVideoAlpha #qrPreviewEmoji{
   mix-blend-mode:screen;
 }
 html.noVideoAlpha .giftCatalogCard,
-html.noVideoAlpha .giftMsgThumb{
+html.noVideoAlpha .giftMsgThumb,
+html.noVideoAlpha .giftInfoHead,
+html.noVideoAlpha .giftItemSquare{
   isolation:isolate;
+}
+/* У giftInfoHead и giftItemSquare фон уже красится в цвет подарка через JS (см. openGiftInfo/
+   openGiftInfoFromMsg/openGiftItem) — этого достаточно, чтобы screen-блендинг гасил "чёрную"
+   прозрачность видео корректно. А вот у реакций (у них нет собственного "цвета подарка") без
+   принудительного чёрного фона блендинг растекался на весь фон под ними (часто белый), из-за
+   чего иконки реакций на iOS становились почти невидимыми/засвеченными — чиним отдельным
+   непрозрачным чёрным "боксом" вокруг видео, изолированным от остальной страницы. */
+html.noVideoAlpha .reactionIconBox,
+html.noVideoAlpha .qrEmojiBtn,
+html.noVideoAlpha .reactionBurst{
+  isolation:isolate;
+  background:#000;
 }
 .giftInfoName{position:relative;z-index:2;font-size:17px;font-weight:700;color:#fff;}
 .giftInfoSerial{position:relative;z-index:2;font-size:13px;color:rgba(255,255,255,.65);margin-top:2px;}
@@ -1393,7 +1409,7 @@ html.noVideoAlpha .giftMsgThumb{
       <div style="position:relative;display:inline-block;max-width:80%;">
         <div class="qrPreviewBubble" style="max-width:none;">Привет! Как дела у тебя? Выбери реакцию на сообщение 👋</div>
         <div class="msgReactions" style="position:absolute;left:8px;bottom:-11px;margin:0;">
-          <span class="reactionPill"><span class="reactionPillAv" id="qrPreviewAv">Я</span><video class="reactionPillVideo" id="qrPreviewEmoji" autoplay loop muted playsinline></video></span>
+          <span class="reactionPill"><span class="reactionPillAv" id="qrPreviewAv">Я</span><span class="reactionIconBox"><video class="reactionPillVideo" id="qrPreviewEmoji" autoplay loop muted playsinline></video></span></span>
         </div>
       </div>
     </div>
@@ -2104,6 +2120,7 @@ function renderGiftCatalog(){
       <div class="giftCatalogLimit">${soldOut?'Раскуплено':left+'/'+g.limit}</div>
     </div>`;
   }).join('');
+  forcePlayVideos(grid);
 }
 function openGiftItem(key){
   const g=giftByKey(key);
@@ -2112,7 +2129,11 @@ function openGiftItem(key){
   giftItemPickedUser=null;
   giftItemWishText='';
   document.getElementById('giftItemWishInput').value='';
-  document.getElementById('giftItemVideo').src=g.video;
+  const sqEl=document.getElementById('giftItemSquare');
+  if(sqEl) sqEl.style.background = document.documentElement.classList.contains('noVideoAlpha') ? g.color : 'transparent';
+  const vidEl=document.getElementById('giftItemVideo');
+  vidEl.src=g.video;
+  forcePlayVideos(vidEl);
   document.getElementById('giftItemName').textContent=g.name;
   const sent=giftCounts[g.key]||0;
   document.getElementById('giftItemMeta').innerHTML='<svg viewBox="0 0 399 380" style="width:13px;height:13px;vertical-align:-2px;"><use href="#coinIconSvg"/></svg> '+g.price+' монет · осталось '+(g.limit-sent)+'/'+g.limit;
@@ -2243,6 +2264,27 @@ async function submitItemGift(){
   }catch(e){ console.error(e); showToast('Ошибка отправки подарка'); btn.disabled=false; }
 }
 
+/* ---------- принудительный запуск воспроизведения видео (некоторые десктоп-браузеры
+   игнорируют autoplay у <video>, созданных через innerHTML, если элемент не был
+   "активирован" сразу после вставки — из-за этого подарки оставались просто цветными
+   квадратами без анимации на ПК, хотя на мобильных всё проигрывалось нормально) ---------- */
+function forcePlayVideos(root){
+  if(!root)return;
+  let vids = root.tagName==='VIDEO' ? [root] : (root.querySelectorAll ? Array.from(root.querySelectorAll('video[autoplay]')) : []);
+  vids.forEach(v=>{
+    try{
+      v.muted=true;
+      const tryPlay=()=>{ const p=v.play(); if(p&&p.catch) p.catch(()=>{}); };
+      if(v.readyState>=2){ tryPlay(); }
+      else{
+        v.addEventListener('loadeddata', tryPlay, {once:true});
+        v.load();
+      }
+      v.addEventListener('error', ()=>{ console.warn('Gift video failed to load:', v.currentSrc||v.src); }, {once:true});
+    }catch(e){}
+  });
+}
+
 /* ---------- отображение полученных подарков (профиль / карточка собеседника) ---------- */
 async function loadUserGifts(userId,gridId,emptyNoteId){
   const grid=document.getElementById(gridId);
@@ -2265,6 +2307,7 @@ async function loadUserGifts(userId,gridId,emptyNoteId){
         <video src="${video}" autoplay loop muted playsinline></video>
       </div>`;
     }).join('');
+    forcePlayVideos(grid);
   }catch(e){ console.error('loadUserGifts error',e); }
 }
 function giftInfoTimeStr(iso){
@@ -2300,7 +2343,9 @@ function openGiftInfo(r){
   const g=giftByKey(r.gift_key);
   const bg=g?g.color:'#333';
   document.getElementById('giftInfoHead').style.background=bg;
-  document.getElementById('giftInfoVideo').src=g?g.video:'';
+  const giftInfoVidEl=document.getElementById('giftInfoVideo');
+  giftInfoVidEl.src=g?g.video:'';
+  forcePlayVideos(giftInfoVidEl);
   const nameEl=document.getElementById('giftInfoName'), serEl=document.getElementById('giftInfoSerial');
   const tc=giftHeadTextColor(bg);
   nameEl.style.color=tc.main; serEl.style.color=tc.sub;
@@ -2325,7 +2370,9 @@ function openGiftInfoFromMsg(m){
   const g=giftByKey(m.giftKey);
   const bg=m.color||(g?g.color:'#333');
   document.getElementById('giftInfoHead').style.background=bg;
-  document.getElementById('giftInfoVideo').src=m.video||(g?g.video:'');
+  const giftInfoVidEl2=document.getElementById('giftInfoVideo');
+  giftInfoVidEl2.src=m.video||(g?g.video:'');
+  forcePlayVideos(giftInfoVidEl2);
   const nameEl=document.getElementById('giftInfoName'), serEl=document.getElementById('giftInfoSerial');
   const tc=giftHeadTextColor(bg);
   nameEl.style.color=tc.main; serEl.style.color=tc.sub;
@@ -2642,6 +2689,7 @@ function buildQuickReactionGrid(){
   const grid=document.getElementById('qrEmojiGrid');
   if(!grid)return;
   grid.innerHTML=QUICK_REACTION_VIDEOS.map(v=>`<button type="button" class="qrEmojiBtn${v===qrPicked?' selected':''}" onclick="pickQuickReaction('${v}',this)"><video class="qrReactionVideo" src="${reactionSrc(v)}" autoplay loop muted playsinline></video></button>`).join('');
+  forcePlayVideos(grid);
 }
 function pickQuickReaction(video,btnEl){
   qrPicked=video;
@@ -2651,7 +2699,7 @@ function pickQuickReaction(video,btnEl){
 }
 function updateQuickReactionPreview(){
   const emojiEl=document.getElementById('qrPreviewEmoji');
-  if(emojiEl){ emojiEl.src=reactionSrc(qrPicked); }
+  if(emojiEl){ emojiEl.src=reactionSrc(qrPicked); forcePlayVideos(emojiEl.parentElement); }
   const avEl=document.getElementById('qrPreviewAv');
   if(avEl){
     if(profileData.avatarUrl && vchatUser && isSubActive(vchatUser.username)){
@@ -2708,6 +2756,7 @@ function showReactionBurst(wrapEl,video){
   burst.style.left=(rect.left+rect.width/2)+'px';
   burst.style.top=(rect.top+rect.height/2)+'px';
   document.body.appendChild(burst);
+  forcePlayVideos(burst);
   setTimeout(()=>{ if(burst.parentNode) burst.parentNode.removeChild(burst); },750);
 }
 
@@ -3781,7 +3830,7 @@ function reactionAvatarHtml(userId){
 function renderReactionPills(m){
   let arr=msgReactions[m.id];
   if(!arr||!arr.length) return '';
-  return `<div class="msgReactions">${arr.map(r=>`<span class="reactionPill">${reactionAvatarHtml(r.user_id)}<video class="reactionPillVideo" src="${reactionSrc(r.emoji)}" autoplay loop muted playsinline></video></span>`).join('')}</div>`;
+  return `<div class="msgReactions">${arr.map(r=>`<span class="reactionPill">${reactionAvatarHtml(r.user_id)}<span class="reactionIconBox"><video class="reactionPillVideo" src="${reactionSrc(r.emoji)}" autoplay loop muted playsinline></video></span></span>`).join('')}</div>`;
 }
 function updateMsgReactionsDom(id){
   let wrap=document.querySelector('#cwMsgs .msgWrap[data-id="'+id+'"]');
@@ -3792,13 +3841,14 @@ function updateMsgReactionsDom(id){
   let existing=wrap.querySelector('.msgReactions');
   let tmp=document.createElement('div');
   if(existing){
-    if(html){ tmp.innerHTML=html; wrap.replaceChild(tmp.firstElementChild, existing); }
+    if(html){ tmp.innerHTML=html; wrap.replaceChild(tmp.firstElementChild, existing); forcePlayVideos(wrap); }
     else{ existing.remove(); }
   }else if(html){
     tmp.innerHTML=html;
     let timeEl=wrap.querySelector('.msgTime');
     if(timeEl) wrap.insertBefore(tmp.firstElementChild, timeEl);
     else wrap.appendChild(tmp.firstElementChild);
+    forcePlayVideos(wrap);
   }
   return true;
 }
@@ -3979,6 +4029,7 @@ function renderChat(highlight, forceBottom){
     </div>`;
   }).join('') + (typingMap[curChat]?`<div class="typingBubble show"><span></span><span></span><span></span></div>`:'');
   emojifyEl(w);
+  forcePlayVideos(w);
   if(wasAtBottom){
     w.scrollTop=w.scrollHeight;
     chatUnseenCount=0;
