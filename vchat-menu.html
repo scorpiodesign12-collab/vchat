@@ -690,6 +690,11 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 #giftItemPane .rowPreview{color:#888;font-size:12.5px;}
 #giftItemPane .uEmpty{color:#999;}
 .giftItemSelectedRow{position:relative;z-index:2;margin-top:14px;display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:14px;padding:10px 12px;}
+.giftItemWishInput{width:100%;box-sizing:border-box;resize:none;min-height:64px;position:relative;z-index:2;margin-top:8px;padding:11px 13px;border-radius:14px;border:1.5px solid #e3e3e3;background:#f7f7f7;color:#111;font-size:13.5px;font-family:inherit;line-height:1.5;}
+.giftItemWishInput::placeholder{color:#999;}
+.giftItemWishInput:focus{outline:none;border-color:#c7c7c7;}
+.giftInfoWishBox{position:relative;z-index:2;text-align:left;background:#1f2025;margin:2px 0 0;padding:12px 16px 14px;font-size:13.5px;line-height:1.5;color:#fff;border-top:1px solid rgba(255,255,255,.06);}
+.giftInfoWishBox b{display:block;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
 .giftItemSubmitBtn:disabled{cursor:not-allowed;}
 .giftItemSubmitBtn{flex:none!important;}
 
@@ -1517,6 +1522,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     </div>
     <div class="uResults" id="giftItemResults" style="position:relative;z-index:2;"></div>
     <div class="giftItemSelectedRow" id="giftItemSelectedRow" style="display:none;"></div>
+    <div class="pSecLabel" style="margin-top:16px;color:#111;position:relative;z-index:2;">Пожелание (необязательно)</div>
+    <textarea id="giftItemWishInput" class="giftItemWishInput" maxlength="200" placeholder="Напишите пожелание получателю..." oninput="onGiftWishInput(this)"></textarea>
     <button class="tbtn giftItemSubmitBtn" id="giftItemSubmitBtn" disabled style="width:100%;margin-top:20px;background:#fff;color:#111;border:1.5px solid #e3e3e3;opacity:.4;position:relative;z-index:2;" onclick="submitItemGift()">Подарить</button>
   </div>
 </div>
@@ -1533,6 +1540,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
       <div class="giftInfoSerial" id="giftInfoSerial"></div>
     </div>
     <div class="giftInfoRow" id="giftInfoRow"></div>
+    <div class="giftInfoWishBox" id="giftInfoWishBox" style="display:none;"></div>
     <button class="giftInfoSellBtn" id="giftInfoSellBtn" style="display:none;" onclick="sellCurrentGift()">Продать за <span id="giftInfoSellAmount"></span> <span class="coinIcon" style="width:15px;height:15px;display:inline-flex;vertical-align:-3px;"><svg viewBox="0 0 399 380"><use href="#coinIconSvg"/></svg></span></button>
     <button class="giftInfoDeleteBtn" id="giftInfoDeleteBtn" style="display:none;" onclick="deleteCurrentGift()">Удалить подарок</button>
     <button class="giftInfoOkBtn" onclick="closeGiftInfo()">ОК</button>
@@ -1971,6 +1979,7 @@ let giftCounts={}; // gift_key -> сколько уже подарено все�
 let giftFilterMode='default';
 let giftPickedTargetKey=null;
 let giftItemPickedUser=null; // {id,username,dispname}
+let giftItemWishText=''; // пожелание/подпись к подарку
 let giftInfoCurrentRow=null; // строка sent_gifts, показанная в модалке "инфо о подарке" (для продажи)
 
 function giftByKey(key){ return GIFTS_CATALOG.find(g=>g.key===key); }
@@ -2035,6 +2044,8 @@ function openGiftItem(key){
   if(!g)return;
   giftPickedTargetKey=key;
   giftItemPickedUser=null;
+  giftItemWishText='';
+  document.getElementById('giftItemWishInput').value='';
   document.getElementById('giftItemVideo').src=g.video;
   document.getElementById('giftItemName').textContent=g.name;
   const sent=giftCounts[g.key]||0;
@@ -2046,6 +2057,9 @@ function openGiftItem(key){
   row.style.display='none'; row.innerHTML='';
   updateGiftItemSubmitState();
   document.getElementById('giftItemOverlay').classList.add('show');
+}
+function onGiftWishInput(el){
+  giftItemWishText=el.value;
 }
 function closeGiftItem(){
   document.getElementById('giftItemOverlay').classList.remove('show');
@@ -2125,7 +2139,8 @@ async function submitItemGift(){
     const {error:insErr}=await sb.from('sent_gifts').insert({
       gift_key:g.key, gift_name:g.name, price:g.price,
       sender_id:vchatUser.id, sender_username:vchatUser.username,
-      recipient_id:giftItemPickedUser.id, recipient_username:giftItemPickedUser.username
+      recipient_id:giftItemPickedUser.id, recipient_username:giftItemPickedUser.username,
+      message:giftItemWishText.trim()||null
     });
     if(insErr){ console.error(insErr); showToast('Не удалось отправить подарок'); btn.disabled=false; return; }
 
@@ -2142,7 +2157,7 @@ async function submitItemGift(){
       await loadUserGifts(vchatUser.id,'pGiftsGrid','pGiftsEmptyNote');
       showToast('Вы подарили себе «'+g.name+'»!');
     }else{
-      const content=JSON.stringify({key:g.key,name:g.name,price:g.price,video:g.video,color:g.color,fromUsername:vchatUser.username});
+      const content=JSON.stringify({key:g.key,name:g.name,price:g.price,video:g.video,color:g.color,fromUsername:vchatUser.username,message:giftItemWishText.trim()||''});
       const {data:row,error:msgErr}=await sb.from('messages').insert({
         sender_id:vchatUser.id, receiver_id:giftItemPickedUser.id, content:content, type:'gift'
       }).select().single();
@@ -2228,6 +2243,13 @@ function openGiftInfo(r){
     <div class="giftInfoRowItem"><span>Стоимость</span><span>${r.price} монет</span></div>
     <div class="giftInfoRowItem"><span>От кого</span><span>@${escHtml(r.sender_username)}</span></div>
     <div class="giftInfoRowItem"><span>Время</span><span>${giftInfoTimeStr(r.created_at)}</span></div>`;
+  const wishBox=document.getElementById('giftInfoWishBox');
+  if(r.message&&r.message.trim()){
+    wishBox.style.display='block';
+    wishBox.innerHTML='<b>Пожелание</b>'+escHtml(r.message);
+  }else{
+    wishBox.style.display='none'; wishBox.innerHTML='';
+  }
   updateGiftInfoSellBtn();
   document.getElementById('giftInfoOverlay').classList.add('show');
 }
@@ -2246,6 +2268,13 @@ function openGiftInfoFromMsg(m){
     <div class="giftInfoRowItem"><span>Стоимость</span><span>${m.price} монет</span></div>
     <div class="giftInfoRowItem"><span>От кого</span><span>@${escHtml(m.fromUsername)}</span></div>
     <div class="giftInfoRowItem"><span>Время</span><span>${escHtml(m.time)}</span></div>`;
+  const wishBox2=document.getElementById('giftInfoWishBox');
+  if(m.message&&m.message.trim()){
+    wishBox2.style.display='block';
+    wishBox2.innerHTML='<b>Пожелание</b>'+escHtml(m.message);
+  }else{
+    wishBox2.style.display='none'; wishBox2.innerHTML='';
+  }
   updateGiftInfoSellBtn();
   document.getElementById('giftInfoOverlay').classList.add('show');
 }
@@ -3641,6 +3670,10 @@ function backToChats(fromPopState){
   sendTypingStop();
   setupTypingChannelFor(null);
   curChat='';
+  const bgLayer=document.getElementById('cwBgLayer');
+  if(bgLayer){ bgLayer.classList.remove('show','fxBlur','fxDark'); }
+  const bgImg=document.getElementById('cwBgImg');
+  if(bgImg) bgImg.src='';
   let callBtn=document.getElementById('cwCallBtn');
   if(callBtn)callBtn.style.display='none';
   if(!fromPopState){
@@ -4466,7 +4499,7 @@ function dbRowToLocal(m){
   if(m.type==='gift'){
     let info={};
     try{ info=JSON.parse(m.content||'{}'); }catch(e){}
-    return {id:m.id,from:from,type:'gift',giftKey:info.key||'',giftName:info.name||'Подарок',price:info.price||0,video:info.video||'',color:info.color||'#eee',fromUsername:info.fromUsername||'',time:time,createdAt:m.created_at};
+    return {id:m.id,from:from,type:'gift',giftKey:info.key||'',giftName:info.name||'Подарок',price:info.price||0,video:info.video||'',color:info.color||'#eee',fromUsername:info.fromUsername||'',message:info.message||'',time:time,createdAt:m.created_at};
   }
   return {id:m.id,from:from,type:'text',text:m.content||'',time:time,createdAt:m.created_at,replyTo:m.reply_to||null};
 }
