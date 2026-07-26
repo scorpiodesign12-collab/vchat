@@ -189,8 +189,12 @@ body{display:flex;}
 .chatwin{flex:1;overflow-y:auto;padding:4px 2px;display:flex;flex-direction:column;scrollbar-width:none;position:relative;z-index:1;background:transparent;}
 .cwBgLayer{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:none;background:var(--bg);}
 .cwBgLayer.show{display:block;}
-.cwBgLayer img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:blur(3px);transform:scale(1.06);}
-.cwBgLayer::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.38);}
+.cwBgLayer img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:filter .15s;}
+.cwBgLayer.fxBlur img{filter:blur(3px);transform:scale(1.06);}
+.cwBgLayer.fxDark::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.38);}
+.cwBgFxRow{display:flex;flex-direction:column;gap:4px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.cwBgFxItem{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;color:var(--fg);padding:7px 2px;}
+.cwBgFxRow.hide{display:none;}
 .cwBgBtn{flex-shrink:0;}
 .cwBgOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
 .cwBgOverlay.show{display:flex;}
@@ -426,7 +430,9 @@ body{display:flex;}
   .chatDetailPane{display:flex !important;position:relative !important;inset:auto !important;padding:0 20px !important;z-index:auto !important;}
   .chatDetailPane .sendbar{display:none;}
   .chatDetailPane:not(.chatActive) .cwHeader .cwBack,
-  .chatDetailPane:not(.chatActive) .cwHeader .cwSearchBtn{visibility:hidden;}
+  .chatDetailPane:not(.chatActive) .cwHeader .cwSearchBtn,
+  .chatDetailPane:not(.chatActive) .cwHeader .cwBgBtn,
+  .chatDetailPane:not(.chatActive) .cwHeader .cwCallBtn{visibility:hidden;}
   .chatDetailPane.chatActive .sendbar{display:flex;}
   .chatDetailPane:not(.chatActive) .cwHeader b,
   .chatDetailPane:not(.chatActive) .cwHeader .av,
@@ -883,6 +889,16 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
                 <div class="cwBgThumb"><img src="wallpaper-dark.svg" alt=""></div>
                 <div class="cwBgOptionLabel">Тёмные обои</div>
                 <svg class="cwBgCheck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+            <div class="cwBgFxRow" id="cwBgFxRow">
+              <div class="cwBgFxItem">
+                <span>Размытие фона</span>
+                <label class="toggleSwitch"><input type="checkbox" id="cwBgBlurToggle" onchange="setChatBgFx('blur',this.checked)"><span class="toggleSlider"></span></label>
+              </div>
+              <div class="cwBgFxItem">
+                <span>Затемнение фона</span>
+                <label class="toggleSwitch"><input type="checkbox" id="cwBgDarkToggle" onchange="setChatBgFx('dark',this.checked)"><span class="toggleSlider"></span></label>
               </div>
             </div>
             <button class="cwBgClose" onclick="closeCwBgPicker()">Готово</button>
@@ -3552,8 +3568,15 @@ function openChat(name){
 
 /* ---------- фон чата (обои) ---------- */
 function cwBgKey(name){ return 'vchat_bg_'+name; }
+function cwBgFxKey(name,fx){ return 'vchat_bgfx_'+fx+'_'+name; }
 function getChatBg(name){
   try{ return localStorage.getItem(cwBgKey(name))||'none'; }catch(e){ return 'none'; }
+}
+function getChatBgFx(name,fx){
+  try{
+    const v=localStorage.getItem(cwBgFxKey(name,fx));
+    return v===null?true:v==='1'; // по умолчанию включено
+  }catch(e){ return true; }
 }
 function applyChatBg(name){
   const layer=document.getElementById('cwBgLayer');
@@ -3570,6 +3593,8 @@ function applyChatBg(name){
     img.src='';
     layer.classList.remove('show');
   }
+  layer.classList.toggle('fxBlur',mode!=='none'&&getChatBgFx(name,'blur'));
+  layer.classList.toggle('fxDark',mode!=='none'&&getChatBgFx(name,'dark'));
 }
 function openCwBgPicker(){
   if(!curChat)return;
@@ -3579,6 +3604,9 @@ function openCwBgPicker(){
   document.getElementById('cwBgOptNone').classList.toggle('on',mode==='none');
   document.getElementById('cwBgOptLight').classList.toggle('on',mode==='light');
   document.getElementById('cwBgOptDark').classList.toggle('on',mode==='dark');
+  document.getElementById('cwBgBlurToggle').checked=getChatBgFx(curChat,'blur');
+  document.getElementById('cwBgDarkToggle').checked=getChatBgFx(curChat,'dark');
+  document.getElementById('cwBgFxRow').classList.toggle('hide',mode==='none');
   overlay.classList.add('show');
 }
 function closeCwBgPicker(){
@@ -3592,6 +3620,12 @@ function setChatBg(mode){
   document.getElementById('cwBgOptNone').classList.toggle('on',mode==='none');
   document.getElementById('cwBgOptLight').classList.toggle('on',mode==='light');
   document.getElementById('cwBgOptDark').classList.toggle('on',mode==='dark');
+  document.getElementById('cwBgFxRow').classList.toggle('hide',mode==='none');
+}
+function setChatBgFx(fx,on){
+  if(!curChat)return;
+  try{ localStorage.setItem(cwBgFxKey(curChat,fx),on?'1':'0'); }catch(e){}
+  applyChatBg(curChat);
 }
 function applyDmClosedUiState(name){
   const sendbar=document.getElementById('cwSendbar');
