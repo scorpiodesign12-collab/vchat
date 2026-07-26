@@ -1621,7 +1621,12 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
     v.__vchatManaged=true;
     v.preload='auto'; // грузим данные сразу, чтобы был кадр для превью, декодируем только когда видно/играет
     v.removeAttribute('autoplay'); // играть будем сами, через шедулер
+    v.removeAttribute('loop'); // цикл ограничиваем вручную до 4 секунд, см. ниже
     if(!v.paused)v.pause();
+    v.addEventListener('timeupdate',function(){
+      if(v.currentTime>=4){ v.currentTime=0; if(!v.paused)v.play().catch(function(){}); }
+    });
+    v.addEventListener('ended',function(){ v.currentTime=0; if(playing.has(v))v.play().catch(function(){}); });
     ensureObserver().observe(v);
   }
   function scan(root){
