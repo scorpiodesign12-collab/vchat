@@ -189,7 +189,8 @@ body{display:flex;}
 .chatwin{flex:1;overflow-y:auto;padding:4px 2px;display:flex;flex-direction:column;scrollbar-width:none;position:relative;z-index:1;background:transparent;}
 .cwBgLayer{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:none;background:var(--bg);}
 .cwBgLayer.show{display:block;}
-.cwBgLayer img{width:100%;height:100%;object-fit:cover;object-position:top center;}
+.cwBgLayer img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:blur(3px);transform:scale(1.06);}
+.cwBgLayer::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.38);}
 .cwBgBtn{flex-shrink:0;}
 .cwBgOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
 .cwBgOverlay.show{display:flex;}
@@ -649,7 +650,8 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
 .giftFilterRow{display:flex;justify-content:center;gap:8px;padding:2px 0 14px;width:100%;}
 .giftFilterBtn{padding:8px 15px;border-radius:14px;border:none;background:var(--card);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
 .giftFilterBtn.on{background:var(--btn);color:var(--btn-fg);}
-.giftCatalogGrid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-items:start;gap:12px;width:100%;padding-bottom:20px;overflow-y:auto;}
+.giftCatalogGrid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-items:start;gap:12px;width:100%;padding-bottom:20px;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.giftCatalogGrid::-webkit-scrollbar{display:none;width:0;height:0;}
 .giftCatalogCard{position:relative;border-radius:22px;overflow:hidden;cursor:pointer;width:100%;height:0;padding-top:100%;transition:.15s;}
 .giftCatalogCard:active{transform:scale(.96);}
 .giftCatalogCard.sold{opacity:.45;cursor:not-allowed;}
@@ -1604,7 +1606,7 @@ h2{font-size:22px;margin:6px 0 2px;font-weight:700;color:var(--fg);}
    не больше N видео (самые видимые на экране), остальные ставятся на паузу —
    это и снимает лаги, т.к. декодировать десяток видео разом не по силам даже мощному телефону ===== */
 (function(){
-  var MAX_PLAYING=4; // сколько видео-анимаций может декодироваться одновременно
+  var MAX_PLAYING=24; // сколько видео-анимаций может декодироваться одновременно
   var io=null;
   var playing=new Set(); // видео, которые сейчас реально play()
   var visible=new Map(); // видео -> intersectionRatio (для приоритезации)
